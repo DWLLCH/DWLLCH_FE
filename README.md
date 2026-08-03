@@ -13,12 +13,12 @@ cd DWLLCH_FE
 
 ### 2. 의존성 설치
 ```bash
-pnpm install
+yarn install
 ```
 
 ### 3. 개발 서버 실행
 ```bash
-pnpm start
+yarn start
 ```
 
 ---
