@@ -36,7 +36,7 @@
     "lint:fix": "eslint src --fix",
     "format": "prettier --write \"src/**/*.{js,jsx,css,json}\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx,css,json}\"",
-    "prepare": "husky"
+    "prepare": "node .husky/install.mjs"
   },
   "eslintConfig": {
     "extends": [
@@ -46,8 +46,8 @@
     ]
   },
   "lint-staged": {
-    "src/**/*.{js,jsx}": "eslint --fix",
-    "src/**/*.{js,jsx,css,json}": "prettier --write"
+    "src/**/*.{js,jsx}": ["eslint --fix", "prettier --write"],
+    "src/**/*.{css,json}": "prettier --write"
   },
   "browserslist": {
     "production": [

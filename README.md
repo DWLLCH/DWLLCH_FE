@@ -31,12 +31,12 @@ yarn start
   - 커밋 전 `.husky/pre-commit`에서 lint-staged가 변경된 파일에 대해 ESLint/Prettier를 자동 실행
 - **Vitest + Testing Library** — 컴포넌트 테스트
   - `yarn test` (1회 실행) / `yarn test:watch` (watch 모드)
-- **CodeRabbit** — PR 생성 시 GitHub에서 자동으로 코드 리뷰
+- **CodeRabbit** — PR 생성 시 (draft 제외) GitHub에서 자동으로 코드 리뷰
 
 ---
 
 ## 폴더 구조
-```
+```text
 src/
   components/     # 공통 컴포넌트
   pages/          # 라우트 단위 페이지
