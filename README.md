@@ -55,19 +55,21 @@ src/
 - `develop` — 개발 통합 브랜치
 - `feat/#이슈번호-기능명` — 기능 개발
 - `fix/#이슈번호-버그명` — 버그 수정
+- `chore/#이슈번호-작업명` — 설정, 빌드, 문서 등
 
 ## 이슈 규칙
-- 작업 시작 전 이슈 먼저 생성
-- 이슈 제목 형식: `[FEAT] 기능명` / `[FIX] 버그명`
+- 작업 시작 전 이슈 먼저 생성 (`chore` 포함, 예외 없음)
+- 이슈 제목 형식: `[FEAT] 기능명` / `[FIX] 버그명` / `[CHORE] 작업명`
 - 이슈 템플릿(`.github/ISSUE_TEMPLATE`) 사용
   - 기능 요청 → `feature.md`
   - 버그 리포트 → `bug.md`
+  - 설정/빌드 등 → `chore.md`
 
 ## PR 규칙
 - PR 제목은 커밋 컨벤션과 동일한 형식
 - 이슈 없이 PR 금지 (`closes #이슈번호` 필수)
 - PR 템플릿(`.github/pull_request_template.md`) 양식에 맞춰 작성
-- `feat` / `fix` 브랜치 → `develop`으로 PR
+- `feat` / `fix` / `chore` 브랜치 → `develop`으로 PR
 - `develop` → `main`은 배포 시점에만 머지
 
 ## 커밋 컨벤션
