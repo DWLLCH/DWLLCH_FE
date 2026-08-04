@@ -14,17 +14,40 @@
     "styled-components": "^6.4.4",
     "web-vitals": "^2.1.4"
   },
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.1",
+    "@commitlint/config-conventional": "^21.2.0",
+    "@vitejs/plugin-react": "^6.0.5",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "jsdom": "^29.1.1",
+    "lint-staged": "^17.3.0",
+    "prettier": "^3.9.6",
+    "vite": "^8.2.0",
+    "vitest": "^4.1.10"
+  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src --max-warnings=0",
+    "lint:fix": "eslint src --fix",
+    "format": "prettier --write \"src/**/*.{js,jsx,css,json}\"",
+    "format:check": "prettier --check \"src/**/*.{js,jsx,css,json}\"",
+    "prepare": "husky"
   },
   "eslintConfig": {
     "extends": [
       "react-app",
-      "react-app/jest"
+      "react-app/jest",
+      "prettier"
     ]
+  },
+  "lint-staged": {
+    "src/**/*.{js,jsx}": "eslint --fix",
+    "src/**/*.{js,jsx,css,json}": "prettier --write"
   },
   "browserslist": {
     "production": [
