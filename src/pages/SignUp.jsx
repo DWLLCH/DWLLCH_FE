@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import TextField from '../components/TextField';
 import DuplicateCheckButton from '../components/DuplicateCheckButton';
 import Checkbox from '../components/Checkbox';
@@ -9,6 +10,7 @@ import { getPasswordRules, isValidEmail, isValidId } from '../utils/validators';
 import '../styles/SignUp.css';
 
 function SignUp() {
+  const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', id: '', password: '', passwordConfirm: '' });
   const [emailStatus, setEmailStatus] = useState('idle');
   const [agreements, setAgreements] = useState({ privacy: false, terms: false, marketing: false });
@@ -44,10 +46,6 @@ function SignUp() {
     setAgreements((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-  };
-
   const isFormValid =
     emailStatus === 'available' &&
     isIdValid &&
@@ -55,6 +53,12 @@ function SignUp() {
     isPasswordConfirmValid &&
     agreements.privacy &&
     agreements.terms;
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!isFormValid) return;
+    navigate('/signup/complete');
+  };
 
   return (
     <div className="signup">
@@ -105,6 +109,13 @@ function SignUp() {
             value={form.id}
             onChange={handleChange}
           />
+          {form.id && (
+            <p
+              className={`signup-field-message${isIdValid ? ' signup-field-message--success' : ' signup-field-message--error'}`}
+            >
+              {isIdValid ? '사용 가능한 아이디입니다' : '영문, 숫자 조합 8~12자로 입력해주세요'}
+            </p>
+          )}
         </div>
 
         {/* 비밀번호 설정 */}
@@ -129,7 +140,7 @@ function SignUp() {
               className={`password-checklist-item${passwordRules.alnum ? ' password-checklist-item--valid' : ''}`}
             >
               <span className="password-checklist-icon" />
-              영문,숫자
+              영문, 숫자
             </li>
             <li
               className={`password-checklist-item${passwordRules.special ? ' password-checklist-item--valid' : ''}`}

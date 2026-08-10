@@ -32,16 +32,13 @@
   position: relative;
 }
 
-.signup-field--id {
-  margin-top: 32px;
-}
-
+.signup-field--id,
 .signup-field--password {
-  margin-top: 25px;
+  margin-top: 34px;
 }
 
 .signup-field--password-confirm {
-  margin-top: 18px;
+  margin-top: 15px;
 }
 
 .signup-field-message {
@@ -64,7 +61,7 @@
 .password-checklist {
   display: flex;
   gap: 12px;
-  margin: 8px 0 0;
+  margin: 6px 0 0;
   padding: 0;
   list-style: none;
 }
@@ -100,7 +97,7 @@
 
 /* 약관 동의 */
 .signup-terms {
-  margin-top: 42px;
+  margin-top: 48px;
   display: flex;
   flex-direction: column;
 }
@@ -109,7 +106,7 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  height: 43px;
+  height: 34px;
   padding: 0 15px;
 }
 
@@ -136,5 +133,5 @@
 }
 
 .signup-body .btn-full {
-  margin-top: 24px;
+  margin-top: 20px;
 }

@@ -18,7 +18,9 @@
 
 .checkbox-box {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 19px;
   height: 19px;
   border: 1px solid #000;
@@ -28,14 +30,15 @@
 
 .checkbox-box::after {
   content: '';
-  position: absolute;
-  top: 1px;
-  left: 6px;
-  width: 5px;
+  width: 11px;
   height: 9px;
-  border: solid #000;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
+  background-color: #000;
+  mask-image: url(../assets/check.svg);
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  -webkit-mask-image: url(../assets/check.svg);
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
   opacity: 0;
 }
 
