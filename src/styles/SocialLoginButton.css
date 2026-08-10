@@ -25,8 +25,8 @@
 }
 
 .social-login-btn:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(108, 213, 155, 0.3);
+  outline: 2px solid #4fae7c;
+  outline-offset: 2px;
 }
 
 .social-login-icon {
