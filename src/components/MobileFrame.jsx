@@ -3,10 +3,8 @@ import '../styles/MobileFrame.css';
 
 function MobileFrame() {
   return (
-    <div className="mobile-frame-bg">
-      <div className="mobile-frame">
-        <Outlet />
-      </div>
+    <div className="mobile-frame">
+      <Outlet />
     </div>
   );
 }

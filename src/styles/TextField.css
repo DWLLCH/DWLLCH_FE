@@ -1,0 +1,68 @@
+.text-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.text-field-label {
+  font-size: 20px;
+  color: #000;
+}
+
+.text-field-box {
+  display: flex;
+  align-items: center;
+  height: 45px;
+  padding: 0 16px;
+  border: 1px solid #6cd59b;
+  border-radius: 10px;
+  background-color: #fff;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.text-field-box:focus-within {
+  border-color: #4fae7c;
+  box-shadow: 0 0 0 3px rgba(108, 213, 155, 0.2);
+}
+
+.text-field-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 13px;
+  color: #000;
+}
+
+.text-field-input::placeholder {
+  color: #d9d9d9;
+}
+
+.text-field-input::-ms-reveal,
+.text-field-input::-ms-clear {
+  display: none;
+}
+
+.text-field-input::-webkit-credentials-auto-fill-button,
+.text-field-input::-webkit-strong-password-auto-fill-button {
+  visibility: hidden;
+  display: none !important;
+}
+
+.text-field-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  padding: 4px;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.text-field-toggle img {
+  width: 100%;
+}

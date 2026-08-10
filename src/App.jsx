@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import MobileFrame from './components/MobileFrame';
 import Splash from './pages/Splash';
+import Login from './pages/Login';
 
 function App() {
   return (
@@ -8,6 +9,7 @@ function App() {
       <Routes>
         <Route element={<MobileFrame />}>
           <Route path="/" element={<Splash />} />
+          <Route path="/login" element={<Login />} />
         </Route>
       </Routes>
     </BrowserRouter>

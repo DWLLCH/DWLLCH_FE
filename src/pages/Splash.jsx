@@ -1,7 +1,18 @@
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import logoImage from '../assets/logo_image.svg';
 import '../styles/Splash.css';
 
 function Splash() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigate('/login');
+    }, 2200);
+    return () => clearTimeout(timer);
+  }, [navigate]);
+
   return (
     <div className="splash">
       {/* 로고 */}
