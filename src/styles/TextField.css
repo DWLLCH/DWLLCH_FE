@@ -14,17 +14,14 @@
   align-items: center;
   height: 45px;
   padding: 0 16px;
-  border: 1px solid #6cd59b;
+  border: 1px solid #d9d9d9;
   border-radius: 10px;
   background-color: #fff;
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
+  transition: border-color 0.15s ease;
 }
 
 .text-field-box:focus-within {
   border-color: #4fae7c;
-  box-shadow: 0 0 0 3px rgba(108, 213, 155, 0.2);
 }
 
 .text-field-input {
