@@ -1,0 +1,29 @@
+:root {
+  --mobile-max-width: 430px;
+}
+
+/* 모바일 프레임 */
+.mobile-frame-bg {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  height: 100dvh;
+  background-color: #e5e5e5;
+}
+
+.mobile-frame {
+  position: relative;
+  height: 100%;
+  width: auto;
+  max-width: var(--mobile-max-width);
+  aspect-ratio: 402 / 874;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+@media (min-width: 431px) {
+  .mobile-frame {
+    box-shadow: 0 0 24px rgba(0, 0, 0, 0.12);
+  }
+}

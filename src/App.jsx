@@ -1,24 +1,16 @@
-import logo from './assets/logo.svg';
-import './styles/App.css';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import MobileFrame from './components/MobileFrame';
+import Splash from './pages/Splash';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.jsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <Routes>
+        <Route element={<MobileFrame />}>
+          <Route path="/" element={<Splash />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 
