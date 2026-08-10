@@ -3,7 +3,7 @@ import showIcon from '../assets/show.svg';
 import hideIcon from '../assets/hide.svg';
 import '../styles/TextField.css';
 
-function TextField({ id, name, label, type = 'text', placeholder, value, onChange }) {
+function TextField({ id, name, label, type = 'text', placeholder, value, onChange, rightElement }) {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === 'password';
   const inputType = isPassword ? (showPassword ? 'text' : 'password') : type;
@@ -24,17 +24,20 @@ function TextField({ id, name, label, type = 'text', placeholder, value, onChang
           placeholder={placeholder}
           value={value}
           onChange={onChange}
+          autoComplete="off"
         />
-        {isPassword && (
-          <button
-            type="button"
-            className="text-field-toggle"
-            onClick={() => setShowPassword((prev) => !prev)}
-            aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 보기'}
-          >
-            <img src={showPassword ? showIcon : hideIcon} alt="" />
-          </button>
-        )}
+        {rightElement
+          ? rightElement
+          : isPassword && (
+              <button
+                type="button"
+                className="text-field-toggle"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 보기'}
+              >
+                <img src={showPassword ? showIcon : hideIcon} alt="" />
+              </button>
+            )}
       </div>
     </div>
   );
