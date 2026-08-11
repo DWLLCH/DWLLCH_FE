@@ -16,7 +16,9 @@ export function getPasswordRules(password) {
 
 export function isValidBirthDate(value) {
   if (!/^\d{8}$/.test(value)) return false;
+  const year = Number(value.slice(0, 4));
   const month = Number(value.slice(4, 6));
   const day = Number(value.slice(6, 8));
-  return month >= 1 && month <= 12 && day >= 1 && day <= 31;
+  const date = new Date(year, month - 1, day);
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 }

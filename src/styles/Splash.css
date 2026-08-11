@@ -74,3 +74,20 @@
     transform: scale(1);
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-logo,
+  .splash-loading,
+  .splash-loading span {
+    animation: none;
+  }
+
+  .splash-logo,
+  .splash-loading {
+    opacity: 1;
+  }
+
+  .splash-logo {
+    transform: none;
+  }
+}

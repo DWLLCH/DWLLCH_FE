@@ -16,11 +16,15 @@ function Onboarding1() {
   const { birthDate } = data;
 
   const handleChange = (e) => {
-    const rawValue = e.target.value;
+    const input = e.target;
+    const rawValue = input.value;
+    const caret = input.selectionStart ?? rawValue.length;
     const strippedDigits = rawValue.replace(/\D/g, '').slice(0, 8);
     const prevDisplay = formatBirthDate(birthDate);
     if (rawValue.length < prevDisplay.length && strippedDigits.length === birthDate.length) {
-      updateData({ birthDate: birthDate.slice(0, -1) });
+      const digitsBeforeCaret = rawValue.slice(0, caret).replace(/\D/g, '').length;
+      const removeIndex = Math.max(digitsBeforeCaret - 1, 0);
+      updateData({ birthDate: birthDate.slice(0, removeIndex) + birthDate.slice(removeIndex + 1) });
     } else {
       updateData({ birthDate: strippedDigits });
     }
