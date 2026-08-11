@@ -70,6 +70,13 @@
   margin-top: 25px;
 }
 
+.onboarding-chip-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px 10px;
+  margin-top: 16px;
+}
+
 .onboarding-next-btn {
   position: absolute;
   left: 32px;

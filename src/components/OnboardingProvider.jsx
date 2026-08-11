@@ -7,6 +7,8 @@ const initialData = {
   birthDate: '',
   sido: '',
   sigungu: '',
+  protectionType: '',
+  endStatus: '',
 };
 
 function OnboardingProvider({ children }) {

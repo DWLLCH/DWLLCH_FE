@@ -1,0 +1,37 @@
+.option-chip {
+  height: 45px;
+  border: 1px solid #6cd59b;
+  border-radius: 10px;
+  background-color: #fff;
+  font-family: inherit;
+  font-size: 15px;
+  color: #202020;
+  cursor: pointer;
+  outline: none;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.option-chip:hover {
+  background-color: #f2fbf6;
+}
+
+.option-chip:active {
+  background-color: #4fae7c;
+  color: #fff;
+}
+
+.option-chip:focus-visible {
+  outline: 2px solid #4fae7c;
+  outline-offset: 2px;
+}
+
+.option-chip--selected {
+  background-color: #6cd59b;
+  color: #fff;
+}
+
+.option-chip--selected:hover {
+  background-color: #6cd59b;
+}
