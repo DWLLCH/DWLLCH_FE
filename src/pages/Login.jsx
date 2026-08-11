@@ -33,6 +33,7 @@ function Login() {
           placeholder="메일 주소를 입력해주세요"
           value={form.email}
           onChange={handleChange}
+          autoComplete="username"
         />
         <TextField
           id="password"
@@ -42,6 +43,7 @@ function Login() {
           placeholder="비밀번호를 입력해주세요"
           value={form.password}
           onChange={handleChange}
+          autoComplete="current-password"
         />
 
         <Button type="submit" fullWidth>

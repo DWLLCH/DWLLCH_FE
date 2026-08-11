@@ -84,6 +84,7 @@ function SignUp() {
             placeholder="메일 주소를 입력해주세요"
             value={form.email}
             onChange={handleChange}
+            autoComplete="email"
             rightElement={
               <DuplicateCheckButton
                 status={emailStatus}
@@ -134,6 +135,7 @@ function SignUp() {
             placeholder="비밀번호를 입력해주세요"
             value={form.password}
             onChange={handleChange}
+            autoComplete="new-password"
           />
           <ul className="password-checklist">
             <li
@@ -167,6 +169,7 @@ function SignUp() {
             placeholder="비밀번호를 다시 입력해주세요"
             value={form.passwordConfirm}
             onChange={handleChange}
+            autoComplete="new-password"
           />
           {form.passwordConfirm && (
             <p

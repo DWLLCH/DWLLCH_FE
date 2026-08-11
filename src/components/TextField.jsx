@@ -14,6 +14,7 @@ function TextField({
   rightElement,
   inputMode,
   maxLength,
+  autoComplete = 'off',
 }) {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === 'password';
@@ -35,7 +36,7 @@ function TextField({
           placeholder={placeholder}
           value={value}
           onChange={onChange}
-          autoComplete="off"
+          autoComplete={autoComplete}
           inputMode={inputMode}
           maxLength={maxLength}
         />

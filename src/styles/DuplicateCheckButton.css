@@ -4,7 +4,7 @@
   border: none;
   border-radius: 6px;
   background-color: #d9d9d9;
-  color: #fff;
+  color: #757575;
   font-size: 13px;
   cursor: pointer;
 }
@@ -15,4 +15,5 @@
 
 .duplicate-check-btn--available {
   background-color: #6cd59b;
+  color: #fff;
 }
