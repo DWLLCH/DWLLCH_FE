@@ -42,6 +42,12 @@ function Dropdown({ placeholder, value, options, onChange, disabled = false, cla
       </button>
       {open && (
         <ul className="dropdown-panel">
+          <li>
+            <button type="button" className="dropdown-option" onClick={() => handleSelect('')}>
+              <img src={!value ? radioChecked : radioUnchecked} alt="" />
+              <span>{placeholder}</span>
+            </button>
+          </li>
           {options.map((option) => (
             <li key={option}>
               <button

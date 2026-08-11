@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import MobileFrame from './components/MobileFrame';
+import OnboardingProvider from './components/OnboardingProvider';
 import Splash from './pages/Splash';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
@@ -16,8 +17,10 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/signup/complete" element={<SignUpComplete />} />
-          <Route path="/onboarding/1" element={<Onboarding1 />} />
-          <Route path="/onboarding/2" element={<Onboarding2 />} />
+          <Route element={<OnboardingProvider />}>
+            <Route path="/onboarding/1" element={<Onboarding1 />} />
+            <Route path="/onboarding/2" element={<Onboarding2 />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

@@ -12,9 +12,12 @@
   border: 1px solid #d9d9d9;
   border-radius: 10px;
   background-color: #fff;
+  font-family: inherit;
   font-size: 20px;
+  line-height: normal;
   color: #000;
   cursor: pointer;
+  outline: none;
   transition: border-color 0.15s ease;
 }
 
@@ -25,6 +28,11 @@
 
 .dropdown-box--open {
   border-color: #6cd59b;
+}
+
+.dropdown-box:focus-visible {
+  outline: 2px solid #4fae7c;
+  outline-offset: 2px;
 }
 
 .dropdown-value {
@@ -74,10 +82,16 @@
   padding: 9px 16px;
   border: none;
   background: none;
+  font-family: inherit;
   font-size: 17px;
   color: #000;
   text-align: left;
   cursor: pointer;
+  outline: none;
+}
+
+.dropdown-option:focus-visible {
+  background-color: #f7faf8;
 }
 
 .dropdown-option:hover {

@@ -7,11 +7,12 @@ function Button({
   disabled = false,
   fullWidth = false,
   variant = 'green',
+  className = '',
 }) {
   return (
     <button
       type={type}
-      className={`btn${fullWidth ? ' btn-full' : ''}${variant !== 'green' ? ` btn-${variant}` : ''}`}
+      className={`btn${fullWidth ? ' btn-full' : ''}${variant !== 'green' ? ` btn-${variant}` : ''}${className ? ` ${className}` : ''}`}
       onClick={onClick}
       disabled={disabled}
     >

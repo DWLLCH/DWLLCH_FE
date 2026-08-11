@@ -1,20 +1,29 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TextField from '../components/TextField';
 import Button from '../components/Button';
 import ProgressBar from '../components/ProgressBar';
+import useOnboarding from '../hooks/useOnboarding';
 import { isValidBirthDate } from '../utils/validators';
+import { formatBirthDate } from '../utils/formatters';
+import arrowRight from '../assets/arrow_right.svg';
 import '../styles/Onboarding.css';
 
 const TOTAL_STEPS = 11;
 
 function Onboarding1() {
   const navigate = useNavigate();
-  const [birthDate, setBirthDate] = useState('');
+  const { data, updateData } = useOnboarding();
+  const { birthDate } = data;
 
   const handleChange = (e) => {
-    const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 8);
-    setBirthDate(digitsOnly);
+    const rawValue = e.target.value;
+    const strippedDigits = rawValue.replace(/\D/g, '').slice(0, 8);
+    const prevDisplay = formatBirthDate(birthDate);
+    if (rawValue.length < prevDisplay.length && strippedDigits.length === birthDate.length) {
+      updateData({ birthDate: birthDate.slice(0, -1) });
+    } else {
+      updateData({ birthDate: strippedDigits });
+    }
   };
 
   const isValid = isValidBirthDate(birthDate);
@@ -22,12 +31,20 @@ function Onboarding1() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!isValid) return;
-    navigate('/onboarding/2', { state: { birthDate } });
+    navigate('/onboarding/2');
   };
 
   return (
     <div className="onboarding">
       <header className="onboarding-header">
+        <button
+          type="button"
+          className="onboarding-back"
+          onClick={() => navigate(-1)}
+          aria-label="뒤로가기"
+        >
+          <img src={arrowRight} alt="" />
+        </button>
         <h1>프로필 생성</h1>
       </header>
 
@@ -41,14 +58,14 @@ function Onboarding1() {
           name="birthDate"
           label="생년월일"
           placeholder="ex. YYYY.MM.DD"
-          value={birthDate}
+          value={formatBirthDate(birthDate)}
           onChange={handleChange}
           inputMode="numeric"
-          maxLength={8}
+          maxLength={10}
         />
         <p className="onboarding-helper">생년월일 8자리를 정확히 입력해주세요.</p>
 
-        <Button type="submit" fullWidth disabled={!isValid}>
+        <Button type="submit" className="onboarding-next-btn" disabled={!isValid}>
           다음으로
         </Button>
       </form>
