@@ -1,0 +1,155 @@
+.signup-complete {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* 헤더 */
+.signup-complete-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 105px;
+  padding-bottom: 7px;
+  box-shadow: 0 0.5px 4px rgba(0, 0, 0, 0.25);
+}
+
+.signup-complete-header h1 {
+  font-size: 25px;
+  font-weight: 500;
+}
+
+.signup-complete-body {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 70px 32px 0;
+}
+
+@keyframes signup-complete-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.signup-complete-logo {
+  width: 145px;
+  height: 104px;
+  opacity: 0;
+  animation: signup-complete-fade-up 0.6s ease-out forwards;
+}
+
+.signup-complete-title {
+  margin-top: 22px;
+  font-size: 20px;
+  color: #000;
+  opacity: 0;
+  animation: signup-complete-fade-up 0.7s ease-out forwards;
+}
+
+.signup-complete-title-brand {
+  font-size: 23px;
+  font-weight: 600;
+  color: #597ce4;
+}
+
+.signup-complete-desc {
+  margin-top: 31px;
+  font-size: 15px;
+  color: #000;
+  text-align: center;
+  line-height: 1.4;
+  opacity: 0;
+  animation: signup-complete-fade-up 0.7s ease-out 1s forwards;
+}
+
+.signup-complete-box {
+  margin-top: 60px;
+  width: 305px;
+  padding: 20px 20px 24px;
+  border: 1px solid #6cd59b;
+  border-radius: 10px;
+  text-align: center;
+  opacity: 0;
+  animation: signup-complete-fade-up 0.7s ease-out 2s forwards;
+}
+
+.signup-complete-box-title {
+  font-size: 19px;
+  font-weight: 700;
+  color: #000;
+}
+
+/* 혜택 체크리스트 */
+.signup-complete-benefits {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+@keyframes signup-complete-check-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px) scale(0.92);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.signup-complete-benefit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  line-height: 22px;
+  color: #000;
+  opacity: 0;
+  animation: signup-complete-check-in 0.5s ease-out forwards;
+}
+
+.signup-complete-benefit:not(:last-child) {
+  margin-bottom: 4px;
+}
+
+.signup-complete-check {
+  flex-shrink: 0;
+  display: inline-block;
+  width: 11px;
+  height: 9px;
+  background-color: #6cd59b;
+  mask-image: url(../assets/check.svg);
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  -webkit-mask-image: url(../assets/check.svg);
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+}
+
+.signup-complete-box-footer {
+  margin-top: 8px;
+  margin-left: 17px;
+  font-size: 15px;
+  color: #000;
+  text-align: left;
+}
+
+.signup-complete-actions {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 0 32px 45px;
+}
