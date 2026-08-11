@@ -34,3 +34,13 @@
 .progress-bar--celebrate {
   animation: progress-bar-celebrate 0.8s ease-out 0.8s;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-bar--celebrate {
+    animation: none;
+  }
+
+  .progress-bar-fill--celebrate {
+    transition: none;
+  }
+}

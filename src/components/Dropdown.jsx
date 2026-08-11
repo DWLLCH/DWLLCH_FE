@@ -30,6 +30,8 @@ function Dropdown({ placeholder, value, options, onChange, disabled = false, cla
         className={`dropdown-box${open ? ' dropdown-box--open' : ''}`}
         onClick={() => !disabled && setOpen((prev) => !prev)}
         disabled={disabled}
+        aria-haspopup="listbox"
+        aria-expanded={open}
       >
         <span className={`dropdown-value${value ? '' : ' dropdown-value--placeholder'}`}>
           {value || placeholder}
@@ -41,18 +43,26 @@ function Dropdown({ placeholder, value, options, onChange, disabled = false, cla
         />
       </button>
       {open && (
-        <ul className="dropdown-panel">
-          <li>
-            <button type="button" className="dropdown-option" onClick={() => handleSelect('')}>
+        <ul className="dropdown-panel" role="listbox">
+          <li role="presentation">
+            <button
+              type="button"
+              className="dropdown-option"
+              role="option"
+              aria-selected={!value}
+              onClick={() => handleSelect('')}
+            >
               <img src={!value ? radioChecked : radioUnchecked} alt="" />
               <span>{placeholder}</span>
             </button>
           </li>
           {options.map((option) => (
-            <li key={option}>
+            <li key={option} role="presentation">
               <button
                 type="button"
                 className="dropdown-option"
+                role="option"
+                aria-selected={value === option}
                 onClick={() => handleSelect(option)}
               >
                 <img src={value === option ? radioChecked : radioUnchecked} alt="" />
