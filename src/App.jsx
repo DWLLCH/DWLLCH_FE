@@ -4,6 +4,8 @@ import Splash from './pages/Splash';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
 import SignUpComplete from './pages/SignUpComplete';
+import Onboarding1 from './pages/Onboarding1';
+import Onboarding2 from './pages/Onboarding2';
 
 function App() {
   return (
@@ -14,6 +16,8 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/signup/complete" element={<SignUpComplete />} />
+          <Route path="/onboarding/1" element={<Onboarding1 />} />
+          <Route path="/onboarding/2" element={<Onboarding2 />} />
         </Route>
       </Routes>
     </BrowserRouter>

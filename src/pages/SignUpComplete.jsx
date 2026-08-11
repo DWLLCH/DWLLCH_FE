@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
 import logoImage from '../assets/logo_image.svg';
 import '../styles/SignUpComplete.css';
@@ -10,6 +11,8 @@ const BENEFITS = [
 ];
 
 function SignUpComplete() {
+  const navigate = useNavigate();
+
   return (
     <div className="signup-complete">
       <header className="signup-complete-header">
@@ -48,7 +51,7 @@ function SignUpComplete() {
       </div>
 
       <div className="signup-complete-actions">
-        <Button fullWidth variant="blue">
+        <Button fullWidth variant="blue" onClick={() => navigate('/onboarding/1')}>
           자립 프로필 만들기
         </Button>
         <Button fullWidth variant="gray">

@@ -3,7 +3,18 @@ import showIcon from '../assets/show.svg';
 import hideIcon from '../assets/hide.svg';
 import '../styles/TextField.css';
 
-function TextField({ id, name, label, type = 'text', placeholder, value, onChange, rightElement }) {
+function TextField({
+  id,
+  name,
+  label,
+  type = 'text',
+  placeholder,
+  value,
+  onChange,
+  rightElement,
+  inputMode,
+  maxLength,
+}) {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === 'password';
   const inputType = isPassword ? (showPassword ? 'text' : 'password') : type;
@@ -25,6 +36,8 @@ function TextField({ id, name, label, type = 'text', placeholder, value, onChang
           value={value}
           onChange={onChange}
           autoComplete="off"
+          inputMode={inputMode}
+          maxLength={maxLength}
         />
         {rightElement
           ? rightElement
