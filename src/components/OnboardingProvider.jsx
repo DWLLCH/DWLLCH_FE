@@ -10,6 +10,10 @@ const initialData = {
   protectionType: '',
   endStatus: '',
   endDate: null,
+  housing: '',
+  housingSituation: '',
+  lifestyle: [],
+  incomeType: '',
 };
 
 function OnboardingProvider({ children }) {

@@ -10,6 +10,10 @@ import Onboarding2 from './pages/Onboarding2';
 import Onboarding3 from './pages/Onboarding3';
 import Onboarding4 from './pages/Onboarding4';
 import Onboarding5 from './pages/Onboarding5';
+import Onboarding6 from './pages/Onboarding6';
+import Onboarding7 from './pages/Onboarding7';
+import Onboarding8 from './pages/Onboarding8';
+import Onboarding9 from './pages/Onboarding9';
 
 function App() {
   return (
@@ -26,6 +30,10 @@ function App() {
             <Route path="/onboarding/3" element={<Onboarding3 />} />
             <Route path="/onboarding/4" element={<Onboarding4 />} />
             <Route path="/onboarding/5" element={<Onboarding5 />} />
+            <Route path="/onboarding/6" element={<Onboarding6 />} />
+            <Route path="/onboarding/7" element={<Onboarding7 />} />
+            <Route path="/onboarding/8" element={<Onboarding8 />} />
+            <Route path="/onboarding/9" element={<Onboarding9 />} />
           </Route>
         </Route>
       </Routes>

@@ -77,6 +77,13 @@
   margin-top: 16px;
 }
 
+.onboarding-option-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 16px;
+}
+
 .onboarding-next-btn {
   position: absolute;
   left: 32px;

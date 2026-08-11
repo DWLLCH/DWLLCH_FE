@@ -1,10 +1,10 @@
 import '../styles/OptionChip.css';
 
-function OptionChip({ label, selected, onClick }) {
+function OptionChip({ label, selected, onClick, fullWidth = false }) {
   return (
     <button
       type="button"
-      className={`option-chip${selected ? ' option-chip--selected' : ''}`}
+      className={`option-chip${fullWidth ? ' option-chip--full' : ''}${selected ? ' option-chip--selected' : ''}`}
       onClick={onClick}
       aria-pressed={selected}
     >
