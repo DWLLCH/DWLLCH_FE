@@ -50,7 +50,11 @@ function Onboarding4() {
               key={status}
               label={status}
               selected={endStatus === status}
-              onClick={() => updateData({ endStatus: status, endDate: null })}
+              onClick={() => {
+                if (endStatus !== status) {
+                  updateData({ endStatus: status, endDate: null });
+                }
+              }}
             />
           ))}
         </div>
