@@ -1,6 +1,6 @@
 import '../styles/Checkbox.css';
 
-function Checkbox({ id, checked, onChange }) {
+function Checkbox({ id, checked, onChange, ariaLabel }) {
   return (
     <label className="checkbox" htmlFor={id}>
       <input
@@ -9,6 +9,7 @@ function Checkbox({ id, checked, onChange }) {
         className="checkbox-input"
         checked={checked}
         onChange={onChange}
+        aria-label={ariaLabel}
       />
       <span className="checkbox-box" />
     </label>

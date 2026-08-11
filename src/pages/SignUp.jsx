@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TextField from '../components/TextField';
 import DuplicateCheckButton from '../components/DuplicateCheckButton';
@@ -14,6 +14,7 @@ function SignUp() {
   const [form, setForm] = useState({ email: '', id: '', password: '', passwordConfirm: '' });
   const [emailStatus, setEmailStatus] = useState('idle');
   const [agreements, setAgreements] = useState({ privacy: false, terms: false, marketing: false });
+  const emailCheckId = useRef(0);
 
   const passwordRules = getPasswordRules(form.password);
   const isPasswordValid = passwordRules.length && passwordRules.alnum && passwordRules.special;
@@ -24,7 +25,10 @@ function SignUp() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (name === 'email') setEmailStatus('idle');
+    if (name === 'email') {
+      emailCheckId.current += 1;
+      setEmailStatus('idle');
+    }
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -33,7 +37,9 @@ function SignUp() {
       setEmailStatus('invalid');
       return;
     }
+    const requestId = ++emailCheckId.current;
     const { available } = await checkEmailDuplicate(form.email);
+    if (requestId !== emailCheckId.current) return;
     setEmailStatus(available ? 'available' : 'duplicate');
   };
 
@@ -174,7 +180,12 @@ function SignUp() {
         {/* 약관 동의 */}
         <div className="signup-terms">
           <div className="signup-term signup-term--all">
-            <Checkbox id="agree-all" checked={allChecked} onChange={handleToggleAll} />
+            <Checkbox
+              id="agree-all"
+              checked={allChecked}
+              onChange={handleToggleAll}
+              ariaLabel="전체 동의하기"
+            />
             <label htmlFor="agree-all" className="signup-term-label">
               전체 동의하기
             </label>
@@ -184,6 +195,7 @@ function SignUp() {
               id="agree-privacy"
               checked={agreements.privacy}
               onChange={() => handleToggleOne('privacy')}
+              ariaLabel="개인정보 수집 및 이용 동의 (필수)"
             />
             <label htmlFor="agree-privacy" className="signup-term-label">
               개인정보 수집 및 이용 동의 (필수)
@@ -195,6 +207,7 @@ function SignUp() {
               id="agree-terms"
               checked={agreements.terms}
               onChange={() => handleToggleOne('terms')}
+              ariaLabel="서비스 이용약관 (필수)"
             />
             <label htmlFor="agree-terms" className="signup-term-label">
               서비스 이용약관 (필수)
@@ -206,6 +219,7 @@ function SignUp() {
               id="agree-marketing"
               checked={agreements.marketing}
               onChange={() => handleToggleOne('marketing')}
+              ariaLabel="알림 및 마케팅 정보 수신 동의 (선택)"
             />
             <label htmlFor="agree-marketing" className="signup-term-label">
               알림 및 마케팅 정보 수신 동의 <span className="signup-term-optional">(선택)</span>
