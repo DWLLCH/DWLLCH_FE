@@ -14,6 +14,8 @@ const initialData = {
   housingSituation: '',
   lifestyle: [],
   incomeType: '',
+  currentSupports: [],
+  supportNeeds: [],
 };
 
 function OnboardingProvider({ children }) {

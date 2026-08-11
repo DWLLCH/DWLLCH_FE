@@ -27,6 +27,15 @@
   outline-offset: 2px;
 }
 
+.option-chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.option-chip:disabled:hover {
+  background-color: #fff;
+}
+
 .option-chip--selected {
   background-color: #6cd59b;
   color: #fff;
