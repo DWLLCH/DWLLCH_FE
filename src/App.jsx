@@ -16,6 +16,7 @@ import Onboarding8 from './pages/Onboarding8';
 import Onboarding9 from './pages/Onboarding9';
 import Onboarding10 from './pages/Onboarding10';
 import Onboarding11 from './pages/Onboarding11';
+import OnboardingComplete from './pages/OnboardingComplete';
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
             <Route path="/onboarding/9" element={<Onboarding9 />} />
             <Route path="/onboarding/10" element={<Onboarding10 />} />
             <Route path="/onboarding/11" element={<Onboarding11 />} />
+            <Route path="/onboarding/complete" element={<OnboardingComplete />} />
           </Route>
         </Route>
       </Routes>

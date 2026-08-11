@@ -1,19 +1,23 @@
 import { useEffect, useState } from 'react';
 import '../styles/ProgressBar.css';
 
-function ProgressBar({ step, total }) {
-  const [percent, setPercent] = useState(Math.max(0, ((step - 1) / total) * 100));
+function ProgressBar({ step, total, celebrate = false }) {
+  const target = (step / total) * 100;
+  const [percent, setPercent] = useState(celebrate ? 0 : Math.max(0, ((step - 1) / total) * 100));
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
-      setPercent((step / total) * 100);
+      setPercent(target);
     });
     return () => cancelAnimationFrame(frame);
-  }, [step, total]);
+  }, [target]);
 
   return (
-    <div className="progress-bar">
-      <div className="progress-bar-fill" style={{ width: `${percent}%` }} />
+    <div className={`progress-bar${celebrate ? ' progress-bar--celebrate' : ''}`}>
+      <div
+        className={`progress-bar-fill${celebrate ? ' progress-bar-fill--celebrate' : ''}`}
+        style={{ width: `${percent}%` }}
+      />
     </div>
   );
 }
