@@ -9,6 +9,7 @@ const initialData = {
   sigungu: '',
   protectionType: '',
   endStatus: '',
+  endDate: null,
 };
 
 function OnboardingProvider({ children }) {

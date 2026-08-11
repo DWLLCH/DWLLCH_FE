@@ -1,26 +1,27 @@
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
 import ProgressBar from '../components/ProgressBar';
-import OptionChip from '../components/OptionChip';
+import DatePicker from '../components/DatePicker';
 import useOnboarding from '../hooks/useOnboarding';
 import arrowRight from '../assets/arrow_right.svg';
 import '../styles/Onboarding.css';
 
 const TOTAL_STEPS = 11;
 
-const END_STATUSES = ['아직 보호 중이에요', '보호 종료 예정이에요', '보호 종료했어요'];
-
-function Onboarding4() {
+function Onboarding5() {
   const navigate = useNavigate();
   const { data, updateData } = useOnboarding();
-  const { endStatus } = data;
+  const { endStatus, endDate } = data;
 
-  const isValid = Boolean(endStatus);
+  const isCompleted = endStatus === '보호 종료했어요';
+  const label = isCompleted ? '보호 종료일을 알려주세요' : '보호 종료 예정일을 알려주세요';
+
+  const isValid = Boolean(endDate);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!isValid) return;
-    navigate(endStatus === '아직 보호 중이에요' ? '/onboarding/6' : '/onboarding/5');
+    navigate('/onboarding/6');
   };
 
   return (
@@ -38,22 +39,13 @@ function Onboarding4() {
       </header>
 
       <div className="onboarding-progress-wrap">
-        <ProgressBar step={4} total={TOTAL_STEPS} />
+        <ProgressBar step={5} total={TOTAL_STEPS} />
       </div>
 
       <form className="onboarding-body" onSubmit={handleSubmit}>
-        <p className="onboarding-label">현재 보호종료 상태</p>
+        <p className="onboarding-label">{label}</p>
 
-        <div className="onboarding-chip-grid">
-          {END_STATUSES.map((status) => (
-            <OptionChip
-              key={status}
-              label={status}
-              selected={endStatus === status}
-              onClick={() => updateData({ endStatus: status })}
-            />
-          ))}
-        </div>
+        <DatePicker value={endDate} onChange={(date) => updateData({ endDate: date })} />
 
         <Button type="submit" className="onboarding-next-btn" disabled={!isValid}>
           다음으로
@@ -63,4 +55,4 @@ function Onboarding4() {
   );
 }
 
-export default Onboarding4;
+export default Onboarding5;
