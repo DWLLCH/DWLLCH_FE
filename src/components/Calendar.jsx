@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import arrowRight from '../assets/arrow_right.svg';
+import arrowCircleLeft from '../assets/arrow_circle_left.svg';
+import arrowCircleRight from '../assets/arrow_circle_right.svg';
 import '../styles/Calendar.css';
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
@@ -35,7 +37,7 @@ function isSameDate(a, b) {
   );
 }
 
-function Calendar({ value, onSelect }) {
+function Calendar({ value, onSelect, inline = false }) {
   const initial = value instanceof Date ? value : new Date();
   const [viewYear, setViewYear] = useState(initial.getFullYear());
   const [viewMonth, setViewMonth] = useState(initial.getMonth());
@@ -61,7 +63,7 @@ function Calendar({ value, onSelect }) {
   };
 
   return (
-    <div className="calendar">
+    <div className={`calendar${inline ? ' calendar--inline' : ''}`}>
       <div className="calendar-nav">
         <button
           type="button"
@@ -69,7 +71,7 @@ function Calendar({ value, onSelect }) {
           onClick={handlePrevMonth}
           aria-label="이전 달"
         >
-          <img src={arrowRight} alt="" />
+          <img src={inline ? arrowCircleLeft : arrowRight} alt="" />
         </button>
         <span className="calendar-nav-label">
           {viewYear}년 {viewMonth + 1}월
@@ -80,7 +82,7 @@ function Calendar({ value, onSelect }) {
           onClick={handleNextMonth}
           aria-label="다음 달"
         >
-          <img src={arrowRight} alt="" />
+          <img src={inline ? arrowCircleRight : arrowRight} alt="" />
         </button>
       </div>
 
@@ -94,11 +96,12 @@ function Calendar({ value, onSelect }) {
         {cells.map((cell, index) => {
           const cellDate = cell.current ? new Date(viewYear, viewMonth, cell.day) : null;
           const selected = cell.current && isSameDate(cellDate, value);
+          const isToday = cell.current && isSameDate(cellDate, new Date());
           return (
             <button
               key={index}
               type="button"
-              className={`calendar-cell${cell.current ? '' : ' calendar-cell--muted'}${selected ? ' calendar-cell--selected' : ''}`}
+              className={`calendar-cell${cell.current ? '' : ' calendar-cell--muted'}${selected ? ' calendar-cell--selected' : ''}${isToday ? ' calendar-cell--today' : ''}`}
               onClick={() => cell.current && onSelect(new Date(viewYear, viewMonth, cell.day))}
               disabled={!cell.current}
             >

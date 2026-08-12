@@ -34,7 +34,7 @@
   width: 8px;
 }
 
-.calendar-nav-btn--prev img {
+.calendar:not(.calendar--inline) .calendar-nav-btn--prev img {
   transform: rotate(180deg);
 }
 
@@ -95,7 +95,59 @@
   font-weight: 600;
 }
 
+.calendar-cell--today {
+  border: 1.5px solid #6cd59b;
+  font-weight: 600;
+}
+
 .calendar-cell:focus-visible {
   outline: 2px solid #4fae7c;
   outline-offset: 2px;
+}
+
+.calendar--inline {
+  position: static;
+  width: 100%;
+  padding: 0;
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.calendar--inline .calendar-nav {
+  padding: 0 16px;
+}
+
+.calendar--inline .calendar-nav-btn {
+  width: 32px;
+  height: 32px;
+}
+
+.calendar--inline .calendar-nav-btn img {
+  width: 32px;
+}
+
+.calendar--inline .calendar-nav-label {
+  font-size: 17px;
+  font-weight: 400;
+}
+
+.calendar--inline .calendar-weekdays {
+  margin-top: 16px;
+}
+
+.calendar--inline .calendar-weekdays span {
+  font-size: 15px;
+  color: #202020;
+}
+
+.calendar--inline .calendar-grid {
+  margin-top: 8px;
+  row-gap: 8px;
+}
+
+.calendar--inline .calendar-cell {
+  height: 40px;
+  font-size: 16px;
 }
