@@ -46,7 +46,7 @@
 .support-body {
   flex: 1;
   overflow-y: auto;
-  padding: 0 16px 40px;
+  padding: 0 16px 84px;
   scrollbar-width: none;
 }
 
