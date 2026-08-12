@@ -1,7 +1,7 @@
 import fitnessHigh from '../assets/fitness_high.svg';
 import fitnessMid from '../assets/fitness_mid.svg';
 import fitnessLow from '../assets/fitness_low.svg';
-import DetailButton from './DetailButton';
+import ActionButton from './ActionButton';
 import '../styles/PolicyCard.css';
 
 const LEVEL_CONFIG = {
@@ -39,7 +39,7 @@ function PolicyCard({ level, dday, title, onClick }) {
           <br />
           주요 요건을 충족해요
         </p>
-        <DetailButton label="자세히 보기" filled onClick={onClick} />
+        <ActionButton label="자세히 보기" filled onClick={onClick} />
       </div>
     </li>
   );

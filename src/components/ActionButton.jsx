@@ -1,4 +1,4 @@
-import '../styles/DetailButton.css';
+import '../styles/ActionButton.css';
 
 function ActionButton({ label = '확인하기', filled = false, onClick }) {
   return (
