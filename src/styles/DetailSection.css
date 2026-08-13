@@ -1,0 +1,31 @@
+.detail-section {
+  margin-bottom: 16px;
+  padding: 20px 17px;
+  border: 1px solid #d9d9d9;
+  border-radius: 20px;
+  background-color: #fff;
+}
+
+.detail-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.detail-section-number {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.detail-section-heading h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #202020;
+  word-break: keep-all;
+}
+
+.detail-section-body {
+  margin-top: 16px;
+}

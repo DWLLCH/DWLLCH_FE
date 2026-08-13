@@ -1,35 +1,11 @@
-import fitnessHigh from '../assets/fitness_high.svg';
-import fitnessMid from '../assets/fitness_mid.svg';
-import fitnessLow from '../assets/fitness_low.svg';
+import PolicyBadges from './PolicyBadges';
 import ActionButton from './ActionButton';
 import '../styles/PolicyCard.css';
 
-const LEVEL_CONFIG = {
-  high: { label: '높음', bg: '#ecf8f1', color: '#6cd59b', icon: fitnessHigh },
-  mid: { label: '보통', bg: '#dce5ff', color: '#597ce4', icon: fitnessMid },
-  low: { label: '낮음', bg: '#fff5d6', color: '#ffc107', icon: fitnessLow },
-};
-
 function PolicyCard({ level, dday, title, onClick }) {
-  const config = LEVEL_CONFIG[level];
-
   return (
     <li className="policy-card">
-      <div className="policy-card-top">
-        <span
-          className="policy-card-fit"
-          style={{ backgroundColor: config.bg, color: config.color }}
-        >
-          <img src={config.icon} alt="" />
-          AI 예상 적합도 {config.label}
-        </span>
-        <span
-          className="policy-card-dday"
-          style={{ backgroundColor: config.bg, color: config.color }}
-        >
-          {dday}
-        </span>
-      </div>
+      <PolicyBadges level={level} dday={dday} />
 
       <p className="policy-card-title">{title}</p>
 

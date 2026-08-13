@@ -6,36 +6,6 @@
   list-style: none;
 }
 
-.policy-card-top {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.policy-card-fit {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 9px;
-  border-radius: 5px;
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.policy-card-fit img {
-  width: 14px;
-  height: 17px;
-}
-
-.policy-card-dday {
-  padding: 4px 9px;
-  border-radius: 5px;
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
 .policy-card-title {
   margin: 12px 0 0;
   font-size: 18px;

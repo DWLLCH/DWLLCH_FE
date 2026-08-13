@@ -19,6 +19,7 @@ import Onboarding11 from './pages/Onboarding11';
 import OnboardingComplete from './pages/OnboardingComplete';
 import Home from './pages/Home';
 import SupportList from './pages/SupportList';
+import PolicyDetail from './pages/PolicyDetail';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
           <Route path="/signup/complete" element={<SignUpComplete />} />
           <Route path="/home" element={<Home />} />
           <Route path="/support/list" element={<SupportList />} />
+          <Route path="/support/:id" element={<PolicyDetail />} />
           <Route element={<OnboardingProvider />}>
             <Route path="/onboarding/1" element={<Onboarding1 />} />
             <Route path="/onboarding/2" element={<Onboarding2 />} />

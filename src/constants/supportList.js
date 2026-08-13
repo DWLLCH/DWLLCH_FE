@@ -1,4 +1,14 @@
+import fitnessHigh from '../assets/fitness_high.svg';
+import fitnessMid from '../assets/fitness_mid.svg';
+import fitnessLow from '../assets/fitness_low.svg';
+
 export const TOTAL_POLICY_COUNT = '1,250';
+
+export const LEVEL_CONFIG = {
+  high: { label: '높음', bg: '#ecf8f1', color: '#6cd59b', icon: fitnessHigh },
+  mid: { label: '보통', bg: '#dce5ff', color: '#597ce4', icon: fitnessMid },
+  low: { label: '낮음', bg: '#fff5d6', color: '#ffc107', icon: fitnessLow },
+};
 
 export const POLICIES = [
   { id: 1, level: 'high', dday: 'D-15', title: 'LH 에너지 자립생활안정 지원사업' },
