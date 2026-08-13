@@ -1,0 +1,161 @@
+.doc-guide-page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #fff;
+}
+
+/* 헤더 */
+.doc-guide-header {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 105px;
+  padding-bottom: 7px;
+  box-shadow: 0 0.5px 4px rgba(0, 0, 0, 0.25);
+}
+
+.doc-guide-header h1 {
+  margin: 0;
+  font-size: 25px;
+  font-weight: 500;
+}
+
+.doc-guide-back {
+  position: absolute;
+  left: 20px;
+  bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.doc-guide-back img {
+  width: 17px;
+}
+
+.doc-guide-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 16px 100px;
+  scrollbar-width: none;
+}
+
+.doc-guide-body::-webkit-scrollbar {
+  display: none;
+}
+
+/* 안내 배너 */
+.doc-guide-intro {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 10px;
+  background-color: #ecf8f1;
+}
+
+.doc-guide-intro-icon {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+}
+
+.doc-guide-intro-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #000;
+  word-break: keep-all;
+}
+
+.doc-guide-intro-desc {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #666;
+  word-break: keep-all;
+}
+
+/* 준비 현황 */
+.doc-guide-status {
+  margin-top: 16px;
+  padding: 20px 16px;
+  border: 1px solid #d9d9d9;
+  border-radius: 10px;
+  background-color: #fff;
+}
+
+.doc-guide-status-title {
+  margin: 0 0 16px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #000;
+}
+
+.doc-guide-status-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 12px;
+}
+
+.doc-guide-status-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: #000;
+}
+
+.doc-guide-status-item label {
+  word-break: keep-all;
+  cursor: pointer;
+}
+
+.doc-guide-status-summary {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #d9d9d9;
+  font-size: 13px;
+  color: #666;
+}
+
+.doc-guide-status-summary-item {
+  margin-left: 5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.doc-guide-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.doc-guide-status-dot--done {
+  background-color: #6cd59b;
+}
+
+.doc-guide-status-dot--todo {
+  background-color: #ff6b6b;
+}
+
+/* 서류별 카드 */
+.doc-guide-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}

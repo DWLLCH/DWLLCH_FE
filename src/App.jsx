@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import MobileFrame from './components/MobileFrame';
 import OnboardingProvider from './components/OnboardingProvider';
+import DocumentChecklistProvider from './components/DocumentChecklistProvider';
 import Splash from './pages/Splash';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
@@ -21,6 +22,7 @@ import Home from './pages/Home';
 import SupportList from './pages/SupportList';
 import PolicyDetail from './pages/PolicyDetail';
 import ThemeView from './pages/ThemeView';
+import DocumentGuide from './pages/DocumentGuide';
 
 function App() {
   return (
@@ -33,8 +35,11 @@ function App() {
           <Route path="/signup/complete" element={<SignUpComplete />} />
           <Route path="/home" element={<Home />} />
           <Route path="/support/list" element={<SupportList />} />
-          <Route path="/support/:id" element={<PolicyDetail />} />
           <Route path="/theme" element={<ThemeView />} />
+          <Route element={<DocumentChecklistProvider />}>
+            <Route path="/support/:id" element={<PolicyDetail />} />
+            <Route path="/support/:id/documents" element={<DocumentGuide />} />
+          </Route>
           <Route element={<OnboardingProvider />}>
             <Route path="/onboarding/1" element={<Onboarding1 />} />
             <Route path="/onboarding/2" element={<Onboarding2 />} />

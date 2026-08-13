@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { DocumentChecklistContext } from '../components/DocumentChecklistProvider';
 import backBtn from '../assets/backBtn.svg';
 import bookmark from '../assets/bookmark.svg';
 import bookmarkEmpty from '../assets/bookmark_empty.svg';
@@ -28,10 +29,11 @@ function PolicyDetail() {
   const detail = getPolicyDetail(policy.id);
 
   const [bookmarked, setBookmarked] = useState(false);
-  const [checkedDocs, setCheckedDocs] = useState(detail.documents.map((doc) => doc.checked));
+  const { getChecked, toggleChecked } = useContext(DocumentChecklistContext);
+  const checkedDocs = getChecked(policy.id, detail.documents);
 
   const toggleDoc = (index) => {
-    setCheckedDocs((prev) => prev.map((checked, i) => (i === index ? !checked : checked)));
+    toggleChecked(policy.id, detail.documents, index);
   };
 
   const missingCount = checkedDocs.filter((checked) => !checked).length;
@@ -176,7 +178,11 @@ function PolicyDetail() {
             <p className="detail-doc-note">AI 확인 결과 아직 {missingCount}개의 서류가 필요해요</p>
           )}
           <div className="detail-section-buttons">
-            <Button variant="green" fullWidth onClick={() => {}}>
+            <Button
+              variant="green"
+              fullWidth
+              onClick={() => navigate(`/support/${policy.id}/documents`)}
+            >
               서류 발급 방법 확인하기
             </Button>
           </div>
