@@ -25,6 +25,7 @@ function SortMenu({ open, value, options, onSelect }) {
                     type="button"
                     className="sort-menu-hit"
                     aria-label={option}
+                    aria-pressed={isSelected}
                     onClick={() => onSelect(option)}
                   />
                   <div className="sort-menu-option-content">
@@ -41,7 +42,12 @@ function SortMenu({ open, value, options, onSelect }) {
                   </div>
                 </>
               ) : (
-                <button type="button" className="sort-menu-option" onClick={() => onSelect(option)}>
+                <button
+                  type="button"
+                  className="sort-menu-option"
+                  aria-pressed={isSelected}
+                  onClick={() => onSelect(option)}
+                >
                   {option}
                 </button>
               )}
