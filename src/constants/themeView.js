@@ -8,7 +8,6 @@ export const THEME_GROUPS = [
   {
     id: 'region',
     color: 'blue',
-    badgeLabel: '지역 맞춤',
     title: '박하은님의 주거지역에 딱맞는 제도',
     cards: [
       {
@@ -29,7 +28,6 @@ export const THEME_GROUPS = [
   {
     id: 'condition',
     color: 'green',
-    badgeLabel: '조건 맞춤',
     title: '박하은님의 조건에 딱맞는 제도',
     cards: [
       {

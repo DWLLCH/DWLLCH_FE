@@ -20,25 +20,6 @@
   padding-right: 88px;
 }
 
-.theme-card-badge {
-  display: inline-flex;
-  margin-bottom: 10px;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.theme-card-badge--blue {
-  background-color: #eef1ff;
-  color: #6675d6;
-}
-
-.theme-card-badge--green {
-  background-color: #eafaf1;
-  color: #4fae7c;
-}
-
 .theme-card-title {
   margin: 0;
   font-size: 16px;
