@@ -18,31 +18,31 @@ function SortMenu({ open, value, options, onSelect }) {
 
         return (
           <div key={option} className="sort-menu-row">
-            <div
-              className={`sort-menu-item${isSelected ? ' sort-menu-item--selected' : ''}`}
-              role="button"
-              tabIndex={0}
-              onClick={() => onSelect(option)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault();
-                  onSelect(option);
-                }
-              }}
-            >
-              <span>{option}</span>
-              {isAiRecommend && (
-                <button
-                  type="button"
-                  className="sort-info-icon"
-                  aria-label="AI 추천순 설명 보기"
-                  aria-expanded={infoOpen}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setInfoOpen((prev) => !prev);
-                  }}
-                >
-                  <img src={infoIcon} alt="" />
+            <div className={`sort-menu-item${isSelected ? ' sort-menu-item--selected' : ''}`}>
+              {isAiRecommend ? (
+                <>
+                  <button
+                    type="button"
+                    className="sort-menu-hit"
+                    aria-label={option}
+                    onClick={() => onSelect(option)}
+                  />
+                  <div className="sort-menu-option-content">
+                    <span>{option}</span>
+                    <button
+                      type="button"
+                      className="sort-info-icon"
+                      aria-label="AI 추천순 설명 보기"
+                      aria-expanded={infoOpen}
+                      onClick={() => setInfoOpen((prev) => !prev)}
+                    >
+                      <img src={infoIcon} alt="" />
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <button type="button" className="sort-menu-option" onClick={() => onSelect(option)}>
+                  {option}
                 </button>
               )}
             </div>
