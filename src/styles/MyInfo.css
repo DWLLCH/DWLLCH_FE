@@ -1,0 +1,161 @@
+.myinfo-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #fff;
+}
+
+/* 헤더 */
+.myinfo-header {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 105px;
+  padding-bottom: 7px;
+  background-color: #fff;
+  box-shadow: 0 0.5px 4px rgba(0, 0, 0, 0.25);
+}
+
+.myinfo-header h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.myinfo-back {
+  position: absolute;
+  left: 20px;
+  bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.myinfo-back img {
+  width: 17px;
+}
+
+.myinfo-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 16px 32px;
+  scrollbar-width: none;
+}
+
+.myinfo-body::-webkit-scrollbar {
+  display: none;
+}
+
+.myinfo-body > * + * {
+  margin-top: 14px;
+}
+
+/* 확인 화면 카드 */
+.myinfo-card {
+  padding: 20px;
+  border: 1px solid #d9d9d9;
+  border-radius: 14px;
+  background-color: #fff;
+}
+
+.myinfo-card-title {
+  margin: 0 0 14px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #6cd59b;
+  font-size: 18px;
+  font-weight: 700;
+  color: #000;
+}
+
+.myinfo-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 0;
+  border-bottom: 1px solid #e2e2e2;
+}
+
+.myinfo-row:first-of-type {
+  padding-top: 0;
+}
+
+.myinfo-row:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.myinfo-row-label {
+  font-size: 13px;
+  color: #8a8a8a;
+}
+
+.myinfo-row-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #202020;
+  word-break: keep-all;
+}
+
+/* 수정 화면 섹션 */
+.myinfo-edit-section {
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e6e6e6;
+}
+
+.myinfo-edit-section--last {
+  border-bottom: none;
+}
+
+.myinfo-edit-label {
+  margin: 0 0 12px;
+  font-size: 17px;
+  font-weight: 600;
+  color: #202020;
+}
+
+.myinfo-edit-section .text-field-input {
+  font-size: 16px;
+}
+
+.myinfo-edit-section .dropdown-box {
+  font-size: 16px;
+}
+
+.myinfo-edit-section .date-picker-box {
+  font-size: 16px;
+}
+
+.myinfo-edit-helper {
+  margin: -6px 0 12px;
+  font-size: 13px;
+  color: #adadad;
+}
+
+.myinfo-dropdown-gap {
+  margin-top: 12px;
+}
+
+.myinfo-chip-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 10px;
+}
+
+.myinfo-option-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.myinfo-option-list + .myinfo-chip-grid,
+.myinfo-chip-grid + .myinfo-option-list {
+  margin-top: 12px;
+}

@@ -104,7 +104,7 @@ function PolicyDetail() {
             ))}
           </div>
           <div className="detail-section-buttons">
-            <Button variant="blue" fullWidth onClick={() => {}}>
+            <Button variant="blue" fullWidth onClick={() => navigate('/my-info')}>
               내 정보 다시 확인하기
             </Button>
           </div>

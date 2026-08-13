@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import MobileFrame from './components/MobileFrame';
 import OnboardingProvider from './components/OnboardingProvider';
 import DocumentChecklistProvider from './components/DocumentChecklistProvider';
+import MyInfoProvider from './components/MyInfoProvider';
 import Splash from './pages/Splash';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
@@ -23,6 +24,8 @@ import SupportList from './pages/SupportList';
 import PolicyDetail from './pages/PolicyDetail';
 import ThemeView from './pages/ThemeView';
 import DocumentGuide from './pages/DocumentGuide';
+import MyInfoView from './pages/MyInfoView';
+import MyInfoEdit from './pages/MyInfoEdit';
 
 function App() {
   return (
@@ -39,6 +42,10 @@ function App() {
           <Route element={<DocumentChecklistProvider />}>
             <Route path="/support/:id" element={<PolicyDetail />} />
             <Route path="/support/:id/documents" element={<DocumentGuide />} />
+          </Route>
+          <Route element={<MyInfoProvider />}>
+            <Route path="/my-info" element={<MyInfoView />} />
+            <Route path="/my-info/edit" element={<MyInfoEdit />} />
           </Route>
           <Route element={<OnboardingProvider />}>
             <Route path="/onboarding/1" element={<Onboarding1 />} />
