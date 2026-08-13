@@ -13,8 +13,8 @@
   display: flex;
   align-items: flex-end;
   gap: 8px;
-  min-height: 105px;
-  padding: 20px 16px 12px;
+  min-height: 112px;
+  padding: 0 16px 7px;
   box-sizing: border-box;
   background-color: #fff;
   box-shadow: 0 0.5px 4px rgba(0, 0, 0, 0.25);
@@ -45,7 +45,7 @@
 .detail-header h1 {
   flex: 1;
   display: -webkit-box;
-  margin: 0;
+  margin: 0 0 4px;
   overflow: hidden;
   font-size: 19px;
   font-weight: 600;
@@ -60,7 +60,7 @@
 .detail-body {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 14px 100px 20px;
+  padding: 16px 24px 100px;
   scrollbar-width: none;
 }
 
@@ -162,6 +162,10 @@
   border-bottom: 1px solid #d9d9d9;
 }
 
+.detail-eligibility-item:first-child {
+  padding-top: 0;
+}
+
 .detail-eligibility-item:last-child {
   border-bottom: none;
   padding-bottom: 4px;
@@ -178,8 +182,8 @@
   display: flex;
   flex-shrink: 0;
   justify-content: flex-start;
-  width: 92px;
-  padding-left: 18px;
+  width: 108px;
+  padding-left: 16px;
   border-left: 1px solid #d9d9d9;
 }
 

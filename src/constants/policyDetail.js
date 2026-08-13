@@ -1,5 +1,5 @@
 const DEFAULT_DETAIL = {
-  disclaimer: '최종 지원 대상 여부는 해당 기관의 심사 결과에 따라 달라질 수 있습니다.',
+  disclaimer: '최종 지원 대상 여부는 해당 기관의 심사 결과에 따라 달라질 수 있습니다.',
   summary: '사업요약 : 자립준비청년을 위한 다양한 생활 안정 지원을 제공하는 사업이에요.',
   supportInfo: [
     { label: '지원 내용', value: '생활 안정 지원' },
@@ -24,7 +24,7 @@ const DEFAULT_DETAIL = {
 
 const POLICY_DETAILS = {
   1: {
-    disclaimer: '최종 지원 대상 여부는 해당 기관의 심사 결과에 따라 달라질 수 있습니다.',
+    disclaimer: '최종 지원 대상 여부는 해당 기관의 심사 결과에 따라 달라질 수 있습니다.',
     summary:
       '사업요약 : LH 자립준비청년 및 가정 밖 청소년에게 에너지비용 지원, 임대주택 입주 청년들 냉방비 부담 해소 뒷받침',
     supportInfo: [
