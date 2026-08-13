@@ -1,7 +1,5 @@
 export const TOTAL_POLICY_COUNT = '1,250';
 
-export const ACTIVE_FILTERS = ['아동양육시설', '만 18세 미만', '기준 중위소득'];
-
 export const POLICIES = [
   { id: 1, level: 'high', dday: 'D-15', title: 'LH 에너지 자립생활안정 지원사업' },
   { id: 2, level: 'mid', dday: 'D-24', title: '삼성 희망디딤돌 자립준비청년 취업지원사업' },

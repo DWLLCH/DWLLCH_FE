@@ -5,15 +5,39 @@ import FilterChip from '../components/FilterChip';
 import DropdownTrigger from '../components/DropdownTrigger';
 import PolicyCard from '../components/PolicyCard';
 import ChatbotButton from '../components/ChatbotButton';
-import { TOTAL_POLICY_COUNT, ACTIVE_FILTERS, POLICIES } from '../constants/supportList';
+import BottomSheet from '../components/BottomSheet';
+import SortMenu from '../components/SortMenu';
+import Button from '../components/Button';
+import { TOTAL_POLICY_COUNT, POLICIES } from '../constants/supportList';
+import { FILTER_GROUPS, SORT_OPTIONS } from '../constants/filterOptions';
 import '../styles/SupportList.css';
 
 function SupportList() {
   const navigate = useNavigate();
-  const [activeFilters, setActiveFilters] = useState(ACTIVE_FILTERS);
+  const [appliedFilters, setAppliedFilters] = useState([]);
+  const [draftFilters, setDraftFilters] = useState([]);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
+  const [selectedSort, setSelectedSort] = useState(SORT_OPTIONS[0]);
 
-  const removeFilter = (filter) => {
-    setActiveFilters((prev) => prev.filter((item) => item !== filter));
+  const openFilterSheet = () => {
+    setDraftFilters(appliedFilters);
+    setFilterOpen(true);
+  };
+
+  const toggleDraftFilter = (option) => {
+    setDraftFilters((prev) =>
+      prev.includes(option) ? prev.filter((item) => item !== option) : [...prev, option],
+    );
+  };
+
+  const removeAppliedFilter = (option) => {
+    setAppliedFilters((prev) => prev.filter((item) => item !== option));
+  };
+
+  const applyFilters = () => {
+    setAppliedFilters(draftFilters);
+    setFilterOpen(false);
   };
 
   return (
@@ -34,19 +58,28 @@ function SupportList() {
         <div className="support-toolbar">
           <div className="support-count">{TOTAL_POLICY_COUNT} 개의 정책</div>
           <div className="support-toolbar-actions">
-            <DropdownTrigger label="필터" onClick={() => {}} />
-            <DropdownTrigger label="정렬" onClick={() => {}} />
+            <DropdownTrigger label="필터" onClick={openFilterSheet} />
+            <div className="support-sort-wrap">
+              <DropdownTrigger label="정렬" onClick={() => setSortOpen((prev) => !prev)} />
+              <SortMenu
+                open={sortOpen}
+                value={selectedSort}
+                options={SORT_OPTIONS}
+                onSelect={setSelectedSort}
+                onClose={() => setSortOpen(false)}
+              />
+            </div>
           </div>
         </div>
 
-        {activeFilters.length > 0 && (
+        {appliedFilters.length > 0 && (
           <div className="support-filter-chips">
-            {activeFilters.map((filter) => (
+            {appliedFilters.map((filter) => (
               <FilterChip
                 key={filter}
                 label={filter}
                 selected
-                onClick={() => removeFilter(filter)}
+                onClick={() => removeAppliedFilter(filter)}
               />
             ))}
           </div>
@@ -66,6 +99,37 @@ function SupportList() {
       </div>
 
       <ChatbotButton />
+
+      <BottomSheet
+        open={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        footer={
+          <div className="filter-sheet-footer">
+            <Button variant="gray" className="filter-reset-btn" onClick={() => setDraftFilters([])}>
+              초기화
+            </Button>
+            <Button variant="blue" fullWidth className="filter-apply-btn" onClick={applyFilters}>
+              적용하기
+            </Button>
+          </div>
+        }
+      >
+        {FILTER_GROUPS.map((group) => (
+          <div className="filter-sheet-group" key={group.title}>
+            <p className="filter-sheet-group-title">{group.title}</p>
+            <div className="filter-sheet-group-options">
+              {group.options.map((option) => (
+                <FilterChip
+                  key={option}
+                  label={option}
+                  selected={draftFilters.includes(option)}
+                  onClick={() => toggleDraftFilter(option)}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
+      </BottomSheet>
     </div>
   );
 }
