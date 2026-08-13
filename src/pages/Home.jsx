@@ -41,7 +41,7 @@ function Home() {
             `AI가 ${CURRENT_USER_NAME}님이 받을 수 있는`,
             '지원제도를 꼼꼼하게 찾아봤어요',
           ]}
-          onClick={() => {}}
+          onClick={() => navigate('/theme')}
         />
 
         <div className="home-calendar-card">

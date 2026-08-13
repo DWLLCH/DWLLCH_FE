@@ -1,0 +1,91 @@
+.theme-card {
+  position: relative;
+  min-height: 155px;
+  padding: 22px 20px;
+  border-radius: 15px;
+  background-color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+}
+
+.theme-card--blue {
+  border: 1px solid #dbe2ff;
+}
+
+.theme-card--green {
+  border: 1px solid #d6f5e5;
+}
+
+.theme-card-text {
+  padding-right: 88px;
+}
+
+.theme-card-badge {
+  display: inline-flex;
+  margin-bottom: 10px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.theme-card-badge--blue {
+  background-color: #eef1ff;
+  color: #6675d6;
+}
+
+.theme-card-badge--green {
+  background-color: #eafaf1;
+  color: #4fae7c;
+}
+
+.theme-card-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #000;
+  word-break: keep-all;
+}
+
+.theme-card-desc {
+  margin: 14px 0 0;
+  font-size: 14px;
+  line-height: 22px;
+  color: #666;
+  word-break: keep-all;
+}
+
+.theme-card-icon {
+  position: absolute;
+  top: 20px;
+  right: 18px;
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+}
+
+.theme-card-arrow {
+  position: absolute;
+  right: 20px;
+  bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 33px;
+  height: 33px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.theme-card-arrow img {
+  width: 14px;
+}
+
+.theme-card-arrow--blue {
+  background-color: #8b98e8;
+}
+
+.theme-card-arrow--green {
+  background-color: #7fdba8;
+}

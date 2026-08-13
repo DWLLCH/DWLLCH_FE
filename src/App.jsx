@@ -20,6 +20,7 @@ import OnboardingComplete from './pages/OnboardingComplete';
 import Home from './pages/Home';
 import SupportList from './pages/SupportList';
 import PolicyDetail from './pages/PolicyDetail';
+import ThemeView from './pages/ThemeView';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
           <Route path="/home" element={<Home />} />
           <Route path="/support/list" element={<SupportList />} />
           <Route path="/support/:id" element={<PolicyDetail />} />
+          <Route path="/theme" element={<ThemeView />} />
           <Route element={<OnboardingProvider />}>
             <Route path="/onboarding/1" element={<Onboarding1 />} />
             <Route path="/onboarding/2" element={<Onboarding2 />} />
