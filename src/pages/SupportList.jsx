@@ -59,16 +59,7 @@ function SupportList() {
           <div className="support-count">{TOTAL_POLICY_COUNT} 개의 정책</div>
           <div className="support-toolbar-actions">
             <DropdownTrigger label="필터" onClick={openFilterSheet} />
-            <div className="support-sort-wrap">
-              <DropdownTrigger label="정렬" onClick={() => setSortOpen((prev) => !prev)} />
-              <SortMenu
-                open={sortOpen}
-                value={selectedSort}
-                options={SORT_OPTIONS}
-                onSelect={setSelectedSort}
-                onClose={() => setSortOpen(false)}
-              />
-            </div>
+            <DropdownTrigger label={selectedSort} onClick={() => setSortOpen(true)} />
           </div>
         </div>
 
@@ -129,6 +120,18 @@ function SupportList() {
             </div>
           </div>
         ))}
+      </BottomSheet>
+
+      <BottomSheet open={sortOpen} onClose={() => setSortOpen(false)}>
+        <SortMenu
+          open={sortOpen}
+          value={selectedSort}
+          options={SORT_OPTIONS}
+          onSelect={(option) => {
+            setSelectedSort(option);
+            setSortOpen(false);
+          }}
+        />
       </BottomSheet>
     </div>
   );

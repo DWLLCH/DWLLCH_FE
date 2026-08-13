@@ -4,10 +4,10 @@
   align-items: center;
   justify-content: center;
   gap: 9px;
-  width: 77px;
+  min-width: 77px;
   height: 36px;
   margin: 0;
-  padding: 0;
+  padding: 0 14px;
   border: 1px solid #d9d9d9;
   border-radius: 10px;
   background-color: #fff;
@@ -15,12 +15,14 @@
   font-size: 15px;
   line-height: normal;
   color: #666;
+  white-space: nowrap;
   cursor: pointer;
   outline: none;
 }
 
 .dropdown-trigger img {
   width: 10px;
+  flex-shrink: 0;
 }
 
 .dropdown-trigger:hover {

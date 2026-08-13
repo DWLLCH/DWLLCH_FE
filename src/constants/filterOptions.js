@@ -14,3 +14,12 @@ export const FILTER_GROUPS = [
 ];
 
 export const SORT_OPTIONS = ['AI 추천순', '최근 업데이트 순', '신청 마감 빠른 순', '찜 많은 순'];
+
+export const AI_SORT_INFO = {
+  title: 'AI 추천순이란?',
+  description:
+    '입력하신 정보를 바탕으로 나의 상황과 정책의 자격요건을 비교해 적합도가 높은 정책부터 보여드려요.',
+  criteriaTitle: '추천에 반영되는 정보',
+  criteria: '연령 · 지역 · 소득 · 주거/취업 상황 · 정책 자격요건',
+  note: '※ 추천 결과는 참고용이며, 실제 신청 가능 여부는 해당 기관의 공고를 확인해주세요.',
+};
