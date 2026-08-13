@@ -94,7 +94,6 @@ function SupportList() {
       <BottomSheet
         open={filterOpen}
         onClose={() => setFilterOpen(false)}
-        label="필터"
         footer={
           <div className="filter-sheet-footer">
             <Button variant="gray" className="filter-reset-btn" onClick={() => setDraftFilters([])}>
@@ -123,7 +122,7 @@ function SupportList() {
         ))}
       </BottomSheet>
 
-      <BottomSheet open={sortOpen} onClose={() => setSortOpen(false)} label="정렬">
+      <BottomSheet open={sortOpen} onClose={() => setSortOpen(false)}>
         <SortMenu
           open={sortOpen}
           value={selectedSort}
