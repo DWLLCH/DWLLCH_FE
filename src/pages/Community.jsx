@@ -78,7 +78,7 @@ function Community() {
         </ul>
       </div>
 
-      <WriteFabButton onClick={() => {}} />
+      <WriteFabButton onClick={() => navigate('/community/write')} />
       <BottomNav />
     </div>
   );
