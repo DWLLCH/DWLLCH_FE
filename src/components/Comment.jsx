@@ -18,6 +18,8 @@ function CommentLikeButton({ likeCount }) {
       type="button"
       className={`comment-like-btn${liked ? ' comment-like-btn--active' : ''}`}
       onClick={toggleLike}
+      aria-label={`좋아요 ${count}개`}
+      aria-pressed={liked}
     >
       <span className="comment-like-icon" />
       {count}
@@ -75,9 +77,10 @@ function Comment({ comment, onAddReply, onDeleteComment, onDeleteReply }) {
           type="button"
           className="comment-reply-toggle"
           onClick={() => setExpanded((prev) => !prev)}
-          aria-label="답글 보기"
+          aria-label={`답글 ${replies.length}개 보기`}
         >
           <span className="comment-reply-icon" />
+          {replies.length}
           <img
             src={arrowBottom}
             alt=""

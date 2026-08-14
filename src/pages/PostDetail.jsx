@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import backBtn from '../assets/backBtn.svg';
 import like from '../assets/like.svg';
@@ -26,22 +26,48 @@ function getNextAnonymousNumber(comments) {
   return max + 1;
 }
 
+function getAnonymousStorageKey(postId) {
+  return `community-anonymous-number-${postId}`;
+}
+
+function readStoredAnonymousNumber(postId) {
+  const stored = sessionStorage.getItem(getAnonymousStorageKey(postId));
+  return stored ? Number(stored) : null;
+}
+
+function writeStoredAnonymousNumber(postId, number) {
+  sessionStorage.setItem(getAnonymousStorageKey(postId), String(number));
+}
+
 function PostDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const post = [NOTICE_POST, ...POSTS].find((item) => String(item.id) === id) || POSTS[0];
+  const post = [NOTICE_POST, ...POSTS].find((item) => String(item.id) === id);
 
   const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(post.likeCount);
-  const [comments, setComments] = useState(post.comments || []);
+  const [likeCount, setLikeCount] = useState(post?.likeCount ?? 0);
+  const [comments, setComments] = useState(post?.comments || []);
   const [commentText, setCommentText] = useState('');
   const [anonymous, setAnonymous] = useState(true);
-  const [myAnonymousNumber, setMyAnonymousNumber] = useState(null);
+  const [myAnonymousNumber, setMyAnonymousNumber] = useState(() =>
+    post ? readStoredAnonymousNumber(post.id) : null,
+  );
+
+  useEffect(() => {
+    if (!post) return;
+    setLiked(false);
+    setLikeCount(post.likeCount);
+    setComments(post.comments || []);
+    setCommentText('');
+    setAnonymous(true);
+    setMyAnonymousNumber(readStoredAnonymousNumber(post.id));
+  }, [id]);
 
   const getMyAnonymousLabel = (currentComments) => {
     if (myAnonymousNumber !== null) return `익명 ${myAnonymousNumber}`;
     const next = getNextAnonymousNumber(currentComments);
     setMyAnonymousNumber(next);
+    writeStoredAnonymousNumber(post.id, next);
     return `익명 ${next}`;
   };
 
@@ -59,12 +85,18 @@ function PostDetail() {
     if (navigator.share) {
       try {
         await navigator.share(shareData);
-      } catch {
-        // 사용자가 공유를 취소한 경우
+        return;
+      } catch (error) {
+        if (error?.name === 'AbortError') return;
       }
-    } else if (navigator.clipboard) {
-      await navigator.clipboard.writeText(window.location.href);
-      alert('링크가 복사되었습니다.');
+    }
+    if (navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        alert('링크가 복사되었습니다.');
+      } catch {
+        alert('링크 복사에 실패했습니다.');
+      }
     }
   };
 
@@ -131,6 +163,27 @@ function PostDetail() {
       }, []),
     );
   };
+
+  if (!post) {
+    return (
+      <div className="post-detail-page">
+        <header className="post-detail-header">
+          <button
+            type="button"
+            className="post-detail-back"
+            onClick={() => navigate(-1)}
+            aria-label="뒤로가기"
+          >
+            <img src={backBtn} alt="" />
+          </button>
+          <h1>커뮤니티</h1>
+        </header>
+        <div className="post-detail-notfound">
+          <p>게시글을 찾을 수 없습니다.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="post-detail-page">

@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import airplane from '../assets/airplane.svg';
 import Checkbox from './Checkbox';
 import '../styles/CommentInputBar.css';
@@ -11,6 +12,8 @@ function CommentInputBar({
   placeholder = '댓글 작성시 커뮤니티 가이드를 준수해주세요.',
   compact = false,
 }) {
+  const anonymousId = useId();
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!value.trim()) return;
@@ -23,15 +26,15 @@ function CommentInputBar({
       onSubmit={handleSubmit}
     >
       <div className="comment-input-box">
-        <label className="comment-input-anon">
+        <div className="comment-input-anon">
           <Checkbox
-            id={compact ? undefined : 'comment-anonymous'}
+            id={anonymousId}
             checked={anonymous}
             onChange={onToggleAnonymous}
             ariaLabel="익명으로 작성"
           />
-          <span>익명</span>
-        </label>
+          <label htmlFor={anonymousId}>익명</label>
+        </div>
         <input
           className="comment-input-field"
           value={value}

@@ -186,3 +186,13 @@
   padding: 0;
   list-style: none;
 }
+
+/* 게시글 없음 */
+.post-detail-notfound {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  font-size: 14px;
+  color: #999;
+}
