@@ -1,4 +1,7 @@
 .btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   height: 45px;
   padding: 0 24px;
   border: none;
@@ -6,7 +9,8 @@
   background-color: #6cd59b;
   color: #fff;
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 500;
+  line-height: 1;
   cursor: pointer;
   transition:
     background-color 0.15s ease,

@@ -1,0 +1,15 @@
+.detail-label {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  height: 25px;
+  padding: 0 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 7px;
+  background-color: #f2f2f2;
+  font-size: 15px;
+  font-weight: 600;
+  color: #202020;
+  white-space: nowrap;
+}

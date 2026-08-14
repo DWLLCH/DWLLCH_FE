@@ -1,0 +1,26 @@
+.theme-group {
+  padding: 32px 20px;
+  border-radius: 30px;
+}
+
+.theme-group--blue {
+  background-color: #c2d1ff;
+}
+
+.theme-group--green {
+  background-color: #b0f6cf;
+}
+
+.theme-group-title {
+  margin: 0 5px 24px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #4d4d4d;
+  word-break: keep-all;
+}
+
+.theme-group-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
