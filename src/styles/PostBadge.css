@@ -1,0 +1,22 @@
+.post-badge {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  height: 21px;
+  padding: 0 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.post-badge--notice {
+  background-color: #6cd59b;
+}
+
+.post-badge--hot {
+  background-color: #ffb197;
+}
