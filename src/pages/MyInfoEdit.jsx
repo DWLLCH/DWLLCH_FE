@@ -9,6 +9,7 @@ import OptionChip from '../components/OptionChip';
 import useMyInfo from '../hooks/useMyInfo';
 import { SIDO_LIST, SIGUNGU_MAP } from '../constants/regions';
 import { formatBirthDate, formatDateKey } from '../utils/formatters';
+import { isValidBirthDate } from '../utils/validators';
 import '../styles/MyInfo.css';
 
 const PROTECTION_TYPES = ['아동양육시설', '공동생활가정', '가정위탁', '기타', '잘 모르겠어요'];
@@ -124,12 +125,29 @@ function MyInfoEdit() {
     }
   };
 
+  const toggleCurrentSupport = (item) => {
+    const list = draft.currentSupports;
+    if (list.includes(item)) {
+      patch({ currentSupports: list.filter((value) => value !== item) });
+      return;
+    }
+    if (EXTRA_SUPPORTS.includes(item)) {
+      patch({ currentSupports: [item] });
+    } else {
+      patch({
+        currentSupports: [...list.filter((value) => !EXTRA_SUPPORTS.includes(value)), item],
+      });
+    }
+  };
+
   const sigunguOptions = draft.sido ? SIGUNGU_MAP[draft.sido] || [] : [];
+  const isBirthDateValid = isValidBirthDate(draft.birthDate);
   const isDirty = normalize(draft) !== normalize(data);
+  const canSubmit = isDirty && isBirthDateValid;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!isDirty) return;
+    if (!canSubmit) return;
     updateData(draft);
     navigate('/my-info');
   };
@@ -294,7 +312,7 @@ function MyInfoEdit() {
                 key={item}
                 label={item}
                 selected={draft.currentSupports.includes(item)}
-                onClick={() => toggleInList('currentSupports', item)}
+                onClick={() => toggleCurrentSupport(item)}
               />
             ))}
           </div>
@@ -305,7 +323,7 @@ function MyInfoEdit() {
                 label={item}
                 fullWidth
                 selected={draft.currentSupports.includes(item)}
-                onClick={() => toggleInList('currentSupports', item)}
+                onClick={() => toggleCurrentSupport(item)}
               />
             ))}
           </div>
@@ -331,7 +349,7 @@ function MyInfoEdit() {
           </div>
         </section>
 
-        <Button type="submit" variant="green" fullWidth disabled={!isDirty}>
+        <Button type="submit" variant="green" fullWidth disabled={!canSubmit}>
           수정 완료
         </Button>
       </form>
