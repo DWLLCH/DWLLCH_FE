@@ -31,12 +31,21 @@ function getAnonymousStorageKey(postId) {
 }
 
 function readStoredAnonymousNumber(postId) {
-  const stored = sessionStorage.getItem(getAnonymousStorageKey(postId));
-  return stored ? Number(stored) : null;
+  try {
+    const stored = sessionStorage.getItem(getAnonymousStorageKey(postId));
+    const parsed = stored ? Number(stored) : null;
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+  } catch {
+    return null;
+  }
 }
 
 function writeStoredAnonymousNumber(postId, number) {
-  sessionStorage.setItem(getAnonymousStorageKey(postId), String(number));
+  try {
+    sessionStorage.setItem(getAnonymousStorageKey(postId), String(number));
+  } catch {
+    return;
+  }
 }
 
 function PostDetail() {
