@@ -106,6 +106,8 @@ function PostDetail() {
       } catch {
         alert('링크 복사에 실패했습니다.');
       }
+    } else {
+      alert('공유하기를 지원하지 않는 환경입니다.');
     }
   };
 
@@ -127,6 +129,8 @@ function PostDetail() {
   };
 
   const handleAddReply = (commentId, text, replyAnonymous) => {
+    const targetComment = comments.find((comment) => comment.id === commentId);
+    if (!targetComment || targetComment.deleted) return;
     const author = replyAnonymous ? getMyAnonymousLabel(comments) : CURRENT_USER_NAME;
     setComments((prev) =>
       prev.map((comment) =>
@@ -228,7 +232,12 @@ function PostDetail() {
             className={`post-detail-images${post.images.length > 1 ? ' post-detail-images--multi' : ''}`}
           >
             {post.images.map((image, index) => (
-              <img key={image + index} src={image} alt="" className="post-detail-image" />
+              <img
+                key={image + index}
+                src={image}
+                alt={`${post.title} 이미지 ${index + 1}`}
+                className="post-detail-image"
+              />
             ))}
           </div>
         )}

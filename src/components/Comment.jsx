@@ -108,15 +108,17 @@ function Comment({ comment, onAddReply, onDeleteComment, onDeleteReply }) {
               onDeleteReply={onDeleteReply}
             />
           ))}
-          <CommentInputBar
-            compact
-            value={replyText}
-            onChange={setReplyText}
-            onSubmit={handleSubmitReply}
-            anonymous={replyAnonymous}
-            onToggleAnonymous={() => setReplyAnonymous((prev) => !prev)}
-            placeholder="답글을 남겨주세요."
-          />
+          {!comment.deleted && (
+            <CommentInputBar
+              compact
+              value={replyText}
+              onChange={setReplyText}
+              onSubmit={handleSubmitReply}
+              anonymous={replyAnonymous}
+              onToggleAnonymous={() => setReplyAnonymous((prev) => !prev)}
+              placeholder="답글을 남겨주세요."
+            />
+          )}
         </div>
       )}
     </li>
