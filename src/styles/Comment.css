@@ -58,6 +58,11 @@
   outline: none;
 }
 
+.comment-like-btn:focus-visible {
+  outline: 2px solid #4fae7c;
+  outline-offset: 2px;
+}
+
 .comment-like-icon {
   display: inline-block;
   width: 13px;
@@ -93,6 +98,11 @@
   color: #999;
   cursor: pointer;
   outline: none;
+}
+
+.comment-reply-toggle:focus-visible {
+  outline: 2px solid #4fae7c;
+  outline-offset: 2px;
 }
 
 .comment-reply-icon {
@@ -136,6 +146,11 @@
 
 .comment-delete-btn:hover {
   color: #ff6b6b;
+}
+
+.comment-delete-btn:focus-visible {
+  outline: 2px solid #4fae7c;
+  outline-offset: 2px;
 }
 
 .comment-reply-section {

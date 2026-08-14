@@ -6,6 +6,7 @@ function PostActionButton({ icon, label, count, active, onClick }) {
       type="button"
       className={`post-action-btn${active ? ' post-action-btn--active' : ''}`}
       onClick={onClick}
+      aria-pressed={active}
     >
       <span
         className="post-action-btn-icon"

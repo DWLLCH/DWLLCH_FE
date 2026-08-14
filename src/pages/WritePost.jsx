@@ -25,6 +25,7 @@ function WritePost() {
   const [notifyEnabled, setNotifyEnabled] = useState(true);
   const [images, setImages] = useState([]);
   const imagesRef = useRef(images);
+  const submittedUrlsRef = useRef(new Set());
 
   useEffect(() => {
     imagesRef.current = images;
@@ -32,7 +33,11 @@ function WritePost() {
 
   useEffect(() => {
     return () => {
-      imagesRef.current.forEach((image) => URL.revokeObjectURL(image.url));
+      imagesRef.current.forEach((image) => {
+        if (!submittedUrlsRef.current.has(image.url)) {
+          URL.revokeObjectURL(image.url);
+        }
+      });
     };
   }, []);
 
@@ -44,8 +49,8 @@ function WritePost() {
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files || []);
-    const newImages = files.map((file) => ({
-      id: `${Date.now()}-${file.name}`,
+    const newImages = files.map((file, index) => ({
+      id: `${Date.now()}-${index}-${Math.random().toString(36).slice(2, 8)}`,
       url: URL.createObjectURL(file),
     }));
     setImages((prev) => [...prev, ...newImages]);
@@ -62,6 +67,7 @@ function WritePost() {
 
   const handleSubmit = () => {
     if (!canSubmit) return;
+    images.forEach((image) => submittedUrlsRef.current.add(image.url));
     const newPost = {
       id: Date.now(),
       category,

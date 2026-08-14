@@ -21,6 +21,10 @@
   background-color: #fff;
 }
 
+.comment-input-box:focus-within {
+  border-color: #4fae7c;
+}
+
 .comment-input-anon {
   display: flex;
   flex-shrink: 0;
