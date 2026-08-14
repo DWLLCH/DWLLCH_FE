@@ -2,7 +2,7 @@ import postThumbSample from '../assets/post_thumb_sample.svg';
 
 export const CATEGORIES = ['최신', '꿀팁', '고민', '자유'];
 
-export const POST_CATEGORIES = ['꿀팁', '최신', '고민', '자유'];
+export const POST_CATEGORIES = ['꿀팁', '고민', '자유'];
 
 export const NOTICE_POST = {
   id: 'notice-1',
