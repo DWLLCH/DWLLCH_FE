@@ -12,8 +12,17 @@ function Community() {
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState('최신');
 
-  const visiblePosts =
+  const filteredPosts =
     activeCategory === '최신' ? POSTS : POSTS.filter((post) => post.category === activeCategory);
+
+  const sortedPosts = [...filteredPosts].sort(
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+  );
+
+  const visiblePosts = [
+    ...sortedPosts.filter((post) => post.badge === 'hot'),
+    ...sortedPosts.filter((post) => post.badge !== 'hot'),
+  ];
 
   return (
     <div className="community-page">

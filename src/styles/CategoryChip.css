@@ -33,3 +33,7 @@
   color: #fff;
   font-weight: 600;
 }
+
+.category-chip--selected:hover {
+  background-color: #5cc98c;
+}
