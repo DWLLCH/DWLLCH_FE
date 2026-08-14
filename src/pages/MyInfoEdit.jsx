@@ -142,8 +142,11 @@ function MyInfoEdit() {
 
   const sigunguOptions = draft.sido ? SIGUNGU_MAP[draft.sido] || [] : [];
   const isBirthDateValid = isValidBirthDate(draft.birthDate);
+  const hasValidResidence =
+    SIDO_LIST.includes(draft.sido) && Boolean(SIGUNGU_MAP[draft.sido]?.includes(draft.sigungu));
+  const hasRequiredEndDate = draft.endStatus === '아직 보호 중이에요' || Boolean(draft.endDate);
   const isDirty = normalize(draft) !== normalize(data);
-  const canSubmit = isDirty && isBirthDateValid;
+  const canSubmit = isDirty && isBirthDateValid && hasValidResidence && hasRequiredEndDate;
 
   const handleSubmit = (e) => {
     e.preventDefault();
