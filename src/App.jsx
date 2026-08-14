@@ -21,6 +21,7 @@ import Onboarding11 from './pages/Onboarding11';
 import OnboardingComplete from './pages/OnboardingComplete';
 import Home from './pages/Home';
 import Community from './pages/Community';
+import PostDetail from './pages/PostDetail';
 import SupportList from './pages/SupportList';
 import PolicyDetail from './pages/PolicyDetail';
 import ThemeView from './pages/ThemeView';
@@ -39,6 +40,7 @@ function App() {
           <Route path="/signup/complete" element={<SignUpComplete />} />
           <Route path="/home" element={<Home />} />
           <Route path="/community" element={<Community />} />
+          <Route path="/community/:id" element={<PostDetail />} />
           <Route path="/support/list" element={<SupportList />} />
           <Route path="/theme" element={<ThemeView />} />
           <Route element={<DocumentChecklistProvider />}>

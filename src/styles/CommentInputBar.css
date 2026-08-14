@@ -1,0 +1,81 @@
+.comment-input-bar {
+  flex-shrink: 0;
+  padding: 15px 21px;
+  background-color: #ecf8f1;
+}
+
+.comment-input-bar--compact {
+  padding: 0;
+  background-color: transparent;
+}
+
+.comment-input-box {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 8px 0 6px;
+  border: 1px solid #d9d9d9;
+  border-radius: 10px;
+  background-color: #fff;
+}
+
+.comment-input-anon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+}
+
+.comment-input-anon .checkbox-box {
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+}
+
+.comment-input-anon .checkbox-box::after {
+  width: 8px;
+  height: 7px;
+}
+
+.comment-input-anon span {
+  font-size: 12px;
+  line-height: 1;
+  color: #6cd59b;
+  white-space: nowrap;
+}
+
+.comment-input-field {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 13px;
+  line-height: 34px;
+  color: #000;
+}
+
+.comment-input-field::placeholder {
+  color: #999;
+}
+
+.comment-input-send {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.comment-input-send img {
+  width: 14px;
+}

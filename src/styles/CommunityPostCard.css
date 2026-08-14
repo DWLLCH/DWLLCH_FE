@@ -65,6 +65,36 @@
   line-height: 1;
 }
 
+.community-post-card-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.community-post-card-stat-icon {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+}
+
+.community-post-card-stat-icon--like {
+  background-color: #ff8a8a;
+  mask-image: url(../assets/like.svg);
+  -webkit-mask-image: url(../assets/like.svg);
+}
+
+.community-post-card-stat-icon--comment {
+  background-color: #6cd59b;
+  mask-image: url(../assets/comment.svg);
+  -webkit-mask-image: url(../assets/comment.svg);
+}
+
 .community-post-card-thumb {
   flex-shrink: 0;
   width: 56px;

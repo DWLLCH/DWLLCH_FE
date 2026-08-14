@@ -57,7 +57,9 @@ function Community() {
             description={NOTICE_POST.description}
             author={NOTICE_POST.author}
             time={NOTICE_POST.time}
-            onClick={() => {}}
+            likeCount={NOTICE_POST.likeCount}
+            commentCount={NOTICE_POST.comments.length}
+            onClick={() => navigate(`/community/${NOTICE_POST.id}`)}
           />
           {visiblePosts.map((post) => (
             <CommunityPostCard
@@ -67,8 +69,10 @@ function Community() {
               description={post.description}
               author={post.author}
               time={post.time}
-              thumbnail={post.thumbnail}
-              onClick={() => {}}
+              likeCount={post.likeCount}
+              commentCount={post.comments.length}
+              images={post.images}
+              onClick={() => navigate(`/community/${post.id}`)}
             />
           ))}
         </ul>

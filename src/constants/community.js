@@ -10,6 +10,15 @@ export const NOTICE_POST = {
     '주민등록번호, 계좌번호, 전화번호, 정확한 거주지 주소 등 개인정보는 절대 남기지 말아주세요.',
   author: '게시판 지킴이',
   time: '5일 전',
+  createdAt: '2026-08-10T09:00:00',
+  viewCount: 1204,
+  likeCount: 12,
+  content: [
+    '주민등록번호, 계좌번호, 전화번호, 정확한 거주지 주소 등 개인정보는 절대 남기지 말아주세요.',
+    '서로를 존중하는 따뜻한 커뮤니티를 만들어주세요.',
+    '허위 정보, 비방, 광고성 글은 사전 안내 없이 삭제될 수 있습니다.',
+  ],
+  comments: [],
 };
 
 export const POSTS = [
@@ -20,9 +29,65 @@ export const POSTS = [
     title: '국민취업지원제도 1유형 신청 후기 & 팁',
     description:
       '이번에 1유형 선정돼서 구직촉진수당 받는 중인데 상담사님이 알려주신 꿀팁 공유해요.',
-    author: '게시판 지킴이',
+    author: '영차영차 123',
     time: '8시간 전',
     createdAt: '2026-08-15T01:00:00',
+    viewCount: 3026,
+    likeCount: 23,
+    content: [
+      '안녕하세요! 이번에 국민취업지원제도(국취제) 1유형에 선정되어서 구직촉진수당 받아가며 취업 준비 중인 청년입니다.',
+      '처음 신청할 때는 서류 준비나 상담사님과의 대면 면담 과정이 살짝 막막했었는데요, 막상 진행해 보니 혼자 취준할 때보다 훨씬 든든하고 체계적이더라고요. 저처럼 처음 준비하시는 분들께 도움이 될까 싶어 질문을 받아보려 합니다.',
+      '댓글에 궁금하신 거 적어주시면 최대한 빨리 답변 드릴게요.',
+    ],
+    comments: [
+      {
+        id: 1,
+        author: '익명 1',
+        createdAt: '2026-08-15T08:50:00',
+        text: '상담사님에게 어떤 질문을 드려야 할지 감이 안와요 ㅜㅠ',
+        likeCount: 1,
+        replies: [
+          {
+            id: 1,
+            author: '익명(글쓴이)',
+            createdAt: '2026-08-15T08:51:00',
+            text: '먼저 물어봐야 하거나 고민이 되는 항목을 메모에 정리해보는게 좋아요! 그 다음에는 상담사님께 편하게 여쭤보시면 답변해주실 거예요.',
+            likeCount: 1,
+          },
+        ],
+      },
+      {
+        id: 2,
+        author: '익명 2',
+        createdAt: '2026-08-15T08:52:00',
+        text: '전반적으로 사업에 만족하시나여',
+        likeCount: 2,
+        replies: [
+          {
+            id: 1,
+            author: '익명(글쓴이)',
+            createdAt: '2026-08-15T08:53:00',
+            text: '네 확실히 이전보다 취업 준비가 수월해진 느낌이에요!',
+            likeCount: 1,
+          },
+          {
+            id: 2,
+            author: '익명 4',
+            createdAt: '2026-08-15T08:55:00',
+            text: '저도 신청해볼까 고민되네요',
+            likeCount: 0,
+          },
+        ],
+      },
+      {
+        id: 3,
+        author: '익명 3',
+        createdAt: '2026-08-15T08:57:00',
+        text: '이런 꿀팁 글을~ 감사합니다',
+        likeCount: 2,
+        replies: [],
+      },
+    ],
   },
   {
     id: 2,
@@ -33,6 +98,10 @@ export const POSTS = [
     author: '게시판 지킴이',
     time: '7시간 전',
     createdAt: '2026-08-15T02:00:00',
+    viewCount: 512,
+    likeCount: 8,
+    content: ['진심 서럽네요 ㅜㅜ'],
+    comments: [],
   },
   {
     id: 3,
@@ -42,6 +111,10 @@ export const POSTS = [
     author: 'vntlzp0127',
     time: '5시간 전',
     createdAt: '2026-08-15T04:00:00',
+    viewCount: 234,
+    likeCount: 3,
+    content: ['주민등록등본이랑 자격확인서 뗐는데, 부모님 관련 서류도 따로 제출해야 하나요?'],
+    comments: [],
   },
   {
     id: 4,
@@ -52,6 +125,10 @@ export const POSTS = [
     author: 'goindingo13',
     time: '5시간 전',
     createdAt: '2026-08-15T04:10:00',
+    viewCount: 198,
+    likeCount: 4,
+    content: ['정착금 수령 예정인데 보증금에 다 넣어야 할지 전/가구 살 돈을 좀 남길지 고민이에요.'],
+    comments: [],
   },
   {
     id: 5,
@@ -62,7 +139,14 @@ export const POSTS = [
     author: 'Haeun512',
     time: '16시간 전',
     createdAt: '2026-08-14T17:00:00',
-    thumbnail: postThumbSample,
+    viewCount: 876,
+    likeCount: 15,
+    images: [postThumbSample, postThumbSample],
+    content: [
+      "오늘 집 계약하고 왔는데 '입주 전 하자는 집주인이 수리해준다'는 특약 꼭 넣으라고 하시더라고요.",
+      '덕분에 마음 편하게 계약할 수 있었어요. 다들 계약하실 때 참고하세요!',
+    ],
+    comments: [],
   },
   {
     id: 6,
@@ -72,6 +156,10 @@ export const POSTS = [
     author: 'sunny8080',
     time: '2일 전',
     createdAt: '2026-08-13T09:00:00',
+    viewCount: 143,
+    likeCount: 6,
+    content: ['매달 나가는 돈이 생각보다 많아서 깜짝 놀랐어요.'],
+    comments: [],
   },
   {
     id: 7,
@@ -81,6 +169,10 @@ export const POSTS = [
     author: 'lisa3357',
     time: '2일 전',
     createdAt: '2026-08-13T08:00:00',
-    thumbnail: postThumbSample,
+    viewCount: 289,
+    likeCount: 5,
+    images: [postThumbSample],
+    content: ['믿어도 되는 거 맞는지 봐줄사람?'],
+    comments: [],
   },
 ];
