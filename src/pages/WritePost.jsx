@@ -26,15 +26,17 @@ function WritePost() {
   const [images, setImages] = useState([]);
   const imagesRef = useRef(images);
   const submittedUrlsRef = useRef(new Set());
+  const isSubmittingRef = useRef(false);
 
   useEffect(() => {
     imagesRef.current = images;
   }, [images]);
 
   useEffect(() => {
+    const submittedUrls = submittedUrlsRef.current;
     return () => {
       imagesRef.current.forEach((image) => {
-        if (!submittedUrlsRef.current.has(image.url)) {
+        if (!submittedUrls.has(image.url)) {
           URL.revokeObjectURL(image.url);
         }
       });
@@ -66,7 +68,8 @@ function WritePost() {
   };
 
   const handleSubmit = () => {
-    if (!canSubmit) return;
+    if (!canSubmit || isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
     images.forEach((image) => submittedUrlsRef.current.add(image.url));
     const newPost = {
       id: Date.now(),
@@ -110,9 +113,12 @@ function WritePost() {
 
       <div className="write-body">
         <div className="write-section">
-          <p className="write-label">제목</p>
+          <label className="write-label" htmlFor="write-title-input">
+            제목
+          </label>
           <div className="write-input-box">
             <input
+              id="write-title-input"
               className="write-input"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -143,6 +149,7 @@ function WritePost() {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="내용을 입력해주세요"
+            aria-label="내용"
             maxLength={2000}
           />
           <p className="write-counter write-counter--inside">{content.length}/2000</p>

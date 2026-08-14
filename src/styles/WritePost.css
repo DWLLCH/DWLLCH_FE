@@ -93,7 +93,8 @@
 }
 
 .write-label {
-  margin: 0 0 12px;
+  display: block;
+  margin: 0 0 16px;
   font-size: 20px;
   color: #000;
 }
