@@ -61,7 +61,7 @@ function PostDetail() {
     setCommentText('');
     setAnonymous(true);
     setMyAnonymousNumber(readStoredAnonymousNumber(post.id));
-  }, [id]);
+  }, [post]);
 
   const getMyAnonymousLabel = (currentComments) => {
     if (myAnonymousNumber !== null) return `익명 ${myAnonymousNumber}`;
