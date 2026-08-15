@@ -5,6 +5,7 @@ import TextField from '../components/TextField';
 import Button from '../components/Button';
 import Toast from '../components/Toast';
 import { getNewPasswordRules } from '../utils/validators';
+import { changePassword } from '../api/account';
 import '../styles/AccountChange.css';
 
 function PasswordChange() {
@@ -15,6 +16,7 @@ function PasswordChange() {
     currentPassword: '',
   });
   const [toastMessage, setToastMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigateTimerRef = useRef(null);
 
   useEffect(
@@ -36,9 +38,18 @@ function PasswordChange() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isFormValid) return;
+    if (!isFormValid || isSubmitting) return;
+    setIsSubmitting(true);
+    const response = await changePassword({
+      newPassword: form.newPassword,
+      currentPassword: form.currentPassword,
+    });
+    if (!response.success) {
+      setIsSubmitting(false);
+      return;
+    }
     setToastMessage('비밀번호가 변경됐어요');
     navigateTimerRef.current = setTimeout(() => navigate('/mypage', { replace: true }), 1200);
   };
@@ -119,7 +130,7 @@ function PasswordChange() {
           </p>
         </div>
 
-        <Button type="submit" fullWidth disabled={!isFormValid}>
+        <Button type="submit" fullWidth disabled={!isFormValid || isSubmitting}>
           비밀번호 변경
         </Button>
       </form>

@@ -5,12 +5,14 @@ import TextField from '../components/TextField';
 import Button from '../components/Button';
 import Toast from '../components/Toast';
 import { isValidEmail } from '../utils/validators';
+import { changeEmail } from '../api/account';
 import '../styles/AccountChange.css';
 
 function EmailChange() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ newEmail: '', accountPassword: '' });
   const [toastMessage, setToastMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigateTimerRef = useRef(null);
 
   useEffect(
@@ -29,9 +31,18 @@ function EmailChange() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isFormValid) return;
+    if (!isFormValid || isSubmitting) return;
+    setIsSubmitting(true);
+    const response = await changeEmail({
+      newEmail: form.newEmail,
+      accountPassword: form.accountPassword,
+    });
+    if (!response.success) {
+      setIsSubmitting(false);
+      return;
+    }
     setToastMessage('이메일이 변경됐어요');
     navigateTimerRef.current = setTimeout(() => navigate('/mypage', { replace: true }), 1200);
   };
@@ -87,7 +98,7 @@ function EmailChange() {
           />
         </section>
 
-        <Button type="submit" fullWidth disabled={!isFormValid}>
+        <Button type="submit" fullWidth disabled={!isFormValid || isSubmitting}>
           이메일 변경
         </Button>
       </form>
