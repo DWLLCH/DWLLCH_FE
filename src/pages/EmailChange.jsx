@@ -33,7 +33,7 @@ function EmailChange() {
     e.preventDefault();
     if (!isFormValid) return;
     setToastMessage('이메일이 변경됐어요');
-    navigateTimerRef.current = setTimeout(() => navigate(-1), 1200);
+    navigateTimerRef.current = setTimeout(() => navigate('/mypage', { replace: true }), 1200);
   };
 
   return (
