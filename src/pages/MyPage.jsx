@@ -5,21 +5,28 @@ import alarm from '../assets/alarm.svg';
 import BottomNav from '../components/BottomNav';
 import SettingsRow from '../components/SettingsRow';
 import useBookmarks from '../hooks/useBookmarks';
+import useNotifications from '../hooks/useNotifications';
 import { CURRENT_USER_NAME } from '../constants/home';
-import { APPLICATION_STATS, USER_EMAIL, APP_VERSION, HAS_NEW_ALARM } from '../constants/mypage';
+import { APPLICATION_STATS, USER_EMAIL, APP_VERSION } from '../constants/mypage';
 import '../styles/MyPage.css';
 
 function MyPage() {
   const navigate = useNavigate();
   const { bookmarkedIds } = useBookmarks();
+  const { hasUnread } = useNotifications();
 
   return (
     <div className="mypage">
       <div className="mypage-scroll">
         <div className="mypage-hero">
-          <button type="button" className="mypage-alarm-btn" aria-label="알림">
+          <button
+            type="button"
+            className="mypage-alarm-btn"
+            aria-label="알림"
+            onClick={() => navigate('/mypage/notifications')}
+          >
             <img src={alarm} alt="" className="mypage-alarm-icon" />
-            {HAS_NEW_ALARM && <span className="mypage-alarm-dot" />}
+            {hasUnread && <span className="mypage-alarm-dot" />}
           </button>
 
           <div className="mypage-avatar-wrap">

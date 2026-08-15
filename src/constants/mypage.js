@@ -6,5 +6,3 @@ export const APPLICATION_STATS = {
 export const USER_EMAIL = 'happy2026@naver.com';
 
 export const APP_VERSION = '13.2.4';
-
-export const HAS_NEW_ALARM = true;

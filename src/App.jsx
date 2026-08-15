@@ -4,6 +4,7 @@ import OnboardingProvider from './components/OnboardingProvider';
 import DocumentChecklistProvider from './components/DocumentChecklistProvider';
 import BookmarkProvider from './components/BookmarkProvider';
 import MyInfoProvider from './components/MyInfoProvider';
+import NotificationProvider from './components/NotificationProvider';
 import Splash from './pages/Splash';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
@@ -36,6 +37,7 @@ import BriefingDetail from './pages/BriefingDetail';
 import MyPage from './pages/MyPage';
 import PasswordChange from './pages/PasswordChange';
 import EmailChange from './pages/EmailChange';
+import NotificationList from './pages/NotificationList';
 
 function App() {
   return (
@@ -60,7 +62,10 @@ function App() {
             <Route path="/bookmark" element={<Bookmark />} />
             <Route path="/ai-briefing" element={<Briefing />} />
             <Route path="/ai-briefing/:sectionId/:cardId" element={<BriefingDetail />} />
-            <Route path="/mypage" element={<MyPage />} />
+            <Route element={<NotificationProvider />}>
+              <Route path="/mypage" element={<MyPage />} />
+              <Route path="/mypage/notifications" element={<NotificationList />} />
+            </Route>
             <Route path="/mypage/password" element={<PasswordChange />} />
             <Route path="/mypage/email" element={<EmailChange />} />
             <Route element={<MyInfoProvider />}>
