@@ -9,8 +9,11 @@ function CommentLikeButton({ likeCount }) {
   const [count, setCount] = useState(likeCount);
 
   const toggleLike = () => {
-    setLiked((prev) => !prev);
-    setCount((prev) => prev + (liked ? -1 : 1));
+    setLiked((prevLiked) => {
+      const nextLiked = !prevLiked;
+      setCount((prevCount) => prevCount + (nextLiked ? 1 : -1));
+      return nextLiked;
+    });
   };
 
   return (
@@ -77,7 +80,8 @@ function Comment({ comment, onAddReply, onDeleteComment, onDeleteReply }) {
           type="button"
           className="comment-reply-toggle"
           onClick={() => setExpanded((prev) => !prev)}
-          aria-label={`답글 ${replies.length}개 보기`}
+          aria-expanded={expanded}
+          aria-label={expanded ? `답글 ${replies.length}개 접기` : `답글 ${replies.length}개 보기`}
         >
           <span className="comment-reply-icon" />
           {replies.length}

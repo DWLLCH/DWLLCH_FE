@@ -66,7 +66,7 @@ function PostDetail() {
   useEffect(() => {
     if (!post) return;
     setLiked(false);
-    setLikeCount(post.likeCount);
+    setLikeCount(post.likeCount ?? 0);
     setComments(post.comments || []);
     setCommentText('');
     setAnonymous(true);
@@ -82,8 +82,11 @@ function PostDetail() {
   };
 
   const toggleLike = () => {
-    setLiked((prev) => !prev);
-    setLikeCount((prev) => prev + (liked ? -1 : 1));
+    setLiked((prevLiked) => {
+      const nextLiked = !prevLiked;
+      setLikeCount((prevCount) => prevCount + (nextLiked ? 1 : -1));
+      return nextLiked;
+    });
   };
 
   const handleShare = async () => {
@@ -249,7 +252,7 @@ function PostDetail() {
           ))}
         </div>
 
-        {post.poll && <PollCard poll={post.poll} />}
+        {post.poll && <PollCard key={post.id} poll={post.poll} />}
 
         <div className="post-detail-actions">
           <PostActionButton

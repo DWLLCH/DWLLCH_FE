@@ -11,6 +11,8 @@ import { POSTS, POST_CATEGORIES } from '../constants/community';
 import { CURRENT_USER_NAME } from '../constants/home';
 import '../styles/WritePost.css';
 
+const MAX_IMAGES = 10;
+
 const GUIDE_ITEMS = [
   '서로를 존중하는 따뜻한 대화를 나눠주세요',
   '개인정보(연락처, 주소 등) 및 타인의 정보는 공유하지 마세요.',
@@ -55,7 +57,8 @@ function WritePost() {
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files || []);
-    const newImages = files.map((file, index) => ({
+    const allowedCount = Math.max(0, MAX_IMAGES - images.length);
+    const newImages = files.slice(0, allowedCount).map((file, index) => ({
       id: `${Date.now()}-${index}-${Math.random().toString(36).slice(2, 8)}`,
       url: URL.createObjectURL(file),
     }));

@@ -15,14 +15,17 @@ function PollFormSheet({ open, onClose, initialValue, onSubmit }) {
 
   useEffect(() => {
     if (!open) return;
-    if (initialValue) {
-      setQuestion(initialValue.question);
+    const hasValidOptions = initialValue && Array.isArray(initialValue.options);
+    if (hasValidOptions) {
+      setQuestion(initialValue.question || '');
       setOptions(
         initialValue.options.length > 0
-          ? initialValue.options.map((value) => createOption(value))
+          ? initialValue.options.map((value) =>
+              createOption(typeof value === 'string' ? value : ''),
+            )
           : [createOption(), createOption()],
       );
-      setAllowMultiple(initialValue.allowMultiple);
+      setAllowMultiple(Boolean(initialValue.allowMultiple));
     } else {
       setQuestion('');
       setOptions([createOption(), createOption()]);
@@ -87,7 +90,7 @@ function PollFormSheet({ open, onClose, initialValue, onSubmit }) {
       <div className="poll-form-section">
         <p className="poll-form-label">선택지 (2개 이상)</p>
         <div className="poll-form-options">
-          {options.map((option) => (
+          {options.map((option, index) => (
             <div className="poll-form-option-row" key={option.id}>
               <input
                 className="poll-form-option-input"
@@ -95,14 +98,14 @@ function PollFormSheet({ open, onClose, initialValue, onSubmit }) {
                 onChange={(e) => handleOptionChange(option.id, e.target.value)}
                 placeholder="선택지를 입력해주세요"
                 maxLength={50}
-                aria-label="선택지"
+                aria-label={`선택지 ${index + 1}`}
               />
               {options.length > 2 && (
                 <button
                   type="button"
                   className="poll-form-option-remove"
                   onClick={() => handleRemoveOption(option.id)}
-                  aria-label="선택지 삭제"
+                  aria-label={`선택지 ${index + 1} 삭제`}
                 >
                   ×
                 </button>

@@ -36,10 +36,12 @@ function CommentInputBar({
           <label htmlFor={anonymousId}>익명</label>
         </div>
         <input
+          type="text"
           className="comment-input-field"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
+          aria-label={compact ? '답글 입력' : '댓글 입력'}
         />
         <button type="submit" className="comment-input-send" aria-label="등록">
           <img src={airplane} alt="" />
