@@ -99,11 +99,7 @@
 .bookmark-summary-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.bookmark-summary-row + .bookmark-summary-row {
-  margin-top: 8px;
+  gap: 6px;
 }
 
 .bookmark-summary-icon {
@@ -130,8 +126,24 @@
   font-weight: 600;
 }
 
+.bookmark-summary-row--note {
+  margin-top: 2px;
+  margin-left: 28px;
+  gap: 4px;
+}
+
+.bookmark-summary-row--note .bookmark-summary-icon {
+  width: 11px;
+  height: 11px;
+}
+
+.bookmark-summary-row--note img {
+  width: 11px;
+  height: 12px;
+}
+
 .bookmark-summary-row--note p {
-  font-size: 13px;
+  font-size: 11px;
   color: #a6a6a6;
 }
 
