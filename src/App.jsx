@@ -34,6 +34,8 @@ import Bookmark from './pages/Bookmark';
 import Briefing from './pages/Briefing';
 import BriefingDetail from './pages/BriefingDetail';
 import MyPage from './pages/MyPage';
+import PasswordChange from './pages/PasswordChange';
+import EmailChange from './pages/EmailChange';
 
 function App() {
   return (
@@ -59,6 +61,8 @@ function App() {
             <Route path="/ai-briefing" element={<Briefing />} />
             <Route path="/ai-briefing/:sectionId/:cardId" element={<BriefingDetail />} />
             <Route path="/mypage" element={<MyPage />} />
+            <Route path="/mypage/password" element={<PasswordChange />} />
+            <Route path="/mypage/email" element={<EmailChange />} />
             <Route element={<MyInfoProvider />}>
               <Route path="/my-info" element={<MyInfoView />} />
               <Route path="/my-info/edit" element={<MyInfoEdit />} />

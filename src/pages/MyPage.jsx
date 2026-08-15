@@ -59,8 +59,12 @@ function MyPage() {
           <h2 className="mypage-section-title">프로필</h2>
           <div className="mypage-card">
             <SettingsRow label="아이디" value={USER_EMAIL} />
-            <SettingsRow label="비밀번호 변경" chevron />
-            <SettingsRow label="이메일 변경" chevron />
+            <SettingsRow
+              label="비밀번호 변경"
+              chevron
+              onClick={() => navigate('/mypage/password')}
+            />
+            <SettingsRow label="이메일 변경" chevron onClick={() => navigate('/mypage/email')} />
           </div>
         </section>
 
