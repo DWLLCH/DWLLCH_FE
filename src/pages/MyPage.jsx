@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import birdLogo from '../assets/bird_logo.svg';
 import pencil from '../assets/pencil.svg';
@@ -14,6 +15,22 @@ function MyPage() {
   const navigate = useNavigate();
   const { bookmarkedIds } = useBookmarks();
   const { hasUnread } = useNotifications();
+  const [avatarUrl, setAvatarUrl] = useState(null);
+  const fileInputRef = useRef(null);
+
+  useEffect(
+    () => () => {
+      if (avatarUrl) URL.revokeObjectURL(avatarUrl);
+    },
+    [avatarUrl],
+  );
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setAvatarUrl(URL.createObjectURL(file));
+    e.target.value = '';
+  };
 
   return (
     <div className="mypage">
@@ -31,11 +48,27 @@ function MyPage() {
 
           <div className="mypage-avatar-wrap">
             <div className="mypage-avatar-frame">
-              <img src={birdLogo} alt="" className="mypage-avatar-img" />
+              <img
+                src={avatarUrl || birdLogo}
+                alt=""
+                className={`mypage-avatar-img${avatarUrl ? ' mypage-avatar-img--custom' : ''}`}
+              />
             </div>
-            <button type="button" className="mypage-avatar-edit" aria-label="프로필 사진 변경">
+            <button
+              type="button"
+              className="mypage-avatar-edit"
+              aria-label="프로필 사진 변경"
+              onClick={() => fileInputRef.current.click()}
+            >
               <img src={pencil} alt="" />
             </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarChange}
+              className="mypage-avatar-input"
+            />
           </div>
 
           <p className="mypage-name">{CURRENT_USER_NAME}</p>
