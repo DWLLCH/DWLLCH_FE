@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import backBtn from '../assets/backBtn.svg';
 import BriefingCard from '../components/BriefingCard';
+import SectionTag from '../components/SectionTag';
 import BottomNav from '../components/BottomNav';
 import { BRIEFING_SECTIONS } from '../constants/briefing';
 import '../styles/Briefing.css';
@@ -25,7 +26,7 @@ function Briefing() {
       <div className="briefing-body">
         {BRIEFING_SECTIONS.map((section) => (
           <section className="briefing-section" key={section.id}>
-            <span className="briefing-section-tag">{section.title}</span>
+            <SectionTag>{section.title}</SectionTag>
             <p className="briefing-section-desc">{section.description}</p>
             <div className="briefing-card-row">
               {section.cards.map((card) => (
@@ -34,7 +35,7 @@ function Briefing() {
                   color={card.color}
                   icon={card.icon}
                   title={card.title}
-                  onClick={() => {}}
+                  onClick={() => navigate(`/ai-briefing/${section.id}/${card.id}`)}
                 />
               ))}
             </div>

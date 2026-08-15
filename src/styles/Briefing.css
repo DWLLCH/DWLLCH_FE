@@ -65,23 +65,12 @@
   margin-bottom: 0;
 }
 
-.briefing-section-tag {
-  display: inline-flex;
-  align-items: center;
-  height: 27px;
-  padding: 0 16px;
-  border-radius: 10px;
-  background-color: #6cd59b;
-  color: #fff;
-  font-size: 15px;
-  font-weight: 600;
-}
-
 .briefing-section-desc {
   margin: 10px 0 0;
   font-size: 14px;
   color: #666;
   line-height: 1.5;
+  word-break: keep-all;
 }
 
 .briefing-card-row {

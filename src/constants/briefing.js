@@ -1,3 +1,6 @@
+import blueBox from '../assets/blueBox.svg';
+import greenBox from '../assets/greenBox.svg';
+import redBox from '../assets/redBox.svg';
 import chart from '../assets/briefing_icons/chart.svg';
 import clock from '../assets/briefing_icons/clock.svg';
 import computer from '../assets/briefing_icons/computer.svg';
@@ -33,6 +36,8 @@ export const BRIEFING_ICONS = {
   phone,
   pigbank,
 };
+
+export const BRIEFING_BOX_IMAGES = { blue: blueBox, green: greenBox, red: redBox };
 
 export const BRIEFING_SECTIONS = [
   {
@@ -85,3 +90,76 @@ export const BRIEFING_SECTIONS = [
     ],
   },
 ];
+
+const BRIEFING_DETAILS = {
+  'finance-2': {
+    description: ['자립을 앞둔 청년이라면 꼭 알아야 할', '금융 정보만 모아봤어요'],
+    summary: [
+      '자립정착금은 목적에 맞게 계획적으로 사용하기',
+      '신용관리, 처음부터 습관을 들이면 신용이 자산이 돼요',
+      '정부와 지자체의 금융 지원 제도를 적극 활용하기',
+      '금융사기 예방, 꼭 기억해야 할 3가지',
+    ],
+    sections: [
+      {
+        title: '초기 자산금 세팅 : 지원금 100% 활용법',
+        description:
+          '가장 먼저 손에 쥐게 되는 목돈과 매월 들어오는 지원금을 안전하게 굴리고 지키는 방법입니다',
+        links: [
+          '자립수당 & 자립 정착금 활용법 보기',
+          '청년 특화 금융 상품 모아보기',
+          '디딤 씨앗 통장 수령하는 법 보기',
+        ],
+      },
+      {
+        title: '텅장 방지! 통장 쪼개기 기술',
+        table: {
+          headers: ['통장 종류', '활용 목적', '치트키 (관리 팁)'],
+          rows: [
+            [
+              '수입 통장',
+              '모든 수입이 들어오고 고정 지출이 나가는 통장',
+              '자동이체 날짜를 모두 통일하기',
+            ],
+            [
+              '생활금 통장',
+              '식비, 쇼핑 등 통제할 수 있는 변동 지출 관리',
+              '한 달 예산 맞춰 이체 해두기',
+            ],
+            ['비상금 통장', '병원비 등 예상 못한 지출 대비용', '이자 높은 파킹통장 이용하기'],
+          ],
+        },
+      },
+    ],
+    chatbotHint: '내 상황에 딱 맞는 금융 지원 제도가 궁금하다면?',
+  },
+};
+
+function createDefaultDetail(section, card) {
+  return {
+    description: [section.description],
+    summary: [
+      `${card.title}, 핵심만 짚어봤어요`,
+      '자립준비청년을 위한 실질적인 정보만 정리했어요',
+      '더 자세한 내용은 AI 챗봇에게 물어볼 수 있어요',
+    ],
+    sections: [
+      {
+        title: card.title,
+        description: '자세한 콘텐츠는 준비 중이에요. 곧 업데이트될 예정이에요.',
+      },
+    ],
+    chatbotHint: '더 궁금한 점이 있다면?',
+  };
+}
+
+export function getBriefingDetail(sectionId, cardId) {
+  const section = BRIEFING_SECTIONS.find((item) => item.id === sectionId);
+  const numericCardId = Number(cardId);
+  const card = section?.cards.find((item) => item.id === numericCardId);
+  if (!section || !card) return null;
+
+  const detail =
+    BRIEFING_DETAILS[`${sectionId}-${numericCardId}`] || createDefaultDetail(section, card);
+  return { section, card, ...detail };
+}

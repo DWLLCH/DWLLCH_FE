@@ -32,6 +32,7 @@ import MyInfoView from './pages/MyInfoView';
 import MyInfoEdit from './pages/MyInfoEdit';
 import Bookmark from './pages/Bookmark';
 import Briefing from './pages/Briefing';
+import BriefingDetail from './pages/BriefingDetail';
 
 function App() {
   return (
@@ -55,6 +56,7 @@ function App() {
             </Route>
             <Route path="/bookmark" element={<Bookmark />} />
             <Route path="/ai-briefing" element={<Briefing />} />
+            <Route path="/ai-briefing/:sectionId/:cardId" element={<BriefingDetail />} />
             <Route element={<MyInfoProvider />}>
               <Route path="/my-info" element={<MyInfoView />} />
               <Route path="/my-info/edit" element={<MyInfoEdit />} />
