@@ -1,0 +1,34 @@
+.write-fab {
+  position: absolute;
+  right: 20px;
+  bottom: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border: none;
+  border-radius: 50%;
+  background-color: #6cd59b;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  outline: none;
+}
+
+.write-fab img {
+  width: 22px;
+  height: 22px;
+}
+
+.write-fab:hover {
+  background-color: #5cc98c;
+}
+
+.write-fab:active {
+  transform: scale(0.96);
+}
+
+.write-fab:focus-visible {
+  outline: 2px solid #4fae7c;
+  outline-offset: 2px;
+}

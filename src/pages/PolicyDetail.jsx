@@ -193,7 +193,7 @@ function PolicyDetail() {
             <Button variant="blue" fullWidth onClick={() => {}}>
               AI 챗봇에게 질문하기
             </Button>
-            <Button variant="green" fullWidth onClick={() => {}}>
+            <Button variant="green" fullWidth onClick={() => navigate('/community')}>
               커뮤니티에 물어보기
             </Button>
             <Button variant="green" fullWidth onClick={() => {}}>

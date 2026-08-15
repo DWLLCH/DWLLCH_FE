@@ -15,6 +15,16 @@ export function formatDateDots(date) {
   return `${year}.${month}.${day}`;
 }
 
+export function formatDateTimeShort(date) {
+  const parsed = date instanceof Date ? date : new Date(date);
+  if (Number.isNaN(parsed.getTime())) return '';
+  const month = parsed.getMonth() + 1;
+  const day = parsed.getDate();
+  const hour = String(parsed.getHours()).padStart(2, '0');
+  const minute = String(parsed.getMinutes()).padStart(2, '0');
+  return `${month}/${day} ${hour}:${minute}`;
+}
+
 export function formatDateKey(date) {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
   const year = date.getFullYear();
