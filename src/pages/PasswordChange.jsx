@@ -17,14 +17,17 @@ function PasswordChange() {
   });
   const [toastMessage, setToastMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const navigateTimerRef = useRef(null);
+  const isMountedRef = useRef(true);
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
       if (navigateTimerRef.current) clearTimeout(navigateTimerRef.current);
-    },
-    [],
-  );
+    };
+  }, []);
 
   const passwordRules = getNewPasswordRules(form.newPassword);
   const isNewPasswordValid = passwordRules.length && passwordRules.combination;
@@ -42,16 +45,25 @@ function PasswordChange() {
     e.preventDefault();
     if (!isFormValid || isSubmitting) return;
     setIsSubmitting(true);
-    const response = await changePassword({
-      newPassword: form.newPassword,
-      currentPassword: form.currentPassword,
-    });
-    if (!response.success) {
+    setSubmitError('');
+    try {
+      const response = await changePassword({
+        newPassword: form.newPassword,
+        currentPassword: form.currentPassword,
+      });
+      if (!isMountedRef.current) return;
+      if (!response.success) {
+        setIsSubmitting(false);
+        setSubmitError('비밀번호 변경에 실패했어요. 다시 시도해주세요');
+        return;
+      }
+      setToastMessage('비밀번호가 변경됐어요');
+      navigateTimerRef.current = setTimeout(() => navigate('/mypage', { replace: true }), 1200);
+    } catch {
+      if (!isMountedRef.current) return;
       setIsSubmitting(false);
-      return;
+      setSubmitError('비밀번호 변경에 실패했어요. 다시 시도해주세요');
     }
-    setToastMessage('비밀번호가 변경됐어요');
-    navigateTimerRef.current = setTimeout(() => navigate('/mypage', { replace: true }), 1200);
   };
 
   return (
@@ -129,6 +141,10 @@ function PasswordChange() {
             변경 시 모든 디바이스에서 로그아웃 처리돼요.
           </p>
         </div>
+
+        {submitError && (
+          <p className="account-change-message account-change-message--error">{submitError}</p>
+        )}
 
         <Button type="submit" fullWidth disabled={!isFormValid || isSubmitting}>
           비밀번호 변경

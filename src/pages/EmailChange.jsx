@@ -13,14 +13,17 @@ function EmailChange() {
   const [form, setForm] = useState({ newEmail: '', accountPassword: '' });
   const [toastMessage, setToastMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const navigateTimerRef = useRef(null);
+  const isMountedRef = useRef(true);
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
       if (navigateTimerRef.current) clearTimeout(navigateTimerRef.current);
-    },
-    [],
-  );
+    };
+  }, []);
 
   const isEmailValid = isValidEmail(form.newEmail);
   const isPasswordValid = form.accountPassword.length > 0;
@@ -35,16 +38,25 @@ function EmailChange() {
     e.preventDefault();
     if (!isFormValid || isSubmitting) return;
     setIsSubmitting(true);
-    const response = await changeEmail({
-      newEmail: form.newEmail,
-      accountPassword: form.accountPassword,
-    });
-    if (!response.success) {
+    setSubmitError('');
+    try {
+      const response = await changeEmail({
+        newEmail: form.newEmail,
+        accountPassword: form.accountPassword,
+      });
+      if (!isMountedRef.current) return;
+      if (!response.success) {
+        setIsSubmitting(false);
+        setSubmitError('이메일 변경에 실패했어요. 다시 시도해주세요');
+        return;
+      }
+      setToastMessage('이메일이 변경됐어요');
+      navigateTimerRef.current = setTimeout(() => navigate('/mypage', { replace: true }), 1200);
+    } catch {
+      if (!isMountedRef.current) return;
       setIsSubmitting(false);
-      return;
+      setSubmitError('이메일 변경에 실패했어요. 다시 시도해주세요');
     }
-    setToastMessage('이메일이 변경됐어요');
-    navigateTimerRef.current = setTimeout(() => navigate('/mypage', { replace: true }), 1200);
   };
 
   return (
@@ -97,6 +109,10 @@ function EmailChange() {
             autoComplete="current-password"
           />
         </section>
+
+        {submitError && (
+          <p className="account-change-message account-change-message--error">{submitError}</p>
+        )}
 
         <Button type="submit" fullWidth disabled={!isFormValid || isSubmitting}>
           이메일 변경
