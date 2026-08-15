@@ -34,19 +34,15 @@ function BookmarkProvider({ children }) {
   const isBookmarked = (policyId) => bookmarkedIds.includes(policyId);
 
   const toggleBookmark = (policyId) => {
-    let result = 'added';
-    setBookmarkedIds((prev) => {
-      if (prev.includes(policyId)) {
-        result = 'removed';
-        return prev.filter((id) => id !== policyId);
-      }
-      if (prev.length >= MAX_BOOKMARK_COUNT) {
-        result = 'limit-reached';
-        return prev;
-      }
-      return [...prev, policyId];
-    });
-    return result;
+    const alreadyBookmarked = bookmarkedIds.includes(policyId);
+    if (!alreadyBookmarked && bookmarkedIds.length >= MAX_BOOKMARK_COUNT) {
+      return 'limit-reached';
+    }
+
+    setBookmarkedIds((prev) =>
+      prev.includes(policyId) ? prev.filter((id) => id !== policyId) : [...prev, policyId],
+    );
+    return alreadyBookmarked ? 'removed' : 'added';
   };
 
   return (
