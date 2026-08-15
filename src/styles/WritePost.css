@@ -174,7 +174,7 @@
 /* 사진·투표 */
 .write-tools {
   display: flex;
-  gap: 12px;
+  gap: 2px;
   margin-bottom: 8px;
 }
 
@@ -210,6 +210,42 @@
 
 .write-tool-btn:disabled:hover {
   background-color: transparent;
+}
+
+.write-poll-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 54px;
+  margin-bottom: 14px;
+  padding: 0 16px;
+  border: 1px solid #6cd59b;
+  border-radius: 10px;
+  background-color: #ecf8f1;
+}
+
+.write-poll-card img {
+  flex-shrink: 0;
+  width: 15px;
+}
+
+.write-poll-card span {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 500;
+  color: #6cd59b;
+}
+
+.write-poll-card button {
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: #6cd59b;
+  cursor: pointer;
 }
 
 .write-image-preview {

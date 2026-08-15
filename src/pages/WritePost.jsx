@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import backBtn from '../assets/backBtn.svg';
 import imageIcon from '../assets/image.svg';
 import voteIcon from '../assets/vote.svg';
+import chartIcon from '../assets/chart.svg';
 import CategoryChip from '../components/CategoryChip';
 import Toggle from '../components/Toggle';
+import PollFormSheet from '../components/PollFormSheet';
 import { POSTS, POST_CATEGORIES } from '../constants/community';
 import { CURRENT_USER_NAME } from '../constants/home';
 import '../styles/WritePost.css';
@@ -24,6 +26,8 @@ function WritePost() {
   const [anonymous, setAnonymous] = useState(false);
   const [notifyEnabled, setNotifyEnabled] = useState(true);
   const [images, setImages] = useState([]);
+  const [poll, setPoll] = useState(null);
+  const [pollSheetOpen, setPollSheetOpen] = useState(false);
   const imagesRef = useRef(images);
   const submittedUrlsRef = useRef(new Set());
   const isSubmittingRef = useRef(false);
@@ -84,6 +88,7 @@ function WritePost() {
       images: images.map((image) => image.url),
       content: [content.trim()],
       comments: [],
+      poll,
     };
     POSTS.unshift(newPost);
     navigate('/community');
@@ -160,7 +165,7 @@ function WritePost() {
             <span>사진</span>
             <img src={imageIcon} alt="" />
           </button>
-          <button type="button" className="write-tool-btn" disabled>
+          <button type="button" className="write-tool-btn" onClick={() => setPollSheetOpen(true)}>
             <span>투표</span>
             <img src={voteIcon} alt="" />
           </button>
@@ -173,6 +178,16 @@ function WritePost() {
             onChange={handleFileChange}
           />
         </div>
+
+        {poll && (
+          <div className="write-poll-card">
+            <img src={chartIcon} alt="" />
+            <span>투표를 추가했어요!</span>
+            <button type="button" onClick={() => setPollSheetOpen(true)}>
+              수정
+            </button>
+          </div>
+        )}
 
         {images.length > 0 && (
           <div className="write-image-preview">
@@ -216,6 +231,13 @@ function WritePost() {
           </ul>
         </div>
       </div>
+
+      <PollFormSheet
+        open={pollSheetOpen}
+        onClose={() => setPollSheetOpen(false)}
+        initialValue={poll}
+        onSubmit={setPoll}
+      />
     </div>
   );
 }

@@ -8,6 +8,7 @@ import PostActionButton from '../components/PostActionButton';
 import PostBadge from '../components/PostBadge';
 import CommentInputBar from '../components/CommentInputBar';
 import Comment from '../components/Comment';
+import PollCard from '../components/PollCard';
 import { NOTICE_POST, POSTS } from '../constants/community';
 import { CURRENT_USER_NAME } from '../constants/home';
 import { formatDateTimeShort } from '../utils/formatters';
@@ -247,6 +248,8 @@ function PostDetail() {
             <p key={paragraph}>{paragraph}</p>
           ))}
         </div>
+
+        {post.poll && <PollCard poll={post.poll} />}
 
         <div className="post-detail-actions">
           <PostActionButton
