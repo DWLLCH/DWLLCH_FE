@@ -1,0 +1,180 @@
+.mypage {
+  position: relative;
+  height: 100%;
+  background-color: #f7fffa;
+}
+
+.mypage-scroll {
+  position: absolute;
+  inset: 0;
+  bottom: 86px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.mypage-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* 히어로 */
+.mypage-hero {
+  position: relative;
+  padding: 20px 20px 64px;
+  background: linear-gradient(180deg, #ecf8f1 0%, #6cd59b 100%);
+  text-align: center;
+}
+
+.mypage-alarm-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.mypage-alarm-icon {
+  display: block;
+  width: 20px;
+  height: 23px;
+  margin: 0 auto;
+}
+
+.mypage-alarm-dot {
+  position: absolute;
+  top: -4px;
+  right: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #ff5b5b;
+  border: 1.5px solid #f4fbf6;
+}
+
+.mypage-avatar-wrap {
+  position: relative;
+  width: 112px;
+  height: 112px;
+  margin: 60px auto 0;
+}
+
+.mypage-avatar-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: #fff;
+  box-shadow:
+    0 0 0 6px rgba(255, 255, 255, 0.5),
+    0 4px 14px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+.mypage-avatar-img {
+  width: 76%;
+  height: 76%;
+  object-fit: contain;
+}
+
+.mypage-avatar-edit {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 3px solid #f4fbf6;
+  border-radius: 50%;
+  background-color: #6cd59b;
+  cursor: pointer;
+}
+
+.mypage-avatar-edit img {
+  width: 14px;
+  height: 14px;
+}
+
+.mypage-name {
+  margin: 14px 0 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* 활동 요약 */
+.mypage-stats {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  margin: -40px 20px 0;
+  padding: 18px 0;
+  border-radius: 14px;
+  background-color: #fff;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+}
+
+.mypage-stat {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  cursor: default;
+}
+
+.mypage-stat--link {
+  cursor: pointer;
+}
+
+.mypage-stat-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #202020;
+}
+
+.mypage-stat-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #666;
+}
+
+.mypage-stat-divider {
+  width: 1px;
+  height: 36px;
+  background-color: #eee;
+}
+
+/* 섹션 */
+.mypage-section {
+  margin: 28px 20px 0;
+}
+
+.mypage-section--last {
+  margin-bottom: 28px;
+}
+
+.mypage-section-title {
+  margin: 0 0 10px 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #000;
+}
+
+.mypage-card {
+  overflow: hidden;
+  border-radius: 14px;
+  background-color: #fff;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+}
