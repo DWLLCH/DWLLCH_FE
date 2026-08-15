@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import MobileFrame from './components/MobileFrame';
 import OnboardingProvider from './components/OnboardingProvider';
 import DocumentChecklistProvider from './components/DocumentChecklistProvider';
+import BookmarkProvider from './components/BookmarkProvider';
 import MyInfoProvider from './components/MyInfoProvider';
 import Splash from './pages/Splash';
 import Login from './pages/Login';
@@ -29,43 +30,47 @@ import ThemeView from './pages/ThemeView';
 import DocumentGuide from './pages/DocumentGuide';
 import MyInfoView from './pages/MyInfoView';
 import MyInfoEdit from './pages/MyInfoEdit';
+import Bookmark from './pages/Bookmark';
 
 function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
         <Route element={<MobileFrame />}>
-          <Route path="/" element={<Splash />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/signup/complete" element={<SignUpComplete />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/community" element={<Community />} />
-          <Route path="/community/write" element={<WritePost />} />
-          <Route path="/community/:id" element={<PostDetail />} />
-          <Route path="/support/list" element={<SupportList />} />
-          <Route path="/theme" element={<ThemeView />} />
-          <Route element={<DocumentChecklistProvider />}>
-            <Route path="/support/:id" element={<PolicyDetail />} />
-            <Route path="/support/:id/documents" element={<DocumentGuide />} />
-          </Route>
-          <Route element={<MyInfoProvider />}>
-            <Route path="/my-info" element={<MyInfoView />} />
-            <Route path="/my-info/edit" element={<MyInfoEdit />} />
-          </Route>
-          <Route element={<OnboardingProvider />}>
-            <Route path="/onboarding/1" element={<Onboarding1 />} />
-            <Route path="/onboarding/2" element={<Onboarding2 />} />
-            <Route path="/onboarding/3" element={<Onboarding3 />} />
-            <Route path="/onboarding/4" element={<Onboarding4 />} />
-            <Route path="/onboarding/5" element={<Onboarding5 />} />
-            <Route path="/onboarding/6" element={<Onboarding6 />} />
-            <Route path="/onboarding/7" element={<Onboarding7 />} />
-            <Route path="/onboarding/8" element={<Onboarding8 />} />
-            <Route path="/onboarding/9" element={<Onboarding9 />} />
-            <Route path="/onboarding/10" element={<Onboarding10 />} />
-            <Route path="/onboarding/11" element={<Onboarding11 />} />
-            <Route path="/onboarding/complete" element={<OnboardingComplete />} />
+          <Route element={<BookmarkProvider />}>
+            <Route path="/" element={<Splash />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/signup/complete" element={<SignUpComplete />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/community" element={<Community />} />
+            <Route path="/community/write" element={<WritePost />} />
+            <Route path="/community/:id" element={<PostDetail />} />
+            <Route path="/support/list" element={<SupportList />} />
+            <Route path="/theme" element={<ThemeView />} />
+            <Route element={<DocumentChecklistProvider />}>
+              <Route path="/support/:id" element={<PolicyDetail />} />
+              <Route path="/support/:id/documents" element={<DocumentGuide />} />
+            </Route>
+            <Route path="/bookmark" element={<Bookmark />} />
+            <Route element={<MyInfoProvider />}>
+              <Route path="/my-info" element={<MyInfoView />} />
+              <Route path="/my-info/edit" element={<MyInfoEdit />} />
+            </Route>
+            <Route element={<OnboardingProvider />}>
+              <Route path="/onboarding/1" element={<Onboarding1 />} />
+              <Route path="/onboarding/2" element={<Onboarding2 />} />
+              <Route path="/onboarding/3" element={<Onboarding3 />} />
+              <Route path="/onboarding/4" element={<Onboarding4 />} />
+              <Route path="/onboarding/5" element={<Onboarding5 />} />
+              <Route path="/onboarding/6" element={<Onboarding6 />} />
+              <Route path="/onboarding/7" element={<Onboarding7 />} />
+              <Route path="/onboarding/8" element={<Onboarding8 />} />
+              <Route path="/onboarding/9" element={<Onboarding9 />} />
+              <Route path="/onboarding/10" element={<Onboarding10 />} />
+              <Route path="/onboarding/11" element={<Onboarding11 />} />
+              <Route path="/onboarding/complete" element={<OnboardingComplete />} />
+            </Route>
           </Route>
         </Route>
       </Routes>

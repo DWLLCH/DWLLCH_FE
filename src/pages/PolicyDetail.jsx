@@ -1,6 +1,8 @@
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { DocumentChecklistContext } from '../components/DocumentChecklistProvider';
+import useBookmarks from '../hooks/useBookmarks';
+import Toast from '../components/Toast';
 import backBtn from '../assets/backBtn.svg';
 import bookmark from '../assets/bookmark.svg';
 import bookmarkEmpty from '../assets/bookmark_empty.svg';
@@ -28,8 +30,29 @@ function PolicyDetail() {
   const policy = POLICIES.find((item) => item.id === Number(id)) || POLICIES[0];
   const detail = getPolicyDetail(policy.id);
 
-  const [bookmarked, setBookmarked] = useState(false);
+  const { isBookmarked, toggleBookmark, maxCount } = useBookmarks();
+  const bookmarked = isBookmarked(policy.id);
   const { getChecked, toggleChecked } = useContext(DocumentChecklistContext);
+  const [toastMessage, setToastMessage] = useState('');
+  const toastTimerRef = useRef(null);
+
+  useEffect(
+    () => () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    },
+    [],
+  );
+
+  const handleToggleBookmark = () => {
+    const result = toggleBookmark(policy.id);
+    if (result === 'limit-reached') {
+      setToastMessage(`북마크는 최대 ${maxCount}개까지 저장할 수 있어요`);
+    } else {
+      setToastMessage(result === 'added' ? '북마크에 추가했어요' : '북마크가 해제됐어요');
+    }
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToastMessage(''), 1600);
+  };
   const checkedDocs = getChecked(policy.id, detail.documents);
 
   const toggleDoc = (index) => {
@@ -54,13 +77,15 @@ function PolicyDetail() {
         <button
           type="button"
           className="detail-bookmark"
-          onClick={() => setBookmarked((prev) => !prev)}
+          onClick={handleToggleBookmark}
           aria-label="북마크"
           aria-pressed={bookmarked}
         >
           <img src={bookmarked ? bookmark : bookmarkEmpty} alt="" />
         </button>
       </header>
+
+      <Toast message={toastMessage} visible={Boolean(toastMessage)} />
 
       <div className="detail-body">
         <div className="detail-hero">
