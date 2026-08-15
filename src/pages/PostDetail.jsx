@@ -54,8 +54,7 @@ function PostDetail() {
   const { id } = useParams();
   const post = [NOTICE_POST, ...POSTS].find((item) => String(item.id) === id);
 
-  const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(post?.likeCount ?? 0);
+  const [likeState, setLikeState] = useState({ liked: false, count: post?.likeCount ?? 0 });
   const [comments, setComments] = useState(post?.comments || []);
   const [commentText, setCommentText] = useState('');
   const [anonymous, setAnonymous] = useState(true);
@@ -65,8 +64,7 @@ function PostDetail() {
 
   useEffect(() => {
     if (!post) return;
-    setLiked(false);
-    setLikeCount(post.likeCount ?? 0);
+    setLikeState({ liked: false, count: post.likeCount ?? 0 });
     setComments(post.comments || []);
     setCommentText('');
     setAnonymous(true);
@@ -82,11 +80,10 @@ function PostDetail() {
   };
 
   const toggleLike = () => {
-    setLiked((prevLiked) => {
-      const nextLiked = !prevLiked;
-      setLikeCount((prevCount) => prevCount + (nextLiked ? 1 : -1));
-      return nextLiked;
-    });
+    setLikeState((prev) => ({
+      liked: !prev.liked,
+      count: prev.count + (prev.liked ? -1 : 1),
+    }));
   };
 
   const handleShare = async () => {
@@ -258,8 +255,8 @@ function PostDetail() {
           <PostActionButton
             icon={like}
             label="좋아요"
-            count={likeCount}
-            active={liked}
+            count={likeState.count}
+            active={likeState.liked}
             onClick={toggleLike}
           />
           <PostActionButton icon={share} label="공유하기" onClick={handleShare} />

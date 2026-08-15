@@ -5,27 +5,25 @@ import { formatDateTimeShort } from '../utils/formatters';
 import '../styles/Comment.css';
 
 function CommentLikeButton({ likeCount }) {
-  const [liked, setLiked] = useState(false);
-  const [count, setCount] = useState(likeCount);
+  const [likeState, setLikeState] = useState({ liked: false, count: likeCount });
 
   const toggleLike = () => {
-    setLiked((prevLiked) => {
-      const nextLiked = !prevLiked;
-      setCount((prevCount) => prevCount + (nextLiked ? 1 : -1));
-      return nextLiked;
-    });
+    setLikeState((prev) => ({
+      liked: !prev.liked,
+      count: prev.count + (prev.liked ? -1 : 1),
+    }));
   };
 
   return (
     <button
       type="button"
-      className={`comment-like-btn${liked ? ' comment-like-btn--active' : ''}`}
+      className={`comment-like-btn${likeState.liked ? ' comment-like-btn--active' : ''}`}
       onClick={toggleLike}
-      aria-label={`좋아요 ${count}개`}
-      aria-pressed={liked}
+      aria-label={`좋아요 ${likeState.count}개`}
+      aria-pressed={likeState.liked}
     >
       <span className="comment-like-icon" />
-      {count}
+      {likeState.count}
     </button>
   );
 }
