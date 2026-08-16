@@ -59,10 +59,17 @@ function PasswordChange() {
       }
       setToastMessage('비밀번호가 변경됐어요');
       navigateTimerRef.current = setTimeout(() => navigate('/mypage', { replace: true }), 1200);
-    } catch {
+    } catch (error) {
       if (!isMountedRef.current) return;
       setIsSubmitting(false);
-      setSubmitError('비밀번호 변경에 실패했어요. 다시 시도해주세요');
+      // AUTH_400_CURRENT_PASSWORD_MISMATCH(현재 비밀번호 불일치)는 구분해서 안내하고,
+      // 그 외(네트워크 오류, 서버 오류 등)는 기존처럼 일반 오류 문구를 보여줍니다.
+      const code = error.response?.data?.code;
+      if (code === 'AUTH_400_CURRENT_PASSWORD_MISMATCH') {
+        setSubmitError('현재 비밀번호가 일치하지 않아요');
+      } else {
+        setSubmitError('비밀번호 변경에 실패했어요. 다시 시도해주세요');
+      }
     }
   };
 
