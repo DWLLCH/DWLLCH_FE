@@ -4,8 +4,11 @@ import TextField from '../components/TextField';
 import DuplicateCheckButton from '../components/DuplicateCheckButton';
 import Checkbox from '../components/Checkbox';
 import Button from '../components/Button';
-import arrowRight from '../assets/arrow_right.svg';
+import TermsContent from '../components/TermsContent';
+import arrowBottom from '../assets/arrow_bottom.svg';
+import arrowUp from '../assets/arrow_up.svg';
 import { checkEmailDuplicate } from '../api/auth';
+import { TERMS_CONTENT } from '../constants/terms';
 import { getPasswordRules, isValidEmail, isValidId } from '../utils/validators';
 import '../styles/SignUp.css';
 
@@ -14,6 +17,11 @@ function SignUp() {
   const [form, setForm] = useState({ email: '', id: '', password: '', passwordConfirm: '' });
   const [emailStatus, setEmailStatus] = useState('idle');
   const [agreements, setAgreements] = useState({ privacy: false, terms: false, marketing: false });
+  const [expandedTerms, setExpandedTerms] = useState({
+    privacy: false,
+    terms: false,
+    marketing: false,
+  });
   const emailCheckId = useRef(0);
 
   const passwordRules = getPasswordRules(form.password);
@@ -50,6 +58,10 @@ function SignUp() {
 
   const handleToggleOne = (key) => {
     setAgreements((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleToggleExpand = (key) => {
+    setExpandedTerms((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   const isFormValid =
@@ -193,41 +205,88 @@ function SignUp() {
               전체 동의하기
             </label>
           </div>
-          <div className="signup-term">
-            <Checkbox
-              id="agree-privacy"
-              checked={agreements.privacy}
-              onChange={() => handleToggleOne('privacy')}
-              ariaLabel="개인정보 수집 및 이용 동의 (필수)"
-            />
-            <label htmlFor="agree-privacy" className="signup-term-label">
-              개인정보 수집 및 이용 동의 (필수)
-            </label>
-            <img src={arrowRight} alt="" className="signup-term-arrow" />
+          <div className="signup-term-group">
+            <div className="signup-term">
+              <Checkbox
+                id="agree-privacy"
+                checked={agreements.privacy}
+                onChange={() => handleToggleOne('privacy')}
+                ariaLabel="개인정보 수집 및 이용 동의 (필수)"
+              />
+              <label htmlFor="agree-privacy" className="signup-term-label">
+                개인정보 수집 및 이용 동의 (필수)
+              </label>
+              <button
+                type="button"
+                className="signup-term-arrow-btn"
+                onClick={() => handleToggleExpand('privacy')}
+                aria-expanded={expandedTerms.privacy}
+                aria-label="개인정보 수집 및 이용 동의 내용 보기"
+              >
+                <img
+                  src={expandedTerms.privacy ? arrowBottom : arrowUp}
+                  alt=""
+                  className="signup-term-arrow"
+                />
+              </button>
+            </div>
+            {expandedTerms.privacy && <TermsContent {...TERMS_CONTENT.privacy} />}
           </div>
-          <div className="signup-term">
-            <Checkbox
-              id="agree-terms"
-              checked={agreements.terms}
-              onChange={() => handleToggleOne('terms')}
-              ariaLabel="서비스 이용약관 (필수)"
-            />
-            <label htmlFor="agree-terms" className="signup-term-label">
-              서비스 이용약관 (필수)
-            </label>
-            <img src={arrowRight} alt="" className="signup-term-arrow" />
+
+          <div className="signup-term-group">
+            <div className="signup-term">
+              <Checkbox
+                id="agree-terms"
+                checked={agreements.terms}
+                onChange={() => handleToggleOne('terms')}
+                ariaLabel="서비스 이용약관 (필수)"
+              />
+              <label htmlFor="agree-terms" className="signup-term-label">
+                서비스 이용약관 (필수)
+              </label>
+              <button
+                type="button"
+                className="signup-term-arrow-btn"
+                onClick={() => handleToggleExpand('terms')}
+                aria-expanded={expandedTerms.terms}
+                aria-label="서비스 이용약관 내용 보기"
+              >
+                <img
+                  src={expandedTerms.terms ? arrowBottom : arrowUp}
+                  alt=""
+                  className="signup-term-arrow"
+                />
+              </button>
+            </div>
+            {expandedTerms.terms && <TermsContent {...TERMS_CONTENT.terms} />}
           </div>
-          <div className="signup-term">
-            <Checkbox
-              id="agree-marketing"
-              checked={agreements.marketing}
-              onChange={() => handleToggleOne('marketing')}
-              ariaLabel="알림 및 마케팅 정보 수신 동의 (선택)"
-            />
-            <label htmlFor="agree-marketing" className="signup-term-label">
-              알림 및 마케팅 정보 수신 동의 <span className="signup-term-optional">(선택)</span>
-            </label>
-            <img src={arrowRight} alt="" className="signup-term-arrow" />
+
+          <div className="signup-term-group">
+            <div className="signup-term">
+              <Checkbox
+                id="agree-marketing"
+                checked={agreements.marketing}
+                onChange={() => handleToggleOne('marketing')}
+                ariaLabel="알림 및 마케팅 정보 수신 동의 (선택)"
+              />
+              <label htmlFor="agree-marketing" className="signup-term-label">
+                알림 및 마케팅 정보 수신 동의 <span className="signup-term-optional">(선택)</span>
+              </label>
+              <button
+                type="button"
+                className="signup-term-arrow-btn"
+                onClick={() => handleToggleExpand('marketing')}
+                aria-expanded={expandedTerms.marketing}
+                aria-label="알림 및 마케팅 정보 수신 동의 내용 보기"
+              >
+                <img
+                  src={expandedTerms.marketing ? arrowBottom : arrowUp}
+                  alt=""
+                  className="signup-term-arrow"
+                />
+              </button>
+            </div>
+            {expandedTerms.marketing && <TermsContent {...TERMS_CONTENT.marketing} />}
           </div>
         </div>
 

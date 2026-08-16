@@ -26,6 +26,11 @@
   display: flex;
   flex-direction: column;
   padding: 26px 32px 45px;
+  scrollbar-width: none;
+}
+
+.signup-body::-webkit-scrollbar {
+  display: none;
 }
 
 .signup-field {
@@ -102,6 +107,15 @@
   flex-direction: column;
 }
 
+.signup-term-group + .signup-term-group {
+  margin-top: 4px;
+}
+
+.signup-term-group .terms-content {
+  margin-right: 15px;
+  margin-left: 41px;
+}
+
 .signup-term {
   display: flex;
   align-items: center;
@@ -112,6 +126,7 @@
 
 .signup-term--all {
   height: 45px;
+  margin-bottom: 12px;
   border-radius: 10px;
   background-color: #f2f2f2;
 }
@@ -121,15 +136,32 @@
   font-size: 15px;
   font-weight: 500;
   color: #000;
+  word-break: keep-all;
 }
 
 .signup-term-optional {
   color: rgba(173, 173, 173, 0.68);
 }
 
+.signup-term-arrow-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  outline: none;
+}
+
+.signup-term-arrow-btn:focus-visible {
+  outline: 2px solid #4fae7c;
+  outline-offset: 2px;
+}
+
 .signup-term-arrow {
-  width: 8px;
-  height: 11px;
+  width: 11px;
+  height: 8px;
 }
 
 .signup-body .btn-full {
