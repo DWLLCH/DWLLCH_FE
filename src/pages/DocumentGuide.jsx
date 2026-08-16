@@ -92,7 +92,7 @@ function DocumentGuide() {
         </div>
       </div>
 
-      <ChatbotButton />
+      <ChatbotButton onClick={() => navigate('/chatbot')} />
     </div>
   );
 }

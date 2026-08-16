@@ -93,7 +93,7 @@ function Bookmark() {
         )}
       </div>
 
-      <ChatbotButton />
+      <ChatbotButton onClick={() => navigate('/chatbot')} />
       <BottomNav />
     </div>
   );

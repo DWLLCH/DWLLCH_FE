@@ -89,7 +89,7 @@ function SupportList() {
         </ul>
       </div>
 
-      <ChatbotButton />
+      <ChatbotButton onClick={() => navigate('/chatbot')} />
 
       <BottomSheet
         open={filterOpen}

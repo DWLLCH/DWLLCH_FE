@@ -178,7 +178,7 @@ function BriefingDetail() {
       >
         {chatbotHint}
       </div>
-      <ChatbotButton />
+      <ChatbotButton onClick={() => navigate('/chatbot')} />
     </div>
   );
 }

@@ -34,7 +34,7 @@ function ThemeView() {
         ))}
       </div>
 
-      <ChatbotButton />
+      <ChatbotButton onClick={() => navigate('/chatbot')} />
     </div>
   );
 }
