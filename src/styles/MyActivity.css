@@ -1,0 +1,71 @@
+.my-activity-page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #fff;
+}
+
+.my-activity-header {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 105px;
+  padding-bottom: 7px;
+  background-color: #fff;
+  box-shadow: 0 0.5px 4px rgba(0, 0, 0, 0.25);
+}
+
+.my-activity-header h1 {
+  margin: 0;
+  font-size: 25px;
+  font-weight: 500;
+  color: #000;
+}
+
+.my-activity-back {
+  position: absolute;
+  left: 20px;
+  bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.my-activity-back img {
+  width: 17px;
+}
+
+.my-activity-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 24px 40px;
+  scrollbar-width: none;
+}
+
+.my-activity-body::-webkit-scrollbar {
+  display: none;
+}
+
+.my-activity-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.my-activity-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #adadad;
+  font-size: 14px;
+}

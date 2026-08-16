@@ -1,0 +1,35 @@
+.social-login-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 45px;
+  border: 1px solid #c8d7c6;
+  border-radius: 10px;
+  background-color: #fff;
+  color: #1f1f1f;
+  font-size: 15px;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.social-login-btn:hover {
+  background-color: #f7f9f8;
+}
+
+.social-login-btn:active {
+  background-color: #eef2f0;
+}
+
+.social-login-btn:focus-visible {
+  outline: 2px solid #4fae7c;
+  outline-offset: 2px;
+}
+
+.social-login-icon {
+  width: 18px;
+  height: 18px;
+}

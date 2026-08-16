@@ -1,0 +1,34 @@
+.filter-chip {
+  flex-shrink: 0;
+  padding: 2px 12px;
+  border: 1.5px solid #597ce4;
+  border-radius: 50px;
+  background-color: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 26px;
+  color: #000;
+  white-space: nowrap;
+  cursor: pointer;
+  outline: none;
+}
+
+.filter-chip:hover {
+  background-color: #f2f5ff;
+}
+
+.filter-chip:focus-visible {
+  outline: 2px solid #4fae7c;
+  outline-offset: 2px;
+}
+
+.filter-chip--selected {
+  background-color: #dce5ff;
+  font-weight: 600;
+  color: #597ce4;
+}
+
+.filter-chip--selected:hover {
+  background-color: #cddbfc;
+}

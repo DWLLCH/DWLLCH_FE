@@ -1,0 +1,74 @@
+.login {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* 헤더 */
+.login-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 105px;
+  padding-bottom: 7px;
+  box-shadow: 0 0.5px 4px rgba(0, 0, 0, 0.25);
+}
+
+.login-header h1 {
+  font-size: 25px;
+  font-weight: 500;
+}
+
+.login-body {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  padding: 84px 32px 32px;
+}
+
+/* 소셜 로그인 구분선 */
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #9e9e9e;
+  font-size: 13px;
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: #d9d9d9;
+}
+
+/* 하단 링크 */
+.login-links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+  font-size: 13px;
+}
+
+.login-forgot {
+  color: #0794ff;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.login-signup {
+  margin: 0;
+  color: #000;
+}
+
+.login-signup a {
+  color: #0794ff;
+  font-weight: 700;
+  text-decoration: underline;
+}

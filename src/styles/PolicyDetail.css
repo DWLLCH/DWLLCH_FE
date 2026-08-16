@@ -1,0 +1,280 @@
+.detail-page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #f9fffc;
+}
+
+/* 헤더 */
+.detail-header {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  min-height: 112px;
+  padding: 0 16px 7px;
+  box-sizing: border-box;
+  background-color: #fff;
+  box-shadow: 0 0.5px 4px rgba(0, 0, 0, 0.25);
+}
+
+.detail-back,
+.detail-bookmark {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.detail-back img {
+  width: 17px;
+}
+
+.detail-bookmark img {
+  width: 17px;
+}
+
+.detail-header h1 {
+  flex: 1;
+  display: -webkit-box;
+  margin: 0 0 4px;
+  overflow: hidden;
+  font-size: 19px;
+  font-weight: 600;
+  color: #202020;
+  text-align: center;
+  line-height: 1.3;
+  word-break: keep-all;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.detail-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px 100px;
+  scrollbar-width: none;
+}
+
+.detail-body::-webkit-scrollbar {
+  display: none;
+}
+
+.detail-disclaimer {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: #666;
+  word-break: keep-all;
+}
+
+/* 히어로 */
+.detail-hero {
+  margin-bottom: 16px;
+}
+
+.detail-hero-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.detail-hero-text {
+  flex: 1;
+}
+
+.detail-hero-title {
+  margin: 12px 0 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #202020;
+  word-break: keep-all;
+}
+
+.detail-hero-desc {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: #202020;
+  word-break: keep-all;
+}
+
+.detail-hero-bird {
+  width: 90px;
+  height: auto;
+  flex-shrink: 0;
+}
+
+/* 신청 정보 3단 요약 */
+.detail-info-grid {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.detail-info-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.detail-info-col + .detail-info-col {
+  padding-left: 16px;
+  border-left: 1px solid #d9d9d9;
+}
+
+.detail-info-col-label {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #202020;
+  word-break: keep-all;
+}
+
+.detail-info-col-value {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #202020;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* 지원 자격 목록 */
+.detail-eligibility-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 12px;
+}
+
+.detail-eligibility-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 0;
+  border-bottom: 1px solid #d9d9d9;
+}
+
+.detail-eligibility-item:first-child {
+  padding-top: 0;
+}
+
+.detail-eligibility-item:last-child {
+  border-bottom: none;
+  padding-bottom: 4px;
+}
+
+.detail-eligibility-text {
+  flex: 1;
+  font-size: 15px;
+  color: #202020;
+  word-break: keep-all;
+}
+
+.detail-eligibility-status {
+  display: flex;
+  flex-shrink: 0;
+  justify-content: flex-start;
+  width: 108px;
+  padding-left: 16px;
+  border-left: 1px solid #d9d9d9;
+}
+
+/* 라벨 + 본문 블록 */
+.detail-field {
+  margin-bottom: 20px;
+}
+
+.detail-field:last-child {
+  margin-bottom: 0;
+}
+
+.detail-field-label-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-dday-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 25px;
+  padding: 0 9px;
+  border-radius: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.detail-field-content {
+  margin: 12px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #202020;
+  word-break: keep-all;
+}
+
+.detail-field-link {
+  color: #597ce4;
+  text-decoration: underline;
+  word-break: break-all;
+  overflow-wrap: break-word;
+}
+
+/* 준비 서류 체크리스트 */
+.detail-doc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.detail-doc-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  color: #202020;
+}
+
+.detail-doc-item label {
+  word-break: keep-all;
+  cursor: pointer;
+}
+
+.detail-doc-note {
+  margin: 16px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid #d9d9d9;
+  font-size: 13px;
+  color: #666;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.detail-section-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn.detail-org-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.detail-org-btn img {
+  width: 16px;
+  height: 16px;
+}

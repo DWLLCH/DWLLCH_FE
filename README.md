@@ -29,8 +29,6 @@ yarn start
   - `yarn format` / `yarn format:check`
 - **Husky + Commitlint** — 커밋 시 아래 [커밋 컨벤션](#커밋-컨벤션) 형식이 아니면 커밋이 자동으로 막힘 (`.husky/commit-msg`)
   - 커밋 전 `.husky/pre-commit`에서 lint-staged가 변경된 파일에 대해 ESLint/Prettier를 자동 실행
-- **Vitest + Testing Library** — 컴포넌트 테스트
-  - `yarn test` (1회 실행) / `yarn test:watch` (watch 모드)
 - **CodeRabbit** — PR 생성 시 (draft 제외) GitHub에서 자동으로 코드 리뷰
 
 ---

@@ -1,0 +1,14 @@
+.status-chip {
+  flex-shrink: 0;
+  padding: 3px 15px;
+  border: 1px solid;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.status-chip--sm {
+  padding: 2px 10px;
+  font-size: 12px;
+}

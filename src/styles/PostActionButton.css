@@ -1,0 +1,52 @@
+.post-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 120px;
+  height: 39px;
+  border: none;
+  border-radius: 10px;
+  background-color: #ecf8f1;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  outline: none;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.post-action-btn:hover {
+  background-color: #e0f3e8;
+}
+
+.post-action-btn:focus-visible {
+  outline: 2px solid #4fae7c;
+  outline-offset: 2px;
+}
+
+.post-action-btn-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  background-color: #666;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+}
+
+.post-action-btn--active {
+  color: #6cd59b;
+  font-weight: 600;
+}
+
+.post-action-btn--active .post-action-btn-icon {
+  background-color: #6cd59b;
+}

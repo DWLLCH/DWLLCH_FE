@@ -1,0 +1,73 @@
+.notification-list-page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #fff;
+}
+
+.notification-list-header {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 105px;
+  padding-bottom: 7px;
+  background-color: #fff;
+  box-shadow: 0 0.5px 4px rgba(0, 0, 0, 0.25);
+}
+
+.notification-list-header h1 {
+  margin: 0;
+  font-size: 25px;
+  font-weight: 500;
+  color: #000;
+}
+
+.notification-list-back {
+  position: absolute;
+  left: 20px;
+  bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.notification-list-back img {
+  width: 17px;
+}
+
+.notification-list-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 20px 40px;
+  scrollbar-width: none;
+}
+
+.notification-list-body::-webkit-scrollbar {
+  display: none;
+}
+
+.notification-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+}
+
+.notification-list-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #adadad;
+  font-size: 14px;
+}
