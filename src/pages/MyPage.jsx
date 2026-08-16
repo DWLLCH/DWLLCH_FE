@@ -111,8 +111,12 @@ function MyPage() {
         <section className="mypage-section">
           <h2 className="mypage-section-title">커뮤니티</h2>
           <div className="mypage-card">
-            <SettingsRow label="내가 쓴 글" chevron />
-            <SettingsRow label="내가 쓴 댓글" chevron />
+            <SettingsRow label="내가 쓴 글" chevron onClick={() => navigate('/mypage/posts')} />
+            <SettingsRow
+              label="내가 쓴 댓글"
+              chevron
+              onClick={() => navigate('/mypage/comments')}
+            />
           </div>
         </section>
 

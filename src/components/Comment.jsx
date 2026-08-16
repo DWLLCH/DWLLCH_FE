@@ -50,7 +50,7 @@ function Reply({ reply, commentId, onDeleteReply }) {
   );
 }
 
-function Comment({ comment, onAddReply, onDeleteComment, onDeleteReply }) {
+function Comment({ id, comment, highlighted, onAddReply, onDeleteComment, onDeleteReply }) {
   const [expanded, setExpanded] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [replyAnonymous, setReplyAnonymous] = useState(true);
@@ -64,7 +64,7 @@ function Comment({ comment, onAddReply, onDeleteComment, onDeleteReply }) {
   };
 
   return (
-    <li className="comment">
+    <li id={id} className={`comment${highlighted ? ' comment--highlighted' : ''}`}>
       <div className="comment-header">
         <span className="comment-author">{comment.author}</span>
         <span className="comment-time">{formatDateTimeShort(comment.createdAt)}</span>
