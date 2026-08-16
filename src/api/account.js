@@ -1,7 +1,9 @@
-export function changePassword(payload) {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve({ success: true }), 300);
-  });
+import apiClient from './client';
+
+/* PATCH /auth/password */
+export async function changePassword({ currentPassword, newPassword }) {
+  const response = await apiClient.patch('/auth/password', { currentPassword, newPassword });
+  return response.data;
 }
 
 export function changeEmail(payload) {

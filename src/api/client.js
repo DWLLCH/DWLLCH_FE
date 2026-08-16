@@ -15,4 +15,14 @@ const apiClient = axios.create({
   },
 });
 
+const ACCESS_TOKEN_KEY = 'dwllch_accessToken';
+
+apiClient.interceptors.request.use((config) => {
+  const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+  }
+  return config;
+});
+
 export default apiClient;
