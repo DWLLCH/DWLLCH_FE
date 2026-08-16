@@ -7,7 +7,7 @@ import Button from '../components/Button';
 import TermsContent from '../components/TermsContent';
 import arrowBottom from '../assets/arrow_bottom.svg';
 import arrowUp from '../assets/arrow_up.svg';
-import { checkEmailDuplicate } from '../api/auth';
+import { checkEmailDuplicate, checkUsernameDuplicate } from '../api/auth';
 import { TERMS_CONTENT } from '../constants/terms';
 import { getPasswordRules, isValidEmail, isValidId } from '../utils/validators';
 import '../styles/SignUp.css';
@@ -16,6 +16,7 @@ function SignUp() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', id: '', password: '', passwordConfirm: '' });
   const [emailStatus, setEmailStatus] = useState('idle');
+  const [usernameStatus, setUsernameStatus] = useState('idle');
   const [agreements, setAgreements] = useState({ privacy: false, terms: false, marketing: false });
   const [expandedTerms, setExpandedTerms] = useState({
     privacy: false,
@@ -23,6 +24,7 @@ function SignUp() {
     marketing: false,
   });
   const emailCheckId = useRef(0);
+  const usernameCheckId = useRef(0);
 
   const passwordRules = getPasswordRules(form.password);
   const isPasswordValid = passwordRules.length && passwordRules.alnum && passwordRules.special;
@@ -36,6 +38,10 @@ function SignUp() {
     if (name === 'email') {
       emailCheckId.current += 1;
       setEmailStatus('idle');
+    }
+    if (name === 'id') {
+      usernameCheckId.current += 1;
+      setUsernameStatus('idle');
     }
     setForm((prev) => ({ ...prev, [name]: value }));
   };
@@ -52,13 +58,36 @@ function SignUp() {
       setEmailStatus(available ? 'available' : 'duplicate');
     } catch (error) {
       if (requestId !== emailCheckId.current) return;
-      // 409(이미 가입된 이메일) -> duplicate, 400(형식 오류) -> invalid, 그 외(서버 오류/네트워크/타임아웃 등) -> error
+      // 409(이미 가입된 이메일)는 duplicate, 400(형식 오류)는 invalid, 그 외는 error
       if (error.response?.status === 409) {
         setEmailStatus('duplicate');
       } else if (error.response?.status === 400) {
         setEmailStatus('invalid');
       } else {
         setEmailStatus('error');
+      }
+    }
+  };
+
+  const handleCheckUsername = async () => {
+    if (!isIdValid) {
+      setUsernameStatus('invalid');
+      return;
+    }
+    const requestId = ++usernameCheckId.current;
+    try {
+      const { available } = await checkUsernameDuplicate(form.id);
+      if (requestId !== usernameCheckId.current) return;
+      setUsernameStatus(available ? 'available' : 'duplicate');
+    } catch (error) {
+      if (requestId !== usernameCheckId.current) return;
+      // 409(이미 사용 중인 아이디)는 duplicate, 400(형식 오류)는 invalid, 그 외는  error
+      if (error.response?.status === 409) {
+        setUsernameStatus('duplicate');
+      } else if (error.response?.status === 400) {
+        setUsernameStatus('invalid');
+      } else {
+        setUsernameStatus('error');
       }
     }
   };
@@ -78,7 +107,7 @@ function SignUp() {
 
   const isFormValid =
     emailStatus === 'available' &&
-    isIdValid &&
+    usernameStatus === 'available' &&
     isPasswordValid &&
     isPasswordConfirmValid &&
     agreements.privacy &&
@@ -149,12 +178,33 @@ function SignUp() {
             placeholder="영문, 숫자 조합(8~12자)"
             value={form.id}
             onChange={handleChange}
+            rightElement={
+              <DuplicateCheckButton
+                status={usernameStatus}
+                onClick={handleCheckUsername}
+                disabled={!form.id}
+              />
+            }
           />
-          {form.id && (
-            <p
-              className={`signup-field-message${isIdValid ? ' signup-field-message--success' : ' signup-field-message--error'}`}
-            >
-              {isIdValid ? '사용 가능한 아이디입니다' : '영문, 숫자 조합 8~12자로 입력해주세요'}
+          {usernameStatus === 'available' && (
+            <p className="signup-field-message signup-field-message--success">
+              사용 가능한 아이디입니다
+            </p>
+          )}
+          {usernameStatus === 'duplicate' && (
+            <p className="signup-field-message signup-field-message--error">
+              이미 사용 중인 아이디입니다
+            </p>
+          )}
+          {usernameStatus === 'error' && (
+            <p className="signup-field-message signup-field-message--error">
+              확인 중 오류가 발생했어요. 다시 시도해주세요.
+            </p>
+          )}
+          {/* 중복확인 전(idle)이거나 형식오류(invalid)일 때는, 타이핑하는 즉시 형식만 실시간으로 안내 */}
+          {(usernameStatus === 'idle' || usernameStatus === 'invalid') && form.id && !isIdValid && (
+            <p className="signup-field-message signup-field-message--error">
+              영문, 숫자 조합 8~12자로 입력해주세요
             </p>
           )}
         </div>

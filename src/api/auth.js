@@ -41,3 +41,9 @@ export async function checkEmailDuplicate(email) {
   const response = await apiClient.post('/auth/signup/email/check', { email });
   return response.data.data;
 }
+
+/* POST /auth/signup/username/check | 성공 시 { available: true } 반환 */
+export async function checkUsernameDuplicate(username) {
+  const response = await apiClient.post('/auth/signup/username/check', { username });
+  return response.data.data;
+}
