@@ -1,20 +1,42 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import TextField from '../components/TextField';
 import Button from '../components/Button';
 import SocialLoginButton from '../components/SocialLoginButton';
+import { login, setTokens } from '../api/auth';
 import '../styles/Login.css';
 
 function Login() {
+  const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
+    setErrorMessage('');
+    setIsSubmitting(true);
+
+    try {
+      const { accessToken, refreshToken, userId } = await login(form);
+      setTokens({ accessToken, refreshToken, userId });
+      navigate('/home');
+    } catch (error) {
+      const isTimeout = error.code === 'ECONNABORTED' || error.message?.includes('timeout');
+      const message = isTimeout
+        ? '서버 응답이 너무 늦어지고 있어요. 잠시 후 다시 시도해주세요.'
+        : error.response?.data?.message || '로그인에 실패했습니다. 다시 시도해주세요.';
+      setErrorMessage(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -46,8 +68,14 @@ function Login() {
           autoComplete="current-password"
         />
 
-        <Button type="submit" fullWidth>
-          로그인
+        {errorMessage && (
+          <p className="login-error" role="alert">
+            {errorMessage}
+          </p>
+        )}
+
+        <Button type="submit" fullWidth disabled={isSubmitting}>
+          {isSubmitting ? '로그인 중...' : '로그인'}
         </Button>
 
         {/* 소셜 로그인 */}
