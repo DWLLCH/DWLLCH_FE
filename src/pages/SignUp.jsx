@@ -46,9 +46,19 @@ function SignUp() {
       return;
     }
     const requestId = ++emailCheckId.current;
-    const { available } = await checkEmailDuplicate(form.email);
-    if (requestId !== emailCheckId.current) return;
-    setEmailStatus(available ? 'available' : 'duplicate');
+    try {
+      const { available } = await checkEmailDuplicate(form.email);
+      if (requestId !== emailCheckId.current) return;
+      setEmailStatus(available ? 'available' : 'duplicate');
+    } catch (error) {
+      if (requestId !== emailCheckId.current) return;
+      // 409(이미 가입된 이메일)면 duplicate, 그 외는 invalid
+      if (error.response?.status === 409) {
+        setEmailStatus('duplicate');
+      } else {
+        setEmailStatus('invalid');
+      }
+    }
   };
 
   const handleToggleAll = () => {
