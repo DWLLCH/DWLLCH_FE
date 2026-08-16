@@ -16,6 +16,8 @@ const apiClient = axios.create({
 });
 
 const ACCESS_TOKEN_KEY = 'dwllch_accessToken';
+const REFRESH_TOKEN_KEY = 'dwllch_refreshToken';
+const USER_ID_KEY = 'dwllch_userId';
 
 apiClient.interceptors.request.use((config) => {
   const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
@@ -24,5 +26,39 @@ apiClient.interceptors.request.use((config) => {
   }
   return config;
 });
+
+/* reissue access token */
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    const status = error.response?.status;
+    const isReissueRequest = originalRequest?.url?.includes('/auth/reissue');
+
+    // 401이 아니거나, 재발급 요청 자체가 401난 것이거나, 이미 한 번 재시도한 요청이면 그냥 실패 처리
+    if (status !== 401 || isReissueRequest || originalRequest._retry) {
+      return Promise.reject(error);
+    }
+
+    const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+    if (!refreshToken) {
+      return Promise.reject(error);
+    }
+
+    originalRequest._retry = true;
+
+    try {
+      const { data } = await apiClient.post('/auth/reissue', { refreshToken });
+      localStorage.setItem(ACCESS_TOKEN_KEY, data.data.accessToken);
+      return apiClient(originalRequest);
+    } catch (reissueError) {
+      localStorage.removeItem(ACCESS_TOKEN_KEY);
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
+      localStorage.removeItem(USER_ID_KEY);
+      window.location.href = '/login';
+      return Promise.reject(reissueError);
+    }
+  },
+);
 
 export default apiClient;
