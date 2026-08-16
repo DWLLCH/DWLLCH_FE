@@ -2,9 +2,8 @@ import { useRef } from 'react';
 import imageIcon from '../assets/image.svg';
 import fileIcon from '../assets/fileIcon.svg';
 import BottomSheet from './BottomSheet';
+import { MAX_ATTACH_COUNT } from '../constants/chatbot';
 import '../styles/ChatAttachSheet.css';
-
-const MAX_ATTACH_COUNT = 5;
 
 function ChatAttachSheet({ open, onClose, onSelectImages, onSelectFiles }) {
   const imageInputRef = useRef(null);

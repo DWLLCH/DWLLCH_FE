@@ -1,5 +1,7 @@
 export const CHATBOT_NAME = 'AI 챗봇';
 
+export const MAX_ATTACH_COUNT = 5;
+
 export const MENU_OPTIONS = [
   { value: 'ask-policy', label: '제도 관련 질문이 있어요' },
   { value: 'report-error', label: '정보에 오류가 있는 것 같아요' },

@@ -47,14 +47,14 @@
 }
 
 .chat-attach-option-icon img {
-  width: 18px;
-  height: 18px;
+  width: 15px;
+  height: 15px;
 }
 
-.chat-attach-option-icon--file {
-  width: 28px;
-  height: 28px;
-  transform: translateX(2px);
+.chat-attach-option-icon img.chat-attach-option-icon--file {
+  width: 17px;
+  height: 17px;
+  transform: translateX(1px);
   filter: invert(60%);
 }
 

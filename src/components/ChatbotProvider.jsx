@@ -1,6 +1,11 @@
 import { createContext, useCallback, useEffect, useRef, useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { INITIAL_MESSAGES, getAttachmentReply, getBotReply } from '../constants/chatbot';
+import {
+  INITIAL_MESSAGES,
+  MAX_ATTACH_COUNT,
+  getAttachmentReply,
+  getBotReply,
+} from '../constants/chatbot';
 
 export const ChatbotContext = createContext(null);
 
@@ -31,10 +36,8 @@ function ChatbotProvider({ children }) {
   );
 
   const appendMessages = useCallback((drafts) => {
-    setMessages((prev) => [
-      ...prev,
-      ...drafts.map((draft) => ({ ...draft, id: createId(idCounterRef) })),
-    ]);
+    const withIds = drafts.map((draft) => ({ ...draft, id: createId(idCounterRef) }));
+    setMessages((prev) => [...prev, ...withIds]);
   }, []);
 
   const respondWithDelay = useCallback(
@@ -57,14 +60,12 @@ function ChatbotProvider({ children }) {
   }, []);
 
   const enterChat = useCallback(() => {
+    const dividerId = createId(idCounterRef);
     setMessages((prev) => {
       if (prev.length <= initialCountRef.current) return prev;
       const last = prev[prev.length - 1];
       if (last?.type === 'divider') return prev;
-      return [
-        ...prev,
-        { id: createId(idCounterRef), sender: 'system', type: 'divider', text: '이전 대화' },
-      ];
+      return [...prev, { id: dividerId, sender: 'system', type: 'divider', text: '이전 대화' }];
     });
   }, []);
 
@@ -96,7 +97,7 @@ function ChatbotProvider({ children }) {
   const attachImages = useCallback(
     (files) => {
       if (!files || files.length === 0) return;
-      const drafts = files.map((file) => {
+      const drafts = files.slice(0, MAX_ATTACH_COUNT).map((file) => {
         const url = URL.createObjectURL(file);
         objectUrlsRef.current.push(url);
         return { sender: 'user', type: 'image', imageUrl: url };
@@ -110,7 +111,10 @@ function ChatbotProvider({ children }) {
   const attachFiles = useCallback(
     (files) => {
       if (!files || files.length === 0) return;
-      appendMessages(files.map((file) => ({ sender: 'user', type: 'file', fileName: file.name })));
+      const drafts = files
+        .slice(0, MAX_ATTACH_COUNT)
+        .map((file) => ({ sender: 'user', type: 'file', fileName: file.name }));
+      appendMessages(drafts);
       respondWithDelay(() => getAttachmentReply());
     },
     [appendMessages, respondWithDelay],
