@@ -6,6 +6,10 @@
   background-color: #f9fffb;
 }
 
+.briefing-page .chatbot-btn {
+  bottom: 100px;
+}
+
 /* 헤더 */
 .briefing-header {
   position: relative;
@@ -48,7 +52,7 @@
 .briefing-body {
   flex: 1;
   overflow-y: auto;
-  padding: 20px 24px 110px;
+  padding: 20px 24px 135px;
   scrollbar-width: none;
 }
 

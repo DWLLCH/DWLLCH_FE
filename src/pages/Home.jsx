@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
+import ChatbotButton from '../components/ChatbotButton';
 import HomeCard from '../components/HomeCard';
 import Calendar from '../components/Calendar';
 import wavingHand from '../assets/waving_hand.svg';
@@ -72,6 +73,7 @@ function Home() {
         </div>
       </div>
 
+      <ChatbotButton onClick={() => navigate('/chatbot')} />
       <BottomNav />
     </div>
   );

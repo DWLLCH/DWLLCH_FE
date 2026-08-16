@@ -3,6 +3,7 @@ import backBtn from '../assets/backBtn.svg';
 import BriefingCard from '../components/BriefingCard';
 import SectionTag from '../components/SectionTag';
 import BottomNav from '../components/BottomNav';
+import ChatbotButton from '../components/ChatbotButton';
 import { BRIEFING_SECTIONS } from '../constants/briefing';
 import '../styles/Briefing.css';
 
@@ -43,6 +44,7 @@ function Briefing() {
         ))}
       </div>
 
+      <ChatbotButton onClick={() => navigate('/chatbot')} />
       <BottomNav />
     </div>
   );

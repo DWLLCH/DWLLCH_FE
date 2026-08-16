@@ -4,12 +4,16 @@
   background-color: #fff;
 }
 
+.home .chatbot-btn {
+  bottom: 100px;
+}
+
 .home-scroll {
   position: absolute;
   inset: 0;
   bottom: 86px;
   overflow-y: auto;
-  padding: 56px 26px 32px;
+  padding: 56px 26px 50px;
   scrollbar-width: none;
 }
 
