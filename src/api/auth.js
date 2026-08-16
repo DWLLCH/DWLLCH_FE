@@ -1,14 +1,5 @@
 import apiClient from './client';
 
-/* 테스트용 -> 이메일에 "test" 들어가면 중복으로 뜨는 임시 목업 */
-export function checkEmailDuplicate(email) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({ available: !email.includes('test') });
-    }, 300);
-  });
-}
-
 const ACCESS_TOKEN_KEY = 'dwllch_accessToken';
 const REFRESH_TOKEN_KEY = 'dwllch_refreshToken';
 const USER_ID_KEY = 'dwllch_userId';
@@ -42,5 +33,17 @@ export function clearTokens() {
 /* POST /auth/login */
 export async function login({ email, password }) {
   const response = await apiClient.post('/auth/login', { email, password });
+  return response.data.data;
+}
+
+/* POST /auth/signup/email/check | 성공 시 { available: true } 반환 */
+export async function checkEmailDuplicate(email) {
+  const response = await apiClient.post('/auth/signup/email/check', { email });
+  return response.data.data;
+}
+
+/* POST /auth/signup/username/check | 성공 시 { available: true } 반환 */
+export async function checkUsernameDuplicate(username) {
+  const response = await apiClient.post('/auth/signup/username/check', { username });
   return response.data.data;
 }
