@@ -29,6 +29,13 @@
   padding: 84px 32px 32px;
 }
 
+/* 로그인 실패 에러 메시지 */
+.login-error {
+  margin: -24px 0 0;
+  color: #ff5b5b;
+  font-size: 13px;
+}
+
 /* 소셜 로그인 구분선 */
 .login-divider {
   display: flex;
