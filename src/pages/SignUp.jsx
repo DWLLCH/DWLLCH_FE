@@ -221,10 +221,10 @@ function SignUp() {
                 className="signup-term-arrow-btn"
                 onClick={() => handleToggleExpand('privacy')}
                 aria-expanded={expandedTerms.privacy}
-                aria-label="개인정보 수집 및 이용 동의 내용 보기"
+                aria-label={`개인정보 수집 및 이용 동의 내용 ${expandedTerms.privacy ? '접기' : '보기'}`}
               >
                 <img
-                  src={expandedTerms.privacy ? arrowBottom : arrowUp}
+                  src={expandedTerms.privacy ? arrowUp : arrowBottom}
                   alt=""
                   className="signup-term-arrow"
                 />
@@ -249,10 +249,10 @@ function SignUp() {
                 className="signup-term-arrow-btn"
                 onClick={() => handleToggleExpand('terms')}
                 aria-expanded={expandedTerms.terms}
-                aria-label="서비스 이용약관 내용 보기"
+                aria-label={`서비스 이용약관 내용 ${expandedTerms.terms ? '접기' : '보기'}`}
               >
                 <img
-                  src={expandedTerms.terms ? arrowBottom : arrowUp}
+                  src={expandedTerms.terms ? arrowUp : arrowBottom}
                   alt=""
                   className="signup-term-arrow"
                 />
@@ -277,10 +277,10 @@ function SignUp() {
                 className="signup-term-arrow-btn"
                 onClick={() => handleToggleExpand('marketing')}
                 aria-expanded={expandedTerms.marketing}
-                aria-label="알림 및 마케팅 정보 수신 동의 내용 보기"
+                aria-label={`알림 및 마케팅 정보 수신 동의 내용 ${expandedTerms.marketing ? '접기' : '보기'}`}
               >
                 <img
-                  src={expandedTerms.marketing ? arrowBottom : arrowUp}
+                  src={expandedTerms.marketing ? arrowUp : arrowBottom}
                   alt=""
                   className="signup-term-arrow"
                 />
