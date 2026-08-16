@@ -52,11 +52,13 @@ function SignUp() {
       setEmailStatus(available ? 'available' : 'duplicate');
     } catch (error) {
       if (requestId !== emailCheckId.current) return;
-      // 409(이미 가입된 이메일)면 duplicate, 그 외는 invalid
+      // 409(이미 가입된 이메일) -> duplicate, 400(형식 오류) -> invalid, 그 외(서버 오류/네트워크/타임아웃 등) -> error
       if (error.response?.status === 409) {
         setEmailStatus('duplicate');
-      } else {
+      } else if (error.response?.status === 400) {
         setEmailStatus('invalid');
+      } else {
+        setEmailStatus('error');
       }
     }
   };
@@ -115,6 +117,11 @@ function SignUp() {
               />
             }
           />
+          {emailStatus === 'available' && (
+            <p className="signup-field-message signup-field-message--success">
+              사용 가능한 이메일입니다
+            </p>
+          )}
           {emailStatus === 'duplicate' && (
             <p className="signup-field-message signup-field-message--error">
               이미 사용 중인 이메일입니다
@@ -123,6 +130,11 @@ function SignUp() {
           {emailStatus === 'invalid' && (
             <p className="signup-field-message signup-field-message--error">
               올바른 이메일 형식이 아닙니다
+            </p>
+          )}
+          {emailStatus === 'error' && (
+            <p className="signup-field-message signup-field-message--error">
+              확인 중 오류가 발생했어요. 다시 시도해주세요.
             </p>
           )}
         </div>
