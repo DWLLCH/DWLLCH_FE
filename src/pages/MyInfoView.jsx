@@ -23,7 +23,7 @@ function MyInfoView() {
     supportNeeds,
   } = data;
 
-  const endDateLabel = endStatus === '보호 종료했어요' ? '보호 종료일' : '보호 종료 예정일';
+  const endDateLabel = '보호 종료일';
 
   return (
     <div className="myinfo-page">

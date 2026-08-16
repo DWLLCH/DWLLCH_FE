@@ -14,7 +14,7 @@ import '../styles/MyInfo.css';
 
 const PROTECTION_TYPES = ['아동양육시설', '공동생활가정', '가정위탁', '기타', '잘 모르겠어요'];
 
-const END_STATUSES = ['아직 보호 중이에요', '보호 종료 예정이에요', '보호 종료했어요'];
+const END_STATUSES = ['아직 보호 중이에요', '보호 종료했어요'];
 
 const HOUSING_TYPES = [
   '월세 (보증금과 월 임대료를 내고 있어요)',
@@ -238,9 +238,7 @@ function MyInfoEdit() {
 
         {draft.endStatus !== '아직 보호 중이에요' && (
           <section className="myinfo-edit-section">
-            <p className="myinfo-edit-label">
-              {draft.endStatus === '보호 종료했어요' ? '보호 종료일' : '보호 종료 예정일'}
-            </p>
+            <p className="myinfo-edit-label">보호 종료일</p>
             <DatePicker value={draft.endDate} onChange={(date) => patch({ endDate: date })} />
           </section>
         )}

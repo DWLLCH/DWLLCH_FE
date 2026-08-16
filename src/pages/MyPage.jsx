@@ -7,8 +7,8 @@ import BottomNav from '../components/BottomNav';
 import SettingsRow from '../components/SettingsRow';
 import useBookmarks from '../hooks/useBookmarks';
 import useNotifications from '../hooks/useNotifications';
-import { CURRENT_USER_NAME } from '../constants/home';
-import { APPLICATION_STATS, USER_EMAIL, APP_VERSION } from '../constants/mypage';
+import { getMyProfile } from '../api/mypage';
+import { APPLICATION_STATS, APP_VERSION } from '../constants/mypage';
 import '../styles/MyPage.css';
 
 function MyPage() {
@@ -16,6 +16,7 @@ function MyPage() {
   const { bookmarkedIds } = useBookmarks();
   const { hasUnread } = useNotifications();
   const [avatarUrl, setAvatarUrl] = useState(null);
+  const [profile, setProfile] = useState({ username: '', email: '' });
   const fileInputRef = useRef(null);
 
   useEffect(
@@ -24,6 +25,21 @@ function MyPage() {
     },
     [avatarUrl],
   );
+
+  useEffect(() => {
+    let isMounted = true;
+    getMyProfile()
+      .then((data) => {
+        if (!isMounted) return;
+        setProfile({ username: data.username, email: data.email });
+      })
+      .catch(() => {
+        /* 조회 실패 시 이름/아이디는 빈 값. 나머지 화면은 그대로 */
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
@@ -71,7 +87,7 @@ function MyPage() {
             />
           </div>
 
-          <p className="mypage-name">{CURRENT_USER_NAME}</p>
+          <p className="mypage-name">{profile.username}</p>
         </div>
 
         <div className="mypage-stats">
@@ -98,7 +114,7 @@ function MyPage() {
         <section className="mypage-section">
           <h2 className="mypage-section-title">프로필</h2>
           <div className="mypage-card">
-            <SettingsRow label="아이디" value={USER_EMAIL} />
+            <SettingsRow label="아이디" value={profile.email} />
             <SettingsRow
               label="비밀번호 변경"
               chevron
