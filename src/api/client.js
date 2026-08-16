@@ -9,6 +9,7 @@ import axios from 'axios';
  */
 const apiClient = axios.create({
   baseURL: process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000',
+  timeout: 10000, // 10초 안에 응답 없으면 타임아웃 처리 (서버가 죽었을 때 무한 대기 방지)
   headers: {
     'Content-Type': 'application/json',
   },

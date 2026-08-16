@@ -25,11 +25,14 @@ function Login() {
     setIsSubmitting(true);
 
     try {
-      const { accessToken, refreshToken } = await login(form);
-      setTokens({ accessToken, refreshToken });
+      const { accessToken, refreshToken, userId } = await login(form);
+      setTokens({ accessToken, refreshToken, userId });
       navigate('/home');
     } catch (error) {
-      const message = error.response?.data?.message || '로그인에 실패했습니다. 다시 시도해주세요.';
+      const isTimeout = error.code === 'ECONNABORTED' || error.message?.includes('timeout');
+      const message = isTimeout
+        ? '서버 응답이 너무 늦어지고 있어요. 잠시 후 다시 시도해주세요.'
+        : error.response?.data?.message || '로그인에 실패했습니다. 다시 시도해주세요.';
       setErrorMessage(message);
     } finally {
       setIsSubmitting(false);
@@ -65,7 +68,11 @@ function Login() {
           autoComplete="current-password"
         />
 
-        {errorMessage && <p className="login-error">{errorMessage}</p>}
+        {errorMessage && (
+          <p className="login-error" role="alert">
+            {errorMessage}
+          </p>
+        )}
 
         <Button type="submit" fullWidth disabled={isSubmitting}>
           {isSubmitting ? '로그인 중...' : '로그인'}

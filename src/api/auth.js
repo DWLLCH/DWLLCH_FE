@@ -11,10 +11,14 @@ export function checkEmailDuplicate(email) {
 
 const ACCESS_TOKEN_KEY = 'dwllch_accessToken';
 const REFRESH_TOKEN_KEY = 'dwllch_refreshToken';
+const USER_ID_KEY = 'dwllch_userId';
 
-export function setTokens({ accessToken, refreshToken }) {
+export function setTokens({ accessToken, refreshToken, userId }) {
   localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
   localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  if (userId !== undefined && userId !== null) {
+    localStorage.setItem(USER_ID_KEY, userId);
+  }
 }
 
 export function getAccessToken() {
@@ -25,9 +29,14 @@ export function getRefreshToken() {
   return localStorage.getItem(REFRESH_TOKEN_KEY);
 }
 
+export function getUserId() {
+  return localStorage.getItem(USER_ID_KEY);
+}
+
 export function clearTokens() {
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
+  localStorage.removeItem(USER_ID_KEY);
 }
 
 /* POST /auth/login */
