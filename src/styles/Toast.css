@@ -11,7 +11,7 @@
   font-size: 14px;
   font-weight: 600;
   color: #6cd59b;
-  animation: toast-in 0.2s ease;
+  animation: toast-in 0.45s ease;
 }
 
 @keyframes toast-in {

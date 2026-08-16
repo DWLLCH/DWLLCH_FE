@@ -1,0 +1,50 @@
+.notification-item {
+  position: relative;
+  padding: 16px 18px;
+  border-radius: 15px;
+  background-color: #f5f5f5;
+  list-style: none;
+}
+
+.notification-item--unread {
+  background-color: #ecf8f1;
+}
+
+.notification-item-dot {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #ff5b5b;
+}
+
+.notification-item-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(50%);
+  border: 0;
+}
+
+.notification-item-category {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #000;
+  word-break: keep-all;
+}
+
+.notification-item-message {
+  margin: 0;
+  overflow: hidden;
+  font-size: 14px;
+  color: #202020;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

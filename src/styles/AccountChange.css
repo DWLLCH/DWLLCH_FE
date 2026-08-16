@@ -1,0 +1,123 @@
+.account-change-page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #fff;
+}
+
+/* 헤더 */
+.account-change-header {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 105px;
+  padding-bottom: 7px;
+  background-color: #fff;
+  box-shadow: 0 0.5px 4px rgba(0, 0, 0, 0.25);
+}
+
+.account-change-header h1 {
+  margin: 0;
+  font-size: 25px;
+  font-weight: 500;
+  color: #000;
+}
+
+.account-change-back {
+  position: absolute;
+  left: 20px;
+  bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.account-change-back img {
+  width: 17px;
+}
+
+.account-change-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  overflow-y: auto;
+  padding: 28px 24px 40px;
+  scrollbar-width: none;
+}
+
+.account-change-body::-webkit-scrollbar {
+  display: none;
+}
+
+/* 입력 섹션 */
+.account-change-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.account-change-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.account-change-label {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #000;
+}
+
+.account-change-helper {
+  margin: 0;
+  font-size: 12px;
+  color: #666;
+  word-break: keep-all;
+}
+
+.account-change-message {
+  margin: -4px 0 0;
+  font-size: 12px;
+}
+
+.account-change-message--error {
+  color: #ff5b5b;
+}
+
+.account-change-message--success {
+  color: #6cd59b;
+}
+
+/* 계정 보호 안내 */
+.account-change-notice {
+  padding: 16px;
+  border-radius: 12px;
+  background-color: #f7fffa;
+}
+
+.account-change-notice-title {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #202020;
+  word-break: keep-all;
+}
+
+.account-change-notice-desc {
+  margin: 0;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.6;
+  word-break: keep-all;
+}

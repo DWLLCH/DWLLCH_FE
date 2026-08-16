@@ -1,10 +1,17 @@
 .comment {
   padding: 16px 0;
+  border-top: 1px solid transparent;
   border-bottom: 1px solid #ececec;
+  transition: border-color 0.3s ease;
 }
 
 .comment:last-child {
-  border-bottom: none;
+  border-bottom: 1px solid transparent;
+}
+
+.comment.comment--highlighted {
+  border-top-color: #6cd59b;
+  border-bottom-color: #6cd59b;
 }
 
 .comment-header {

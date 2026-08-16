@@ -14,6 +14,17 @@ export function getPasswordRules(password) {
   };
 }
 
+export function getNewPasswordRules(password) {
+  const categoryCount = [/[A-Za-z]/, /[0-9]/, /[!@#$%^&*(),.?":{}|<>_\-+=]/].filter((pattern) =>
+    pattern.test(password),
+  ).length;
+
+  return {
+    length: password.length >= 8 && password.length <= 20,
+    combination: categoryCount >= 3,
+  };
+}
+
 export function isValidBirthDate(value) {
   if (!/^\d{8}$/.test(value)) return false;
   const year = Number(value.slice(0, 4));

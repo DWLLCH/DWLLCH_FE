@@ -103,7 +103,16 @@ export const POSTS = [
     viewCount: 512,
     likeCount: 8,
     content: ['진심 서럽네요 ㅜㅜ'],
-    comments: [],
+    comments: [
+      {
+        id: 1,
+        author: '박하은',
+        createdAt: '2026-08-15T02:30:00',
+        text: '저도 비슷한 시기가 있었는데 지나고 보니 괜찮아지더라고요',
+        likeCount: 0,
+        replies: [],
+      },
+    ],
   },
   {
     id: 3,
@@ -116,7 +125,16 @@ export const POSTS = [
     viewCount: 234,
     likeCount: 3,
     content: ['주민등록등본이랑 자격확인서 뗐는데, 부모님 관련 서류도 따로 제출해야 하나요?'],
-    comments: [],
+    comments: [
+      {
+        id: 1,
+        author: '박하은',
+        createdAt: '2026-08-15T04:30:00',
+        text: '부모님 서류는 저도 따로 냈던 것 같아요!',
+        likeCount: 0,
+        replies: [],
+      },
+    ],
   },
   {
     id: 4,
@@ -130,7 +148,16 @@ export const POSTS = [
     viewCount: 198,
     likeCount: 4,
     content: ['정착금 수령 예정인데 보증금에 다 넣어야 할지 전/가구 살 돈을 좀 남길지 고민이에요.'],
-    comments: [],
+    comments: [
+      {
+        id: 1,
+        author: '박하은',
+        createdAt: '2026-08-15T04:40:00',
+        text: '저는 반반 나눠서 썼어요',
+        likeCount: 0,
+        replies: [],
+      },
+    ],
   },
   {
     id: 5,

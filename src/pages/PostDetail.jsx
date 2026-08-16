@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import backBtn from '../assets/backBtn.svg';
 import like from '../assets/like.svg';
 import share from '../assets/share.svg';
@@ -51,8 +51,10 @@ function writeStoredAnonymousNumber(postId, number) {
 
 function PostDetail() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams();
   const post = [NOTICE_POST, ...POSTS].find((item) => String(item.id) === id);
+  const targetCommentId = location.state?.commentId;
 
   const [likeState, setLikeState] = useState({ liked: false, count: post?.likeCount ?? 0 });
   const [comments, setComments] = useState(post?.comments || []);
@@ -61,6 +63,17 @@ function PostDetail() {
   const [myAnonymousNumber, setMyAnonymousNumber] = useState(() =>
     post ? readStoredAnonymousNumber(post.id) : null,
   );
+  const [highlightedCommentId, setHighlightedCommentId] = useState(null);
+
+  useEffect(() => {
+    if (!targetCommentId) return undefined;
+    const el = document.getElementById(`comment-${targetCommentId}`);
+    if (!el) return undefined;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setHighlightedCommentId(targetCommentId);
+    const timer = setTimeout(() => setHighlightedCommentId(null), 1600);
+    return () => clearTimeout(timer);
+  }, [targetCommentId]);
 
   useEffect(() => {
     if (!post) return;
@@ -278,7 +291,9 @@ function PostDetail() {
             {comments.map((comment) => (
               <Comment
                 key={comment.id}
+                id={`comment-${comment.id}`}
                 comment={comment}
+                highlighted={comment.id === highlightedCommentId}
                 onAddReply={handleAddReply}
                 onDeleteComment={handleDeleteComment}
                 onDeleteReply={handleDeleteReply}
