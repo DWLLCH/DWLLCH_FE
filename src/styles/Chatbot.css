@@ -1,0 +1,116 @@
+.chatbot-page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #fff;
+  animation: chatbot-open 0.28s ease-out;
+  transform-origin: bottom right;
+}
+
+@keyframes chatbot-open {
+  0% {
+    transform: scale(0.96) translateY(12px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* 헤더 */
+.chatbot-header {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 105px;
+  padding-bottom: 7px;
+  box-shadow: 0 0.5px 4px rgba(0, 0, 0, 0.25);
+}
+
+.chatbot-header h1 {
+  margin: 0;
+  font-size: 25px;
+  font-weight: 500;
+}
+
+.chatbot-back {
+  position: absolute;
+  left: 20px;
+  bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+/* 대화 목록 */
+.chatbot-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  padding: 20px;
+  scrollbar-width: none;
+}
+
+.chatbot-body::-webkit-scrollbar {
+  display: none;
+}
+
+.chatbot-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.chatbot-row--user {
+  justify-content: flex-end;
+}
+
+.chatbot-avatar {
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* 이전 대화 구분선 */
+.chatbot-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0;
+  color: #adadad;
+  font-size: 12px;
+}
+
+.chatbot-divider::before,
+.chatbot-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: #ececec;
+}
+
+.chatbot-bubble-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.chatbot-row--user .chatbot-bubble-col {
+  align-items: flex-end;
+}

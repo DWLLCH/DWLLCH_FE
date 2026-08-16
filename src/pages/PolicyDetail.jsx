@@ -215,7 +215,7 @@ function PolicyDetail() {
 
         <DetailSection number={five} title="도움이 필요하신가요?">
           <div className="detail-section-buttons">
-            <Button variant="blue" fullWidth onClick={() => {}}>
+            <Button variant="blue" fullWidth onClick={() => navigate('/chatbot')}>
               AI 챗봇에게 질문하기
             </Button>
             <Button variant="green" fullWidth onClick={() => navigate('/community')}>
@@ -228,7 +228,7 @@ function PolicyDetail() {
         </DetailSection>
       </div>
 
-      <ChatbotButton />
+      <ChatbotButton onClick={() => navigate('/chatbot')} />
     </div>
   );
 }
