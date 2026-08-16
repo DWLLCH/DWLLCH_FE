@@ -73,7 +73,7 @@ function PostDetail() {
     setHighlightedCommentId(targetCommentId);
     const timer = setTimeout(() => setHighlightedCommentId(null), 1600);
     return () => clearTimeout(timer);
-  }, [targetCommentId, comments]);
+  }, [targetCommentId]);
 
   useEffect(() => {
     if (!post) return;
