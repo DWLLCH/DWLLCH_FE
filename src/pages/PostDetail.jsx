@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import backBtn from '../assets/backBtn.svg';
 import like from '../assets/like.svg';
@@ -9,44 +9,50 @@ import PostBadge from '../components/PostBadge';
 import CommentInputBar from '../components/CommentInputBar';
 import Comment from '../components/Comment';
 import PollCard from '../components/PollCard';
+import LoginRequiredModal from '../components/LoginRequiredModal';
 import { NOTICE_POST, POSTS } from '../constants/community';
-import { CURRENT_USER_NAME } from '../constants/home';
+import { getComments, createComment, updateComment, deleteComment } from '../api/community';
+import { getMyProfile } from '../api/mypage';
+import { getAccessToken } from '../api/auth';
 import { formatDateTimeShort } from '../utils/formatters';
 import '../styles/PostDetail.css';
 
-function getNextAnonymousNumber(comments) {
-  let max = 0;
-  comments.forEach((comment) => {
-    const match = /^익명 (\d+)$/.exec(comment.author);
-    if (match) max = Math.max(max, Number(match[1]));
-    (comment.replies || []).forEach((reply) => {
-      const replyMatch = /^익명 (\d+)$/.exec(reply.author);
-      if (replyMatch) max = Math.max(max, Number(replyMatch[1]));
-    });
+// 댓글 목록(GET)은 post/comment를 parentId 기준으로 평탄화해서 내려주기 때문에
+// 프론트에서 최상위 댓글 + 답글(1depth) 트리로 묶어줘야 함
+function buildCommentTree(rawComments, { username, myCommentIds }) {
+  const isMine = (item) =>
+    myCommentIds.has(item.id) || (!item.isAnonymous && !!username && item.authorName === username);
+
+  const repliesByParent = {};
+  const topLevel = [];
+
+  rawComments.forEach((item) => {
+    if (item.parentId) {
+      if (!repliesByParent[item.parentId]) repliesByParent[item.parentId] = [];
+      repliesByParent[item.parentId].push(item);
+    } else {
+      topLevel.push(item);
+    }
   });
-  return max + 1;
-}
 
-function getAnonymousStorageKey(postId) {
-  return `community-anonymous-number-${postId}`;
-}
-
-function readStoredAnonymousNumber(postId) {
-  try {
-    const stored = sessionStorage.getItem(getAnonymousStorageKey(postId));
-    const parsed = stored ? Number(stored) : null;
-    return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
-  } catch {
-    return null;
-  }
-}
-
-function writeStoredAnonymousNumber(postId, number) {
-  try {
-    sessionStorage.setItem(getAnonymousStorageKey(postId), String(number));
-  } catch {
-    return;
-  }
+  return topLevel.map((item) => ({
+    id: item.id,
+    author: item.authorName,
+    text: item.content,
+    deleted: item.isDeleted,
+    likeCount: item.likeCount,
+    isMine: isMine(item),
+    createdAt: item.createdAt,
+    replies: (repliesByParent[item.id] || []).map((reply) => ({
+      id: reply.id,
+      author: reply.authorName,
+      text: reply.content,
+      deleted: reply.isDeleted,
+      likeCount: reply.likeCount,
+      isMine: isMine(reply),
+      createdAt: reply.createdAt,
+    })),
+  }));
 }
 
 function PostDetail() {
@@ -56,14 +62,56 @@ function PostDetail() {
   const post = [NOTICE_POST, ...POSTS].find((item) => String(item.id) === id);
   const targetCommentId = location.state?.commentId;
 
+  // 댓글 API는 실제 게시글(id가 숫자)에만 연동함, 공지 게시글은 목데이터라 대상에서 제외
+  const canUseCommentApi = typeof post?.id === 'number';
+
+  const [isLoggedIn] = useState(() => Boolean(getAccessToken()));
   const [likeState, setLikeState] = useState({ liked: false, count: post?.likeCount ?? 0 });
-  const [comments, setComments] = useState(post?.comments || []);
+
+  const [rawComments, setRawComments] = useState([]);
+  const [commentsLoading, setCommentsLoading] = useState(canUseCommentApi);
+  const [commentsError, setCommentsError] = useState(false);
+  // 백엔드 댓글 목록에는 isMine이 없어서, 이번 세션에서 내가 작성한 댓글 id를 직접 추적함
+  // (비로그인 시절부터 있던 익명 댓글까지 완벽하게 구분하려면 백엔드에 isMine 추가가 필요함)
+  const [myCommentIds, setMyCommentIds] = useState(() => new Set());
+  const [username, setUsername] = useState('');
+
   const [commentText, setCommentText] = useState('');
   const [anonymous, setAnonymous] = useState(true);
-  const [myAnonymousNumber, setMyAnonymousNumber] = useState(() =>
-    post ? readStoredAnonymousNumber(post.id) : null,
-  );
   const [highlightedCommentId, setHighlightedCommentId] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+  const fetchComments = useCallback(() => {
+    if (!canUseCommentApi) {
+      setRawComments([]);
+      setCommentsLoading(false);
+      setCommentsError(false);
+      return;
+    }
+    setCommentsLoading(true);
+    setCommentsError(false);
+    getComments(post.id)
+      .then((data) => {
+        setRawComments(data || []);
+      })
+      .catch(() => {
+        setCommentsError(true);
+      })
+      .finally(() => {
+        setCommentsLoading(false);
+      });
+  }, [canUseCommentApi, post?.id]);
+
+  useEffect(() => {
+    fetchComments();
+  }, [fetchComments]);
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    getMyProfile()
+      .then((data) => setUsername(data.username || ''))
+      .catch(() => {});
+  }, [isLoggedIn]);
 
   useEffect(() => {
     if (!targetCommentId) return undefined;
@@ -78,19 +126,9 @@ function PostDetail() {
   useEffect(() => {
     if (!post) return;
     setLikeState({ liked: false, count: post.likeCount ?? 0 });
-    setComments(post.comments || []);
     setCommentText('');
     setAnonymous(true);
-    setMyAnonymousNumber(readStoredAnonymousNumber(post.id));
   }, [post]);
-
-  const getMyAnonymousLabel = (currentComments) => {
-    if (myAnonymousNumber !== null) return `익명 ${myAnonymousNumber}`;
-    const next = getNextAnonymousNumber(currentComments);
-    setMyAnonymousNumber(next);
-    writeStoredAnonymousNumber(post.id, next);
-    return `익명 ${next}`;
-  };
 
   const toggleLike = () => {
     setLikeState((prev) => ({
@@ -126,69 +164,95 @@ function PostDetail() {
   };
 
   const handleAddComment = () => {
-    const author = anonymous ? getMyAnonymousLabel(comments) : CURRENT_USER_NAME;
-    setComments((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        author,
-        createdAt: new Date(),
-        text: commentText,
-        likeCount: 0,
-        replies: [],
-        isMine: true,
-      },
-    ]);
-    setCommentText('');
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
+    if (!commentText.trim()) return;
+    createComment(post.id, { content: commentText.trim(), isAnonymous: anonymous })
+      .then((created) => {
+        setRawComments((prev) => [...prev, created]);
+        setMyCommentIds((prev) => new Set(prev).add(created.id));
+        setCommentText('');
+      })
+      .catch(() => {
+        alert('댓글 등록에 실패했습니다.');
+      });
   };
 
   const handleAddReply = (commentId, text, replyAnonymous) => {
-    const targetComment = comments.find((comment) => comment.id === commentId);
-    if (!targetComment || targetComment.deleted) return;
-    const author = replyAnonymous ? getMyAnonymousLabel(comments) : CURRENT_USER_NAME;
-    setComments((prev) =>
-      prev.map((comment) =>
-        comment.id === commentId
-          ? {
-              ...comment,
-              replies: [
-                ...(comment.replies || []),
-                { id: Date.now(), author, createdAt: new Date(), text, likeCount: 0, isMine: true },
-              ],
-            }
-          : comment,
-      ),
-    );
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
+    if (!text.trim()) return;
+    createComment(post.id, {
+      content: text.trim(),
+      isAnonymous: replyAnonymous,
+      parentId: commentId,
+    })
+      .then((created) => {
+        setRawComments((prev) => [...prev, created]);
+        setMyCommentIds((prev) => new Set(prev).add(created.id));
+      })
+      .catch(() => {
+        alert('답글 등록에 실패했습니다.');
+      });
+  };
+
+  const handleEditComment = (commentId, text) => {
+    updateComment(commentId, { content: text })
+      .then((updated) => {
+        setRawComments((prev) => prev.map((item) => (item.id === commentId ? updated : item)));
+      })
+      .catch(() => {
+        alert('댓글 수정에 실패했습니다.');
+      });
+  };
+
+  const handleEditReply = (commentId, replyId, text) => {
+    updateComment(replyId, { content: text })
+      .then((updated) => {
+        setRawComments((prev) => prev.map((item) => (item.id === replyId ? updated : item)));
+      })
+      .catch(() => {
+        alert('답글 수정에 실패했습니다.');
+      });
   };
 
   const handleDeleteComment = (commentId) => {
-    setComments((prev) =>
-      prev.reduce((result, comment) => {
-        if (comment.id !== commentId) {
-          result.push(comment);
-        } else if ((comment.replies || []).length > 0) {
-          result.push({ ...comment, deleted: true });
-        }
-        return result;
-      }, []),
-    );
+    deleteComment(commentId)
+      .then(() => {
+        // 삭제 후 GET을 다시 부르면 로딩 화면이 잠깐 떴다 사라지면서 답글 토글이 다 닫히고,
+        // 백엔드가 삭제된 댓글의 authorName을 "" 으로 비워서 내려주기 때문에 닉네임도 사라짐
+        // 그래서 다시 불러오지 않고, 지금 갖고 있는 값(닉네임/좋아요 수)을 그대로 유지한 채
+        // 답글이 있으면 소프트 삭제, 없으면 목록에서 제거하는 걸 로컬에서 흉내냄
+        setRawComments((prev) => {
+          const hasReplies = prev.some((item) => item.parentId === commentId);
+          if (hasReplies) {
+            return prev.map((item) =>
+              item.id === commentId
+                ? { ...item, content: '삭제된 댓글입니다.', isDeleted: true }
+                : item,
+            );
+          }
+          return prev.filter((item) => item.id !== commentId);
+        });
+      })
+      .catch(() => {
+        alert('댓글 삭제에 실패했습니다.');
+      });
   };
 
   const handleDeleteReply = (commentId, replyId) => {
-    setComments((prev) =>
-      prev.reduce((result, comment) => {
-        if (comment.id !== commentId) {
-          result.push(comment);
-          return result;
-        }
-        const remainingReplies = comment.replies.filter((reply) => reply.id !== replyId);
-        if (comment.deleted && remainingReplies.length === 0) {
-          return result;
-        }
-        result.push({ ...comment, replies: remainingReplies });
-        return result;
-      }, []),
-    );
+    // 답글에는 대댓글이 달릴 수 없어서 답글 삭제는 항상 완전 삭제(하드 삭제)됨
+    deleteComment(replyId)
+      .then(() => {
+        setRawComments((prev) => prev.filter((item) => item.id !== replyId));
+      })
+      .catch(() => {
+        alert('답글 삭제에 실패했습니다.');
+      });
   };
 
   if (!post) {
@@ -211,6 +275,8 @@ function PostDetail() {
       </div>
     );
   }
+
+  const comments = buildCommentTree(rawComments, { username, myCommentIds });
 
   return (
     <div className="post-detail-page">
@@ -281,7 +347,18 @@ function PostDetail() {
           <span>댓글 {comments.length}</span>
         </div>
 
-        {comments.length === 0 ? (
+        {commentsLoading ? (
+          <div className="post-detail-comment-empty">
+            <p>댓글을 불러오는 중이에요</p>
+          </div>
+        ) : commentsError ? (
+          <div className="post-detail-comment-empty">
+            <p>댓글을 불러오지 못했어요</p>
+            <button type="button" className="post-detail-comment-retry" onClick={fetchComments}>
+              다시 시도
+            </button>
+          </div>
+        ) : comments.length === 0 ? (
           <div className="post-detail-comment-empty">
             <img src={commentIcon} alt="" />
             <p>첫 댓글을 남겨주세요.</p>
@@ -295,7 +372,9 @@ function PostDetail() {
                 comment={comment}
                 highlighted={comment.id === highlightedCommentId}
                 onAddReply={handleAddReply}
+                onEditComment={handleEditComment}
                 onDeleteComment={handleDeleteComment}
+                onEditReply={handleEditReply}
                 onDeleteReply={handleDeleteReply}
               />
             ))}
@@ -310,6 +389,8 @@ function PostDetail() {
         anonymous={anonymous}
         onToggleAnonymous={() => setAnonymous((prev) => !prev)}
       />
+
+      <LoginRequiredModal open={showLoginModal} onClose={() => setShowLoginModal(false)} />
     </div>
   );
 }
