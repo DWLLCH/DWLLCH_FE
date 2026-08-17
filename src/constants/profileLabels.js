@@ -1,4 +1,4 @@
-/* GET /mypage/profile가 내려주는 enum 코드를 화면에 보여줄 한글 라벨로 변환 */
+/* GET /mypage/profile가 내려주는 enum 코드를 화면에 보여줄 한글 라벨로 변환하는 매핑 테이블 */
 
 const PROTECTION_TYPE_LABELS = {
   RESIDENTIAL_CARE: '아동양육시설',
@@ -80,3 +80,31 @@ export const toLivingStatusLabels = (codes) => mapLabels(LIVING_STATUS_LABELS, c
 export const toIncomeTypeLabel = (code) => mapLabel(INCOME_TYPE_LABELS, code);
 export const toSupportReceivedLabels = (codes) => mapLabels(SUPPORT_TYPE_LABELS, codes);
 export const toNeededHelpLabels = (codes) => mapLabels(NEEDED_HELP_LABELS, codes);
+
+function buildReverseMap(map) {
+  return Object.fromEntries(Object.entries(map).map(([code, label]) => [label, code]));
+}
+
+const REVERSE_PROTECTION_TYPE = buildReverseMap(PROTECTION_TYPE_LABELS);
+const REVERSE_HOUSING_TYPE = buildReverseMap(HOUSING_TYPE_LABELS);
+const REVERSE_HOUSING_SITUATION = buildReverseMap(HOUSING_SITUATION_LABELS);
+const REVERSE_LIVING_STATUS = buildReverseMap(LIVING_STATUS_LABELS);
+const REVERSE_INCOME_TYPE = buildReverseMap(INCOME_TYPE_LABELS);
+const REVERSE_SUPPORT_TYPE = buildReverseMap(SUPPORT_TYPE_LABELS);
+const REVERSE_NEEDED_HELP = buildReverseMap(NEEDED_HELP_LABELS);
+
+function reverseLabel(reverseMap, label) {
+  return reverseMap[label];
+}
+
+function reverseLabels(reverseMap, labels) {
+  return (labels || []).map((label) => reverseLabel(reverseMap, label)).filter(Boolean);
+}
+
+export const fromProtectionTypeLabel = (label) => reverseLabel(REVERSE_PROTECTION_TYPE, label);
+export const fromHousingTypeLabel = (label) => reverseLabel(REVERSE_HOUSING_TYPE, label);
+export const fromHousingSituationLabel = (label) => reverseLabel(REVERSE_HOUSING_SITUATION, label);
+export const fromLivingStatusLabels = (labels) => reverseLabels(REVERSE_LIVING_STATUS, labels);
+export const fromIncomeTypeLabel = (label) => reverseLabel(REVERSE_INCOME_TYPE, label);
+export const fromSupportReceivedLabels = (labels) => reverseLabels(REVERSE_SUPPORT_TYPE, labels);
+export const fromNeededHelpLabels = (labels) => reverseLabels(REVERSE_NEEDED_HELP, labels);

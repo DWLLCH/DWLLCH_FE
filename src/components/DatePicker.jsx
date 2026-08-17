@@ -4,9 +4,17 @@ import Calendar from './Calendar';
 import { formatDateDots } from '../utils/formatters';
 import '../styles/DatePicker.css';
 
-function DatePicker({ value, onChange, placeholder = 'YYYY.MM.DD' }) {
+function DatePicker({
+  value,
+  onChange,
+  placeholder = 'YYYY.MM.DD',
+  disabled = false,
+  minDate = null,
+  maxDate = null,
+}) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
+  const isOpen = open && !disabled;
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -18,6 +26,10 @@ function DatePicker({ value, onChange, placeholder = 'YYYY.MM.DD' }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (disabled) setOpen(false);
+  }, [disabled]);
+
   const handleSelect = (date) => {
     onChange(date);
     setOpen(false);
@@ -27,8 +39,9 @@ function DatePicker({ value, onChange, placeholder = 'YYYY.MM.DD' }) {
     <div className="date-picker" ref={wrapRef}>
       <button
         type="button"
-        className={`date-picker-box${open ? ' date-picker-box--open' : ''}`}
-        onClick={() => setOpen((prev) => !prev)}
+        className={`date-picker-box${isOpen ? ' date-picker-box--open' : ''}${disabled ? ' date-picker-box--disabled' : ''}`}
+        onClick={() => !disabled && setOpen((prev) => !prev)}
+        disabled={disabled}
       >
         <span className={`date-picker-value${value ? '' : ' date-picker-value--placeholder'}`}>
           {value ? formatDateDots(value) : placeholder}
@@ -36,10 +49,12 @@ function DatePicker({ value, onChange, placeholder = 'YYYY.MM.DD' }) {
         <img
           src={arrowBottom}
           alt=""
-          className={`date-picker-icon${open ? ' date-picker-icon--open' : ''}`}
+          className={`date-picker-icon${isOpen ? ' date-picker-icon--open' : ''}`}
         />
       </button>
-      {open && <Calendar value={value} onSelect={handleSelect} />}
+      {isOpen && (
+        <Calendar value={value} onSelect={handleSelect} minDate={minDate} maxDate={maxDate} />
+      )}
     </div>
   );
 }
