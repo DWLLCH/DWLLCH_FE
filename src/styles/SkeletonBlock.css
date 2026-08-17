@@ -13,3 +13,9 @@
     background-position: 0 50%;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-block {
+    animation: none;
+  }
+}
