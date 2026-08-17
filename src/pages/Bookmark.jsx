@@ -17,7 +17,7 @@ function Bookmark() {
   const [keyword, setKeyword] = useState('');
 
   const bookmarkedPolicies = useMemo(
-    () => POLICIES.filter((policy) => bookmarkedIds.includes(policy.id)),
+    () => bookmarkedIds.map((id) => POLICIES.find((policy) => policy.id === id)).filter(Boolean),
     [bookmarkedIds],
   );
 
