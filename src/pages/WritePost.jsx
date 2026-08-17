@@ -81,7 +81,7 @@ function WritePost() {
   const handleRemoveImage = (id) => {
     setImages((prev) => {
       const target = prev.find((image) => image.id === id);
-      if (target?.url.startsWith('blob:')) URL.revokeObjectURL(target.url);
+      if (target && !target.isExisting) URL.revokeObjectURL(target.url);
       return prev.filter((image) => image.id !== id);
     });
   };
@@ -93,11 +93,17 @@ function WritePost() {
 
     if (isEdit) {
       if (!existingPost?.isMine) return;
+      const nextImageUrls = images.map((image) => image.url);
+      (existingPost.images || []).forEach((url) => {
+        if (url.startsWith('blob:') && !nextImageUrls.includes(url)) {
+          URL.revokeObjectURL(url);
+        }
+      });
       existingPost.category = category;
       existingPost.title = title.trim();
       existingPost.description = content.trim();
       existingPost.content = [content.trim()];
-      existingPost.images = images.map((image) => image.url);
+      existingPost.images = nextImageUrls;
       existingPost.poll = poll;
       navigate(`/community/${existingPost.id}`);
       return;
