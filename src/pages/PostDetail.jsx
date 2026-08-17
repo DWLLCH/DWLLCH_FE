@@ -9,6 +9,7 @@ import PostBadge from '../components/PostBadge';
 import CommentInputBar from '../components/CommentInputBar';
 import Comment from '../components/Comment';
 import PollCard from '../components/PollCard';
+import Modal from '../components/Modal';
 import LoginRequiredModal from '../components/LoginRequiredModal';
 import { NOTICE_POST, POSTS } from '../constants/community';
 import { getComments, createComment, updateComment, deleteComment } from '../api/community';
@@ -59,6 +60,7 @@ function PostDetail() {
   const { id } = useParams();
   const post = [NOTICE_POST, ...POSTS].find((item) => String(item.id) === id);
   const targetCommentId = location.state?.commentId;
+  const isMyPost = Boolean(post?.isMine);
 
   // 댓글 API는 실제 게시글(id가 숫자)에만 연동함, 공지 게시글은 목데이터라 대상에서 제외
   const canUseCommentApi = typeof post?.id === 'number';
@@ -77,6 +79,7 @@ function PostDetail() {
   const [commentText, setCommentText] = useState('');
   const [anonymous, setAnonymous] = useState(true);
   const [highlightedCommentId, setHighlightedCommentId] = useState(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   const fetchComments = useCallback(() => {
@@ -127,6 +130,11 @@ function PostDetail() {
     setCommentText('');
     setAnonymous(true);
   }, [post]);
+
+  useEffect(() => {
+    if (!post) return;
+    post.likeCount = likeState.count;
+  }, [post, likeState]);
 
   const toggleLike = () => {
     setLikeState((prev) => ({
@@ -244,6 +252,17 @@ function PostDetail() {
       });
   };
 
+  const handleDeletePost = () => {
+    const index = POSTS.findIndex((item) => String(item.id) === id);
+    if (index !== -1) {
+      const [removed] = POSTS.splice(index, 1);
+      removed.images?.forEach((url) => {
+        if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+      });
+    }
+    navigate('/community');
+  };
+
   const handleDeleteReply = (commentId, replyId) => {
     // 답글에는 대댓글이 달릴 수 없어서 답글 삭제는 항상 완전 삭제(하드 삭제)됨
     deleteComment(replyId)
@@ -293,11 +312,31 @@ function PostDetail() {
       </header>
 
       <div className="post-detail-body">
-        {post.badge === 'notice' ? (
-          <PostBadge type="notice" />
-        ) : (
-          <span className="post-detail-category">{post.category}</span>
-        )}
+        <div className="post-detail-top">
+          {post.badge === 'notice' ? (
+            <PostBadge type="notice" />
+          ) : (
+            <span className="post-detail-category">{post.category}</span>
+          )}
+          {isMyPost && (
+            <div className="post-detail-owner-actions">
+              <button
+                type="button"
+                className="post-detail-owner-btn"
+                onClick={() => navigate(`/community/${post.id}/edit`)}
+              >
+                수정
+              </button>
+              <button
+                type="button"
+                className="post-detail-owner-btn"
+                onClick={() => setDeleteModalOpen(true)}
+              >
+                삭제
+              </button>
+            </div>
+          )}
+        </div>
 
         <h2 className="post-detail-title">{post.title}</h2>
         <div className="post-detail-meta">
@@ -391,6 +430,17 @@ function PostDetail() {
           onToggleAnonymous={() => setAnonymous((prev) => !prev)}
         />
       )}
+
+      <Modal
+        open={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        title="게시글을 삭제할까요?"
+        description="삭제한 글은 복구할 수 없어요."
+        cancelLabel="취소"
+        confirmLabel="삭제"
+        danger
+        onConfirm={handleDeletePost}
+      />
 
       <LoginRequiredModal open={showLoginModal} onClose={() => setShowLoginModal(false)} />
     </div>
