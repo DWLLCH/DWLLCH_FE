@@ -239,13 +239,14 @@ function SignUp() {
             value={form.password}
             onChange={handleChange}
             autoComplete="new-password"
+            maxLength={20}
           />
           <ul className="password-checklist">
             <li
               className={`password-checklist-item${passwordRules.length ? ' password-checklist-item--valid' : ''}`}
             >
               <span className="password-checklist-icon" />
-              8자 이상
+              8~20자
             </li>
             <li
               className={`password-checklist-item${passwordRules.alnum ? ' password-checklist-item--valid' : ''}`}

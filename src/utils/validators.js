@@ -8,7 +8,7 @@ export function isValidId(id) {
 
 export function getPasswordRules(password) {
   return {
-    length: password.length >= 8,
+    length: password.length >= 8 && password.length <= 20,
     alnum: /(?=.*[A-Za-z])(?=.*[0-9])/.test(password),
     special: /[!@#$%^&*(),.?":{}|<>_\-+=]/.test(password),
   };
