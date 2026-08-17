@@ -8,6 +8,12 @@ const PROTECTION_TYPE_LABELS = {
   UNKNOWN: '잘 모르겠어요',
 };
 
+const PROTECTION_STATUS_LABELS = {
+  PROTECTED: '아직 보호 중이에요',
+  SCHEDULED: '보호 종료 예정이에요',
+  ENDED: '보호 종료했어요',
+};
+
 const HOUSING_TYPE_LABELS = {
   MONTHLY_RENT: '월세 (보증금과 월 임대료를 내고 있어요)',
   JEONSE: '전세 (전세보증금을 내고 살아요)',
@@ -74,6 +80,7 @@ function mapLabels(map, codes) {
 }
 
 export const toProtectionTypeLabel = (code) => mapLabel(PROTECTION_TYPE_LABELS, code);
+export const toProtectionStatusLabel = (code) => mapLabel(PROTECTION_STATUS_LABELS, code);
 export const toHousingTypeLabel = (code) => mapLabel(HOUSING_TYPE_LABELS, code);
 export const toHousingSituationLabel = (code) => mapLabel(HOUSING_SITUATION_LABELS, code);
 export const toLivingStatusLabels = (codes) => mapLabels(LIVING_STATUS_LABELS, codes);
@@ -86,6 +93,7 @@ function buildReverseMap(map) {
 }
 
 const REVERSE_PROTECTION_TYPE = buildReverseMap(PROTECTION_TYPE_LABELS);
+const REVERSE_PROTECTION_STATUS = buildReverseMap(PROTECTION_STATUS_LABELS);
 const REVERSE_HOUSING_TYPE = buildReverseMap(HOUSING_TYPE_LABELS);
 const REVERSE_HOUSING_SITUATION = buildReverseMap(HOUSING_SITUATION_LABELS);
 const REVERSE_LIVING_STATUS = buildReverseMap(LIVING_STATUS_LABELS);
@@ -102,6 +110,7 @@ function reverseLabels(reverseMap, labels) {
 }
 
 export const fromProtectionTypeLabel = (label) => reverseLabel(REVERSE_PROTECTION_TYPE, label);
+export const fromProtectionStatusLabel = (label) => reverseLabel(REVERSE_PROTECTION_STATUS, label);
 export const fromHousingTypeLabel = (label) => reverseLabel(REVERSE_HOUSING_TYPE, label);
 export const fromHousingSituationLabel = (label) => reverseLabel(REVERSE_HOUSING_SITUATION, label);
 export const fromLivingStatusLabels = (labels) => reverseLabels(REVERSE_LIVING_STATUS, labels);

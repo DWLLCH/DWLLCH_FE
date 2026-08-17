@@ -1,8 +1,21 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
 import ProgressBar from '../components/ProgressBar';
 import OptionChip from '../components/OptionChip';
 import useOnboarding from '../hooks/useOnboarding';
+import { createMyProfile } from '../api/mypage';
+import { formatBirthDateKey, formatDateKey } from '../utils/formatters';
+import {
+  fromProtectionTypeLabel,
+  fromProtectionStatusLabel,
+  fromHousingTypeLabel,
+  fromHousingSituationLabel,
+  fromLivingStatusLabels,
+  fromIncomeTypeLabel,
+  fromSupportReceivedLabels,
+  fromNeededHelpLabels,
+} from '../constants/profileLabels';
 import arrowRight from '../assets/arrow_right.svg';
 import '../styles/Onboarding.css';
 
@@ -23,6 +36,8 @@ function Onboarding11() {
   const navigate = useNavigate();
   const { data, updateData } = useOnboarding();
   const { supportNeeds } = data;
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
 
   const isValid = supportNeeds.length > 0;
 
@@ -34,10 +49,43 @@ function Onboarding11() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isValid) return;
-    navigate('/onboarding/complete');
+    if (!isValid || isSubmitting) return;
+
+    setSubmitError(null);
+    setIsSubmitting(true);
+
+    const protectionStatus = fromProtectionStatusLabel(data.endStatus);
+    const payload = {
+      birthDate: formatBirthDateKey(data.birthDate),
+      region: { sido: data.sido, sigungu: data.sigungu },
+      protectionType: fromProtectionTypeLabel(data.protectionType),
+      protectionStatus,
+      housingType: fromHousingTypeLabel(data.housing),
+      housingSituation: fromHousingSituationLabel(data.housingSituation),
+      livingStatus: fromLivingStatusLabels(data.lifestyle),
+      incomeType: fromIncomeTypeLabel(data.incomeType),
+      supportReceived: fromSupportReceivedLabels(data.currentSupports),
+      neededHelp: fromNeededHelpLabels(data.supportNeeds),
+    };
+    if (protectionStatus !== 'PROTECTED' && data.endDate) {
+      payload.protectionEndDate = formatDateKey(data.endDate);
+    }
+
+    try {
+      await createMyProfile(payload);
+      navigate('/onboarding/complete');
+    } catch (error) {
+      // 이미 등록된 프로필이면(409) 완료 화면으로 그대로 넘어감
+      if (error.response?.data?.code === 'PROFILE_409_ALREADY_COMPLETED') {
+        navigate('/onboarding/complete');
+        return;
+      }
+      setSubmitError('프로필 등록에 실패했어요. 잠시 후 다시 시도해주세요.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -78,8 +126,14 @@ function Onboarding11() {
           })}
         </div>
 
-        <Button type="submit" className="onboarding-next-btn" disabled={!isValid}>
-          다음으로
+        {submitError && (
+          <p className="onboarding-submit-error" role="alert">
+            {submitError}
+          </p>
+        )}
+
+        <Button type="submit" className="onboarding-next-btn" disabled={!isValid || isSubmitting}>
+          {isSubmitting ? '등록 중...' : '다음으로'}
         </Button>
       </form>
     </div>

@@ -16,7 +16,21 @@ function Onboarding5() {
   const isCompleted = endStatus === '보호 종료했어요';
   const label = isCompleted ? '보호 종료일을 알려주세요' : '보호 종료 예정일을 알려주세요';
 
-  const isValid = Boolean(endDate);
+  // 내 정보 수정하기(MyInfoEdit)와 동일한 기준: 보호 종료 예정일은 오늘 이전으로 못 고르고,
+  // 이미 보호 종료했다면 종료일을 오늘 이후로 못 고름
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const minDate = endStatus === '아직 보호 중이에요' ? today : null;
+  const maxDate = isCompleted ? today : null;
+  const endDateRangeError = !endDate
+    ? null
+    : endStatus === '아직 보호 중이에요' && endDate < today
+      ? '현재 일자보다 이전 날짜는 선택할 수 없어요'
+      : isCompleted && endDate > today
+        ? '현재 일자보다 이후 날짜는 선택할 수 없어요'
+        : null;
+
+  const isValid = Boolean(endDate) && !endDateRangeError;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -45,7 +59,13 @@ function Onboarding5() {
       <form className="onboarding-body" onSubmit={handleSubmit}>
         <p className="onboarding-label">{label}</p>
 
-        <DatePicker value={endDate} onChange={(date) => updateData({ endDate: date })} />
+        <DatePicker
+          value={endDate}
+          onChange={(date) => updateData({ endDate: date })}
+          minDate={minDate}
+          maxDate={maxDate}
+        />
+        {endDateRangeError && <p className="onboarding-error-inline">{endDateRangeError}</p>}
 
         <Button type="submit" className="onboarding-next-btn" disabled={!isValid}>
           다음으로
