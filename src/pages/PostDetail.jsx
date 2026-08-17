@@ -11,15 +11,32 @@ import Comment from '../components/Comment';
 import PollCard from '../components/PollCard';
 import LoginRequiredModal from '../components/LoginRequiredModal';
 import { NOTICE_POST, POSTS } from '../constants/community';
-import { getComments, createComment, updateComment, deleteComment } from '../api/community';
+import {
+  getComments,
+  createComment,
+  updateComment,
+  deleteComment,
+  likePost,
+  unlikePost,
+  likeComment,
+  unlikeComment,
+} from '../api/community';
 import { getMyProfile } from '../api/mypage';
 import { getAccessToken } from '../api/auth';
 import { formatDateTimeShort } from '../utils/formatters';
 import '../styles/PostDetail.css';
 
+// 댓글 목록(GET)은 post/comment를 parentId 기준으로 평탄화해서 내려주기 때문에
+// 프론트에서 최상위 댓글 + 답글(1depth) 트리로 묶어줘야 함
 function buildCommentTree(rawComments, { username, myCommentIds }) {
-  const isMine = (item) =>
-    myCommentIds.has(item.id) || (!item.isAnonymous && !!username && item.authorName === username);
+  // 백엔드가 isMine 필드를 내려주기 시작하면 그 값을 그대로 신뢰하고,
+  // 아직 없으면(지금 상태) 세션 추적 + 닉네임 비교로 임시로 추정함
+  const isMine = (item) => {
+    if (typeof item.isMine === 'boolean') return item.isMine;
+    return (
+      myCommentIds.has(item.id) || (!item.isAnonymous && !!username && item.authorName === username)
+    );
+  };
 
   const repliesByParent = {};
   const topLevel = [];
@@ -33,12 +50,17 @@ function buildCommentTree(rawComments, { username, myCommentIds }) {
     }
   });
 
+  // 댓글이 삭제됐다고 닉네임까지 가릴 필요는 없음, 닉네임/익명 표기는 평소처럼 그대로 보여주고
+  // "탈퇴한 회원"은 댓글 삭제 여부가 아니라 작성자 계정 자체가 탈퇴했을 때만 써야 하는 라벨임
+  // 근데 지금 백엔드는 댓글이 삭제되면 이유를 막론하고 authorName을 무조건 빈 문자열로 내려줘서
+  // (계정이 멀쩡히 살아있어도) FE에서는 진짜 탈퇴 계정인지 구분할 방법이 없음, 백엔드 수정 필요
   return topLevel.map((item) => ({
     id: item.id,
     author: item.authorName,
     text: item.content,
     deleted: item.isDeleted,
     likeCount: item.likeCount,
+    isLiked: item.isLiked,
     isMine: isMine(item),
     createdAt: item.createdAt,
     replies: (repliesByParent[item.id] || []).map((reply) => ({
@@ -47,6 +69,7 @@ function buildCommentTree(rawComments, { username, myCommentIds }) {
       text: reply.content,
       deleted: reply.isDeleted,
       likeCount: reply.likeCount,
+      isLiked: reply.isLiked,
       isMine: isMine(reply),
       createdAt: reply.createdAt,
     })),
@@ -60,14 +83,14 @@ function PostDetail() {
   const post = [NOTICE_POST, ...POSTS].find((item) => String(item.id) === id);
   const targetCommentId = location.state?.commentId;
 
-  // 댓글 API는 실제 게시글(id가 숫자)에만 연동함, 공지 게시글은 목데이터라 대상에서 제외
-  const canUseCommentApi = typeof post?.id === 'number';
+  // 댓글좋아요 API는 실제로 백엔드에 시드돼있는 게시글(id가 숫자)에만 연동함
+  const canUseRealApi = typeof post?.id === 'number';
 
   const [isLoggedIn] = useState(() => Boolean(getAccessToken()));
   const [likeState, setLikeState] = useState({ liked: false, count: post?.likeCount ?? 0 });
 
   const [rawComments, setRawComments] = useState([]);
-  const [commentsLoading, setCommentsLoading] = useState(canUseCommentApi);
+  const [commentsLoading, setCommentsLoading] = useState(canUseRealApi);
   const [commentsError, setCommentsError] = useState(false);
   // 백엔드 댓글 목록에는 isMine이 없어서, 이번 세션에서 내가 작성한 댓글 id를 직접 추적함
   // (비로그인 시절부터 있던 익명 댓글까지 완벽하게 구분하려면 백엔드에 isMine 추가가 필요함)
@@ -80,7 +103,7 @@ function PostDetail() {
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   const fetchComments = useCallback(() => {
-    if (!canUseCommentApi) {
+    if (!canUseRealApi) {
       setRawComments([]);
       setCommentsLoading(false);
       setCommentsError(false);
@@ -98,7 +121,7 @@ function PostDetail() {
       .finally(() => {
         setCommentsLoading(false);
       });
-  }, [canUseCommentApi, post?.id]);
+  }, [canUseRealApi, post?.id]);
 
   useEffect(() => {
     fetchComments();
@@ -128,11 +151,62 @@ function PostDetail() {
     setAnonymous(true);
   }, [post]);
 
-  const toggleLike = () => {
+  const handleTogglePostLike = () => {
+    // 아직 게시글 상세 자체는 API 연동 전이라 mock 게시글은 그냥 로컬로만 토글함
+    if (!canUseRealApi) {
+      setLikeState((prev) => ({
+        liked: !prev.liked,
+        count: prev.count + (prev.liked ? -1 : 1),
+      }));
+      return;
+    }
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
+    const wasLiked = likeState.liked;
     setLikeState((prev) => ({
       liked: !prev.liked,
       count: prev.count + (prev.liked ? -1 : 1),
     }));
+    const action = wasLiked ? unlikePost(post.id) : likePost(post.id);
+    action.catch(() => {
+      setLikeState((prev) => ({
+        liked: !prev.liked,
+        count: prev.count + (prev.liked ? -1 : 1),
+      }));
+      alert('좋아요 처리에 실패했습니다.');
+    });
+  };
+
+  const handleToggleCommentLike = (commentId) => {
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
+    const target = rawComments.find((item) => item.id === commentId);
+    if (!target) return;
+    const wasLiked = target.isLiked;
+
+    setRawComments((prev) =>
+      prev.map((item) =>
+        item.id === commentId
+          ? { ...item, isLiked: !wasLiked, likeCount: item.likeCount + (wasLiked ? -1 : 1) }
+          : item,
+      ),
+    );
+
+    const action = wasLiked ? unlikeComment(commentId) : likeComment(commentId);
+    action.catch(() => {
+      setRawComments((prev) =>
+        prev.map((item) =>
+          item.id === commentId
+            ? { ...item, isLiked: wasLiked, likeCount: item.likeCount + (wasLiked ? 1 : -1) }
+            : item,
+        ),
+      );
+      alert('좋아요 처리에 실패했습니다.');
+    });
   };
 
   const handleShare = async () => {
@@ -162,7 +236,7 @@ function PostDetail() {
   };
 
   const handleAddComment = () => {
-    if (!canUseCommentApi) return;
+    if (!canUseRealApi) return;
     if (!isLoggedIn) {
       setShowLoginModal(true);
       return;
@@ -180,7 +254,7 @@ function PostDetail() {
   };
 
   const handleAddReply = (commentId, text, replyAnonymous) => {
-    if (!canUseCommentApi) return;
+    if (!canUseRealApi) return;
     if (!isLoggedIn) {
       setShowLoginModal(true);
       return;
@@ -336,7 +410,7 @@ function PostDetail() {
             label="좋아요"
             count={likeState.count}
             active={likeState.liked}
-            onClick={toggleLike}
+            onClick={handleTogglePostLike}
           />
           <PostActionButton icon={share} label="공유하기" onClick={handleShare} />
         </div>
@@ -376,13 +450,14 @@ function PostDetail() {
                 onDeleteComment={handleDeleteComment}
                 onEditReply={handleEditReply}
                 onDeleteReply={handleDeleteReply}
+                onToggleLike={handleToggleCommentLike}
               />
             ))}
           </ul>
         )}
       </div>
 
-      {canUseCommentApi && (
+      {canUseRealApi && (
         <CommentInputBar
           value={commentText}
           onChange={setCommentText}
