@@ -94,6 +94,13 @@ function normalize(data) {
   });
 }
 
+function sameItems(a, b) {
+  if (a.length !== b.length) return false;
+  const sortedA = [...a].sort();
+  const sortedB = [...b].sort();
+  return sortedA.every((item, index) => item === sortedB[index]);
+}
+
 function MyInfoEdit() {
   const navigate = useNavigate();
   const { data, refetch } = useMyInfo();
@@ -169,18 +176,39 @@ function MyInfoEdit() {
     setIsSubmitting(true);
 
     // 생년월일은 read_only라 payload에 넣지 않습니다.
-    // protectionEndDate는 현재 백엔드가 read_only라 무시되지만, writable로 바뀌는 즉시 바로 동작하도록 미리 보냅니다.
-    const payload = {
-      region: { sido: draft.sido, sigungu: draft.sigungu },
-      protectionType: fromProtectionTypeLabel(draft.protectionType),
-      protectionEndDate: formatDateKey(draft.endDate),
-      housingType: fromHousingTypeLabel(draft.housing),
-      housingSituation: fromHousingSituationLabel(draft.housingSituation),
-      livingStatus: fromLivingStatusLabels(draft.lifestyle),
-      incomeType: fromIncomeTypeLabel(draft.incomeType),
-      supportReceived: fromSupportReceivedLabels(draft.currentSupports),
-      neededHelp: fromNeededHelpLabels(draft.supportNeeds),
-    };
+    // 나머지 필드도 실제로 바뀐 것만 보냅니다. (안 바뀐 값까지 매번 같이 보내면,
+    // 조회 이후 다른 경로로 바뀐 서버 값을 오래된 draft 값으로 덮어쓸 수 있어서)
+    const payload = {};
+    if (draft.sido !== data.sido || draft.sigungu !== data.sigungu) {
+      payload.region = { sido: draft.sido, sigungu: draft.sigungu };
+    }
+    if (draft.protectionType !== data.protectionType) {
+      payload.protectionType = fromProtectionTypeLabel(draft.protectionType);
+    }
+    const draftEndDateKey = draft.endDate ? formatDateKey(draft.endDate) : null;
+    const dataEndDateKey = data.endDate ? formatDateKey(data.endDate) : null;
+    if (draftEndDateKey !== dataEndDateKey) {
+      // protectionEndDate는 현재 백엔드가 read_only라 무시되지만, writable로 바뀌는 즉시 바로 동작하도록 미리 보냅니다.
+      payload.protectionEndDate = draftEndDateKey;
+    }
+    if (draft.housing !== data.housing) {
+      payload.housingType = fromHousingTypeLabel(draft.housing);
+    }
+    if (draft.housingSituation !== data.housingSituation) {
+      payload.housingSituation = fromHousingSituationLabel(draft.housingSituation);
+    }
+    if (!sameItems(draft.lifestyle, data.lifestyle)) {
+      payload.livingStatus = fromLivingStatusLabels(draft.lifestyle);
+    }
+    if (draft.incomeType !== data.incomeType) {
+      payload.incomeType = fromIncomeTypeLabel(draft.incomeType);
+    }
+    if (!sameItems(draft.currentSupports, data.currentSupports)) {
+      payload.supportReceived = fromSupportReceivedLabels(draft.currentSupports);
+    }
+    if (!sameItems(draft.supportNeeds, data.supportNeeds)) {
+      payload.neededHelp = fromNeededHelpLabels(draft.supportNeeds);
+    }
 
     try {
       await updateMyProfile(payload);
@@ -380,7 +408,11 @@ function MyInfoEdit() {
           </div>
         </section>
 
-        {submitError && <p className="myinfo-edit-error">{submitError}</p>}
+        {submitError && (
+          <p className="myinfo-edit-error" role="alert">
+            {submitError}
+          </p>
+        )}
 
         <Button type="submit" variant="green" fullWidth disabled={!canSubmit}>
           {isSubmitting ? '저장 중...' : '수정 완료'}

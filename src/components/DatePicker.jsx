@@ -7,6 +7,7 @@ import '../styles/DatePicker.css';
 function DatePicker({ value, onChange, placeholder = 'YYYY.MM.DD', disabled = false }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
+  const isOpen = open && !disabled;
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -18,6 +19,10 @@ function DatePicker({ value, onChange, placeholder = 'YYYY.MM.DD', disabled = fa
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (disabled) setOpen(false);
+  }, [disabled]);
+
   const handleSelect = (date) => {
     onChange(date);
     setOpen(false);
@@ -27,7 +32,7 @@ function DatePicker({ value, onChange, placeholder = 'YYYY.MM.DD', disabled = fa
     <div className="date-picker" ref={wrapRef}>
       <button
         type="button"
-        className={`date-picker-box${open ? ' date-picker-box--open' : ''}${disabled ? ' date-picker-box--disabled' : ''}`}
+        className={`date-picker-box${isOpen ? ' date-picker-box--open' : ''}${disabled ? ' date-picker-box--disabled' : ''}`}
         onClick={() => !disabled && setOpen((prev) => !prev)}
         disabled={disabled}
       >
@@ -37,10 +42,10 @@ function DatePicker({ value, onChange, placeholder = 'YYYY.MM.DD', disabled = fa
         <img
           src={arrowBottom}
           alt=""
-          className={`date-picker-icon${open ? ' date-picker-icon--open' : ''}`}
+          className={`date-picker-icon${isOpen ? ' date-picker-icon--open' : ''}`}
         />
       </button>
-      {open && !disabled && <Calendar value={value} onSelect={handleSelect} />}
+      {isOpen && <Calendar value={value} onSelect={handleSelect} />}
     </div>
   );
 }
