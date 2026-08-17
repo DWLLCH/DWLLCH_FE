@@ -5,7 +5,7 @@ export const CATEGORIES = ['최신', '꿀팁', '고민', '자유'];
 export const POST_CATEGORIES = ['꿀팁', '고민', '자유'];
 
 export const NOTICE_POST = {
-  id: 'notice-1',
+  id: 8,
   badge: 'notice',
   title: '커뮤니티 이용 안내 및 수칙',
   description:

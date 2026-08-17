@@ -22,11 +22,15 @@
 }
 
 /* 인사말 */
-.home-greeting p {
+.home-greeting {
+  margin-bottom: 24px;
+}
+
+.home-greeting-text {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 24px;
+  margin: 0;
   font-size: 25px;
   font-weight: 500;
   color: #202020;
@@ -35,6 +39,35 @@
 .home-greeting img {
   width: 27px;
   height: 27px;
+}
+
+.home-greeting-sub {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #adadad;
+}
+
+.home-banner-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.home-banner-error p {
+  margin: 0;
+  font-size: 15px;
+  color: #adadad;
+}
+
+.home-retry-btn {
+  border: none;
+  background: #ecf8f1;
+  color: #4fae7c;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
 }
 
 /* 캘린더 카드 */
