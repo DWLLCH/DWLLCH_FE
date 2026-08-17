@@ -17,8 +17,6 @@ import { getAccessToken } from '../api/auth';
 import { formatDateTimeShort } from '../utils/formatters';
 import '../styles/PostDetail.css';
 
-// 댓글 목록(GET)은 post/comment를 parentId 기준으로 평탄화해서 내려주기 때문에
-// 프론트에서 최상위 댓글 + 답글(1depth) 트리로 묶어줘야 함
 function buildCommentTree(rawComments, { username, myCommentIds }) {
   const isMine = (item) =>
     myCommentIds.has(item.id) || (!item.isAnonymous && !!username && item.authorName === username);
@@ -35,13 +33,9 @@ function buildCommentTree(rawComments, { username, myCommentIds }) {
     }
   });
 
-  // 백엔드가 삭제된 댓글의 authorName을 빈 문자열로 내려주기 때문에,
-  // (방금 이 세션에서 지운 게 아니라) 원래부터 삭제돼 있던 댓글을 새로 불러오면 닉네임이 빈 칸으로 보임
-  const authorLabel = (item) => item.authorName || '삭제된 사용자';
-
   return topLevel.map((item) => ({
     id: item.id,
-    author: authorLabel(item),
+    author: item.authorName,
     text: item.content,
     deleted: item.isDeleted,
     likeCount: item.likeCount,
@@ -49,7 +43,7 @@ function buildCommentTree(rawComments, { username, myCommentIds }) {
     createdAt: item.createdAt,
     replies: (repliesByParent[item.id] || []).map((reply) => ({
       id: reply.id,
-      author: authorLabel(reply),
+      author: reply.authorName,
       text: reply.content,
       deleted: reply.isDeleted,
       likeCount: reply.likeCount,
