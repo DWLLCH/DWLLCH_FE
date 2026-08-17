@@ -35,9 +35,13 @@ function buildCommentTree(rawComments, { username, myCommentIds }) {
     }
   });
 
+  // 백엔드가 삭제된 댓글의 authorName을 빈 문자열로 내려주기 때문에,
+  // (방금 이 세션에서 지운 게 아니라) 원래부터 삭제돼 있던 댓글을 새로 불러오면 닉네임이 빈 칸으로 보임
+  const authorLabel = (item) => item.authorName || '삭제된 사용자';
+
   return topLevel.map((item) => ({
     id: item.id,
-    author: item.authorName,
+    author: authorLabel(item),
     text: item.content,
     deleted: item.isDeleted,
     likeCount: item.likeCount,
@@ -45,7 +49,7 @@ function buildCommentTree(rawComments, { username, myCommentIds }) {
     createdAt: item.createdAt,
     replies: (repliesByParent[item.id] || []).map((reply) => ({
       id: reply.id,
-      author: reply.authorName,
+      author: authorLabel(reply),
       text: reply.content,
       deleted: reply.isDeleted,
       likeCount: reply.likeCount,
@@ -164,6 +168,7 @@ function PostDetail() {
   };
 
   const handleAddComment = () => {
+    if (!canUseCommentApi) return;
     if (!isLoggedIn) {
       setShowLoginModal(true);
       return;
@@ -181,6 +186,7 @@ function PostDetail() {
   };
 
   const handleAddReply = (commentId, text, replyAnonymous) => {
+    if (!canUseCommentApi) return;
     if (!isLoggedIn) {
       setShowLoginModal(true);
       return;
@@ -382,13 +388,15 @@ function PostDetail() {
         )}
       </div>
 
-      <CommentInputBar
-        value={commentText}
-        onChange={setCommentText}
-        onSubmit={handleAddComment}
-        anonymous={anonymous}
-        onToggleAnonymous={() => setAnonymous((prev) => !prev)}
-      />
+      {canUseCommentApi && (
+        <CommentInputBar
+          value={commentText}
+          onChange={setCommentText}
+          onSubmit={handleAddComment}
+          anonymous={anonymous}
+          onToggleAnonymous={() => setAnonymous((prev) => !prev)}
+        />
+      )}
 
       <LoginRequiredModal open={showLoginModal} onClose={() => setShowLoginModal(false)} />
     </div>
