@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import birdLogo from '../assets/bird_logo.svg';
 import pencil from '../assets/pencil.svg';
@@ -17,7 +17,9 @@ function MyPage() {
   const { hasUnread } = useNotifications();
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [profile, setProfile] = useState({ username: '', email: '' });
+  const [profileError, setProfileError] = useState(false);
   const fileInputRef = useRef(null);
+  const isMountedRef = useRef(true);
 
   useEffect(
     () => () => {
@@ -27,19 +29,28 @@ function MyPage() {
   );
 
   useEffect(() => {
-    let isMounted = true;
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  const fetchProfile = useCallback(() => {
+    setProfileError(false);
     getMyProfile()
       .then((data) => {
-        if (!isMounted) return;
+        if (!isMountedRef.current) return;
         setProfile({ username: data.username, email: data.email });
       })
       .catch(() => {
-        /* 조회 실패 시 이름/아이디는 빈 값. 나머지 화면은 그대로 */
+        if (!isMountedRef.current) return;
+        setProfileError(true);
       });
-    return () => {
-      isMounted = false;
-    };
   }, []);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
@@ -87,7 +98,16 @@ function MyPage() {
             />
           </div>
 
-          <p className="mypage-name">{profile.username}</p>
+          {profileError ? (
+            <div className="mypage-profile-error">
+              <p className="mypage-name">정보를 불러오지 못했어요</p>
+              <button type="button" className="mypage-retry-btn" onClick={fetchProfile}>
+                다시 시도
+              </button>
+            </div>
+          ) : (
+            <p className="mypage-name">{profile.username}</p>
+          )}
         </div>
 
         <div className="mypage-stats">

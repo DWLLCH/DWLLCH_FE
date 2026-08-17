@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useEffect, useRef, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { getMyProfile } from '../api/mypage';
 import {
@@ -44,9 +44,8 @@ function toViewData(profile) {
     sigungu: profile.region?.sigungu || '',
     protectionType: toProtectionTypeLabel(profile.protectionType),
     endStatus,
-    // 아직 보호 중이면 종료일을 null로 둬서, 조회/수정 화면 모두에서 "보호 종료일" 행이 안 보이게 합니다.
-    // (MyInfoEdit.jsx가 상태를 '아직 보호 중이에요'로 바꿀 때 endDate를 null로 지우는 것과 동일한 규칙)
-    endDate: isEnded ? protectionEndDate : null,
+    // 온보딩 때 입력한 종료(예정)일은 상태와 무관하게 항상 유지합니다. (라벨만 화면 쪽에서 예정일/종료일로 분기)
+    endDate: protectionEndDate,
     housing: toHousingTypeLabel(profile.housingType),
     housingSituation: toHousingSituationLabel(profile.housingSituation),
     lifestyle: toLivingStatusLabels(profile.livingStatus),
@@ -60,34 +59,43 @@ function MyInfoProvider({ children }) {
   const [data, setData] = useState(emptyData);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
-    let isMounted = true;
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
-    getMyProfile()
+  // 조회 화면(재시도 버튼)에서 다시 부를 수 있도록 fetch 로직을 함수로 분리했습니다.
+  const fetchProfile = useCallback(() => {
+    setIsLoading(true);
+    setError(null);
+    return getMyProfile()
       .then((profile) => {
-        if (!isMounted) return;
+        if (!isMountedRef.current) return;
         setData(toViewData(profile));
       })
       .catch(() => {
-        if (!isMounted) return;
+        if (!isMountedRef.current) return;
         setError('프로필 정보를 불러오지 못했어요.');
       })
       .finally(() => {
-        if (isMounted) setIsLoading(false);
+        if (isMountedRef.current) setIsLoading(false);
       });
-
-    return () => {
-      isMounted = false;
-    };
   }, []);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   const updateData = (fields) => {
     setData((prev) => ({ ...prev, ...fields }));
   };
 
   return (
-    <MyInfoContext.Provider value={{ data, updateData, isLoading, error }}>
+    <MyInfoContext.Provider value={{ data, updateData, isLoading, error, refetch: fetchProfile }}>
       {children || <Outlet />}
     </MyInfoContext.Provider>
   );
