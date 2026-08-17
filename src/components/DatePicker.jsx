@@ -4,7 +4,14 @@ import Calendar from './Calendar';
 import { formatDateDots } from '../utils/formatters';
 import '../styles/DatePicker.css';
 
-function DatePicker({ value, onChange, placeholder = 'YYYY.MM.DD', disabled = false }) {
+function DatePicker({
+  value,
+  onChange,
+  placeholder = 'YYYY.MM.DD',
+  disabled = false,
+  minDate = null,
+  maxDate = null,
+}) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
   const isOpen = open && !disabled;
@@ -45,7 +52,9 @@ function DatePicker({ value, onChange, placeholder = 'YYYY.MM.DD', disabled = fa
           className={`date-picker-icon${isOpen ? ' date-picker-icon--open' : ''}`}
         />
       </button>
-      {isOpen && <Calendar value={value} onSelect={handleSelect} />}
+      {isOpen && (
+        <Calendar value={value} onSelect={handleSelect} minDate={minDate} maxDate={maxDate} />
+      )}
     </div>
   );
 }

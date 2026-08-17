@@ -161,10 +161,19 @@ function MyInfoEdit() {
   const sigunguOptions = draft.sido ? SIGUNGU_MAP[draft.sido] || [] : [];
   const hasValidResidence =
     SIDO_LIST.includes(draft.sido) && Boolean(SIGUNGU_MAP[draft.sido]?.includes(draft.sigungu));
-  // 종료일 자체는 상태와 무관하게 항상 입력받고, 라벨만 상태에 따라 달라집니다. (MyInfoView.jsx와 동일한 규칙)
   const endDateLabel = draft.endStatus === '보호 종료했어요' ? '보호 종료일' : '보호 종료 예정일';
-  const hasRequiredEndDate = Boolean(draft.endDate);
-  // 생년월일은 백엔드 ProfileSerializer가 read_only라 이 화면에서 수정할 수 없어 검증 대상에서 제외했습니다.
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const endDateMinDate = draft.endStatus === '아직 보호 중이에요' ? today : null;
+  const endDateMaxDate = draft.endStatus === '보호 종료했어요' ? today : null;
+  const endDateRangeError = !draft.endDate
+    ? null
+    : draft.endStatus === '아직 보호 중이에요' && draft.endDate < today
+      ? '현재 일자보다 이전 날짜는 선택할 수 없어요'
+      : draft.endStatus === '보호 종료했어요' && draft.endDate > today
+        ? '현재 일자보다 이후 날짜는 선택할 수 없어요'
+        : null;
+  const hasRequiredEndDate = Boolean(draft.endDate) && !endDateRangeError;
   const isDirty = normalize(draft) !== normalize(data);
   const canSubmit = isDirty && hasValidResidence && hasRequiredEndDate && !isSubmitting;
 
@@ -298,7 +307,13 @@ function MyInfoEdit() {
 
         <section className="myinfo-edit-section">
           <p className="myinfo-edit-label">{endDateLabel}</p>
-          <DatePicker value={draft.endDate} onChange={(date) => patch({ endDate: date })} />
+          <DatePicker
+            value={draft.endDate}
+            onChange={(date) => patch({ endDate: date })}
+            minDate={endDateMinDate}
+            maxDate={endDateMaxDate}
+          />
+          {endDateRangeError && <p className="myinfo-edit-error-inline">{endDateRangeError}</p>}
         </section>
 
         <section className="myinfo-edit-section">
