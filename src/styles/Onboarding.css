@@ -90,3 +90,20 @@
   right: 32px;
   bottom: 105px;
 }
+
+.onboarding-error-inline {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: #ff5b5b;
+}
+
+.onboarding-submit-error {
+  position: absolute;
+  left: 32px;
+  right: 32px;
+  bottom: 155px;
+  margin: 0;
+  font-size: 13px;
+  color: #ff5b5b;
+  text-align: center;
+}

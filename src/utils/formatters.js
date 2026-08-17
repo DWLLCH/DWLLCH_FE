@@ -25,6 +25,12 @@ export function formatDateTimeShort(date) {
   return `${month}/${day} ${hour}:${minute}`;
 }
 
+/* Onboarding1.jsx가 들고 있는 "YYYYMMDD" 8자리 숫자 문자열을 백엔드가 받는 "YYYY-MM-DD"로 변환 */
+export function formatBirthDateKey(digits) {
+  if (!/^\d{8}$/.test(digits)) return null;
+  return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6, 8)}`;
+}
+
 export function formatDateKey(date) {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
   const year = date.getFullYear();

@@ -36,6 +36,17 @@ export async function login({ email, password }) {
   return response.data.data;
 }
 
+/* POST /auth/signup | 성공 시 { userId, accessToken, refreshToken } 반환 */
+export async function signup({ email, username, password, passwordConfirm }) {
+  const response = await apiClient.post('/auth/signup', {
+    email,
+    username,
+    password,
+    passwordConfirm,
+  });
+  return response.data.data;
+}
+
 /* POST /auth/signup/email/check | 성공 시 { available: true } 반환 */
 export async function checkEmailDuplicate(email) {
   const response = await apiClient.post('/auth/signup/email/check', { email });
