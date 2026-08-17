@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import backBtn from '../assets/backBtn.svg';
 import imageIcon from '../assets/image.svg';
 import voteIcon from '../assets/vote.svg';
@@ -21,14 +21,25 @@ const GUIDE_ITEMS = [
 
 function WritePost() {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEdit = Boolean(id);
+  const existingPost = isEdit ? POSTS.find((item) => String(item.id) === id) : null;
+
   const fileInputRef = useRef(null);
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [category, setCategory] = useState(null);
+  const [title, setTitle] = useState(existingPost?.title || '');
+  const [content, setContent] = useState(existingPost ? existingPost.content.join('\n\n') : '');
+  const [category, setCategory] = useState(existingPost?.category || null);
   const [anonymous, setAnonymous] = useState(false);
   const [notifyEnabled, setNotifyEnabled] = useState(true);
-  const [images, setImages] = useState([]);
-  const [poll, setPoll] = useState(null);
+  const [images, setImages] = useState(
+    () =>
+      existingPost?.images?.map((url, index) => ({
+        id: `existing-${index}`,
+        url,
+        isExisting: true,
+      })) || [],
+  );
+  const [poll, setPoll] = useState(existingPost?.poll || null);
   const [pollSheetOpen, setPollSheetOpen] = useState(false);
   const imagesRef = useRef(images);
   const submittedUrlsRef = useRef(new Set());
@@ -42,7 +53,7 @@ function WritePost() {
     const submittedUrls = submittedUrlsRef.current;
     return () => {
       imagesRef.current.forEach((image) => {
-        if (!submittedUrls.has(image.url)) {
+        if (!image.isExisting && !submittedUrls.has(image.url)) {
           URL.revokeObjectURL(image.url);
         }
       });
@@ -69,7 +80,7 @@ function WritePost() {
   const handleRemoveImage = (id) => {
     setImages((prev) => {
       const target = prev.find((image) => image.id === id);
-      if (target) URL.revokeObjectURL(target.url);
+      if (target && !target.isExisting) URL.revokeObjectURL(target.url);
       return prev.filter((image) => image.id !== id);
     });
   };
@@ -78,6 +89,18 @@ function WritePost() {
     if (!canSubmit || isSubmittingRef.current) return;
     isSubmittingRef.current = true;
     images.forEach((image) => submittedUrlsRef.current.add(image.url));
+
+    if (isEdit && existingPost) {
+      existingPost.category = category;
+      existingPost.title = title.trim();
+      existingPost.description = content.trim();
+      existingPost.content = [content.trim()];
+      existingPost.images = images.map((image) => image.url);
+      existingPost.poll = poll;
+      navigate(`/community/${existingPost.id}`);
+      return;
+    }
+
     const newPost = {
       id: Date.now(),
       category,
@@ -92,6 +115,7 @@ function WritePost() {
       content: [content.trim()],
       comments: [],
       poll,
+      isMine: true,
     };
     POSTS.unshift(newPost);
     navigate('/community');
@@ -108,14 +132,14 @@ function WritePost() {
         >
           <img src={backBtn} alt="" />
         </button>
-        <h1>글쓰기</h1>
+        <h1>{isEdit ? '게시글 수정' : '글쓰기'}</h1>
         <button
           type="button"
           className={`write-submit${canSubmit ? ' write-submit--active' : ''}`}
           onClick={handleSubmit}
           disabled={!canSubmit}
         >
-          등록
+          {isEdit ? '수정' : '등록'}
         </button>
       </header>
 
@@ -151,16 +175,18 @@ function WritePost() {
           </div>
         </div>
 
-        <div className="write-content-box">
-          <textarea
-            className="write-textarea"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="내용을 입력해주세요"
-            aria-label="내용"
-            maxLength={2000}
-          />
-          <p className="write-counter write-counter--inside">{content.length}/2000</p>
+        <div className="write-content-group">
+          <div className="write-content-box">
+            <textarea
+              className="write-textarea"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="내용을 입력해주세요"
+              aria-label="내용"
+              maxLength={2000}
+            />
+          </div>
+          <p className="write-counter">{content.length}/2000</p>
         </div>
 
         <div className="write-tools">
@@ -209,13 +235,15 @@ function WritePost() {
           </div>
         )}
 
-        <div className="write-toggle-row">
-          <div>
-            <p className="write-toggle-title">익명으로 작성하기</p>
-            <p className="write-toggle-desc">이름 대신 '익명'으로 표시돼요</p>
+        {!isEdit && (
+          <div className="write-toggle-row">
+            <div>
+              <p className="write-toggle-title">익명으로 작성하기</p>
+              <p className="write-toggle-desc">이름 대신 '익명'으로 표시돼요</p>
+            </div>
+            <Toggle checked={anonymous} onChange={setAnonymous} ariaLabel="익명으로 작성하기" />
           </div>
-          <Toggle checked={anonymous} onChange={setAnonymous} ariaLabel="익명으로 작성하기" />
-        </div>
+        )}
 
         <div className="write-toggle-row">
           <div>

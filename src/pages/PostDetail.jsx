@@ -9,6 +9,7 @@ import PostBadge from '../components/PostBadge';
 import CommentInputBar from '../components/CommentInputBar';
 import Comment from '../components/Comment';
 import PollCard from '../components/PollCard';
+import Modal from '../components/Modal';
 import { NOTICE_POST, POSTS } from '../constants/community';
 import { CURRENT_USER_NAME } from '../constants/home';
 import { formatDateTimeShort } from '../utils/formatters';
@@ -55,6 +56,7 @@ function PostDetail() {
   const { id } = useParams();
   const post = [NOTICE_POST, ...POSTS].find((item) => String(item.id) === id);
   const targetCommentId = location.state?.commentId;
+  const isMyPost = Boolean(post?.isMine);
 
   const [likeState, setLikeState] = useState({ liked: false, count: post?.likeCount ?? 0 });
   const [comments, setComments] = useState(post?.comments || []);
@@ -64,6 +66,7 @@ function PostDetail() {
     post ? readStoredAnonymousNumber(post.id) : null,
   );
   const [highlightedCommentId, setHighlightedCommentId] = useState(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   useEffect(() => {
     if (!targetCommentId) return undefined;
@@ -84,7 +87,18 @@ function PostDetail() {
     setMyAnonymousNumber(readStoredAnonymousNumber(post.id));
   }, [post]);
 
+  useEffect(() => {
+    if (!post) return;
+    post.comments = comments;
+  }, [post, comments]);
+
+  useEffect(() => {
+    if (!post) return;
+    post.likeCount = likeState.count;
+  }, [post, likeState]);
+
   const getMyAnonymousLabel = (currentComments) => {
+    if (isMyPost) return '익명(글쓴이)';
     if (myAnonymousNumber !== null) return `익명 ${myAnonymousNumber}`;
     const next = getNextAnonymousNumber(currentComments);
     setMyAnonymousNumber(next);
@@ -174,6 +188,12 @@ function PostDetail() {
     );
   };
 
+  const handleDeletePost = () => {
+    const index = POSTS.findIndex((item) => String(item.id) === id);
+    if (index !== -1) POSTS.splice(index, 1);
+    navigate('/community');
+  };
+
   const handleDeleteReply = (commentId, replyId) => {
     setComments((prev) =>
       prev.reduce((result, comment) => {
@@ -227,11 +247,31 @@ function PostDetail() {
       </header>
 
       <div className="post-detail-body">
-        {post.badge === 'notice' ? (
-          <PostBadge type="notice" />
-        ) : (
-          <span className="post-detail-category">{post.category}</span>
-        )}
+        <div className="post-detail-top">
+          {post.badge === 'notice' ? (
+            <PostBadge type="notice" />
+          ) : (
+            <span className="post-detail-category">{post.category}</span>
+          )}
+          {isMyPost && (
+            <div className="post-detail-owner-actions">
+              <button
+                type="button"
+                className="post-detail-owner-btn"
+                onClick={() => navigate(`/community/${post.id}/edit`)}
+              >
+                수정
+              </button>
+              <button
+                type="button"
+                className="post-detail-owner-btn"
+                onClick={() => setDeleteModalOpen(true)}
+              >
+                삭제
+              </button>
+            </div>
+          )}
+        </div>
 
         <h2 className="post-detail-title">{post.title}</h2>
         <div className="post-detail-meta">
@@ -309,6 +349,17 @@ function PostDetail() {
         onSubmit={handleAddComment}
         anonymous={anonymous}
         onToggleAnonymous={() => setAnonymous((prev) => !prev)}
+      />
+
+      <Modal
+        open={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        title="게시글을 삭제할까요?"
+        description="삭제한 글은 복구할 수 없어요."
+        cancelLabel="취소"
+        confirmLabel="삭제"
+        danger
+        onConfirm={handleDeletePost}
       />
     </div>
   );

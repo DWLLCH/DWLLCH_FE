@@ -46,6 +46,7 @@
 .post-detail-body {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 20px 24px 32px;
   scrollbar-width: none;
 }
@@ -55,6 +56,12 @@
 }
 
 /* 카테고리 */
+.post-detail-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .post-detail-category {
   display: inline-flex;
   flex-shrink: 0;
@@ -78,12 +85,45 @@
   font-size: 14px;
 }
 
+/* 내 글 수정·삭제 */
+.post-detail-owner-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.post-detail-owner-btn {
+  padding: 5px 9px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  font-family: inherit;
+  font-size: 13px;
+  color: #666;
+  cursor: pointer;
+  outline: none;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.post-detail-owner-btn:hover {
+  background-color: #f2fbf6;
+  color: #4fae7c;
+}
+
+.post-detail-owner-btn:focus-visible {
+  outline: 2px solid #4fae7c;
+  outline-offset: 2px;
+}
+
 .post-detail-title {
   margin: 16px 0 0;
   font-size: 17px;
   font-weight: 600;
   color: #000;
   word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 .post-detail-meta {
@@ -132,6 +172,7 @@
   line-height: 1.5;
   color: #000;
   word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 .post-detail-content p {
