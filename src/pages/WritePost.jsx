@@ -116,7 +116,7 @@ function WritePost() {
       existingPost.category = category;
       existingPost.title = title.trim();
       existingPost.description = content.trim();
-      existingPost.content = [content.trim()];
+      existingPost.content = content.trim().split(/\n\s*\n/);
       existingPost.images = nextImageUrls;
       existingPost.poll = poll;
       navigate(`/community/${existingPost.id}`);
@@ -134,7 +134,7 @@ function WritePost() {
       viewCount: 0,
       likeCount: 0,
       images: images.map((image) => image.url),
-      content: [content.trim()],
+      content: content.trim().split(/\n\s*\n/),
       comments: [],
       poll,
       isMine: true,

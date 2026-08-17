@@ -30,7 +30,7 @@ function Toast({ message, visible }) {
 
   return (
     <div className={`toast${closing ? ' toast--closing' : ''}`} role="status">
-      {displayMessage}
+      {visible ? message : displayMessage}
     </div>
   );
 }
