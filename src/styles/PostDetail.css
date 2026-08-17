@@ -228,6 +228,17 @@
   list-style: none;
 }
 
+.post-detail-comment-retry {
+  border: none;
+  background: #ecf8f1;
+  color: #4fae7c;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
 /* 게시글 없음 */
 .post-detail-notfound {
   display: flex;
