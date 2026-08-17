@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import birdLogo from '../assets/bird_logo.svg';
 import pencil from '../assets/pencil.svg';
@@ -7,8 +7,8 @@ import BottomNav from '../components/BottomNav';
 import SettingsRow from '../components/SettingsRow';
 import useBookmarks from '../hooks/useBookmarks';
 import useNotifications from '../hooks/useNotifications';
-import { CURRENT_USER_NAME } from '../constants/home';
-import { APPLICATION_STATS, USER_EMAIL, APP_VERSION } from '../constants/mypage';
+import { getMyProfile } from '../api/mypage';
+import { APPLICATION_STATS, APP_VERSION } from '../constants/mypage';
 import '../styles/MyPage.css';
 
 function MyPage() {
@@ -16,7 +16,10 @@ function MyPage() {
   const { bookmarkedIds } = useBookmarks();
   const { hasUnread } = useNotifications();
   const [avatarUrl, setAvatarUrl] = useState(null);
+  const [profile, setProfile] = useState({ username: '', email: '' });
+  const [profileError, setProfileError] = useState(false);
   const fileInputRef = useRef(null);
+  const isMountedRef = useRef(true);
 
   useEffect(
     () => () => {
@@ -24,6 +27,30 @@ function MyPage() {
     },
     [avatarUrl],
   );
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  const fetchProfile = useCallback(() => {
+    setProfileError(false);
+    getMyProfile()
+      .then((data) => {
+        if (!isMountedRef.current) return;
+        setProfile({ username: data.username, email: data.email });
+      })
+      .catch(() => {
+        if (!isMountedRef.current) return;
+        setProfileError(true);
+      });
+  }, []);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
@@ -71,7 +98,16 @@ function MyPage() {
             />
           </div>
 
-          <p className="mypage-name">{CURRENT_USER_NAME}</p>
+          {profileError ? (
+            <div className="mypage-profile-error">
+              <p className="mypage-name">정보를 불러오지 못했어요</p>
+              <button type="button" className="mypage-retry-btn" onClick={fetchProfile}>
+                다시 시도
+              </button>
+            </div>
+          ) : (
+            <p className="mypage-name">{profile.username}</p>
+          )}
         </div>
 
         <div className="mypage-stats">
@@ -98,7 +134,7 @@ function MyPage() {
         <section className="mypage-section">
           <h2 className="mypage-section-title">프로필</h2>
           <div className="mypage-card">
-            <SettingsRow label="아이디" value={USER_EMAIL} />
+            <SettingsRow label="아이디" value={profile.email} />
             <SettingsRow
               label="비밀번호 변경"
               chevron
