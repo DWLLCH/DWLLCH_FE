@@ -5,14 +5,17 @@ import pencil from '../assets/pencil.svg';
 import alarm from '../assets/alarm.svg';
 import BottomNav from '../components/BottomNav';
 import SettingsRow from '../components/SettingsRow';
+import LoginRequiredModal from '../components/LoginRequiredModal';
 import useBookmarks from '../hooks/useBookmarks';
 import useNotifications from '../hooks/useNotifications';
 import { getMyProfile } from '../api/mypage';
+import { getAccessToken } from '../api/auth';
 import { APPLICATION_STATS, APP_VERSION } from '../constants/mypage';
 import '../styles/MyPage.css';
 
 function MyPage() {
   const navigate = useNavigate();
+  const [isLoggedIn] = useState(() => Boolean(getAccessToken()));
   const { bookmarkedIds } = useBookmarks();
   const { hasUnread } = useNotifications();
   const [avatarUrl, setAvatarUrl] = useState(null);
@@ -36,6 +39,7 @@ function MyPage() {
   }, []);
 
   const fetchProfile = useCallback(() => {
+    if (!isLoggedIn) return;
     setProfileError(false);
     getMyProfile()
       .then((data) => {
@@ -46,7 +50,7 @@ function MyPage() {
         if (!isMountedRef.current) return;
         setProfileError(true);
       });
-  }, []);
+  }, [isLoggedIn]);
 
   useEffect(() => {
     fetchProfile();
@@ -98,7 +102,9 @@ function MyPage() {
             />
           </div>
 
-          {profileError ? (
+          {!isLoggedIn ? (
+            <p className="mypage-name">로그인이 필요해요</p>
+          ) : profileError ? (
             <div className="mypage-profile-error">
               <p className="mypage-name">정보를 불러오지 못했어요</p>
               <button type="button" className="mypage-retry-btn" onClick={fetchProfile}>
@@ -167,6 +173,8 @@ function MyPage() {
       </div>
 
       <BottomNav />
+
+      <LoginRequiredModal open={!isLoggedIn} onClose={() => navigate('/home')} />
     </div>
   );
 }
