@@ -190,7 +190,12 @@ function PostDetail() {
 
   const handleDeletePost = () => {
     const index = POSTS.findIndex((item) => String(item.id) === id);
-    if (index !== -1) POSTS.splice(index, 1);
+    if (index !== -1) {
+      const [removed] = POSTS.splice(index, 1);
+      removed.images?.forEach((url) => {
+        if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+      });
+    }
     navigate('/community');
   };
 

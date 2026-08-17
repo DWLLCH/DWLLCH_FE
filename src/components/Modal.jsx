@@ -12,6 +12,7 @@ function Modal({
   danger = false,
 }) {
   const triggerRef = useRef(null);
+  const modalRef = useRef(null);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -19,6 +20,10 @@ function Modal({
     triggerRef.current = document.activeElement;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+
+    const focusable = modalRef.current?.querySelectorAll('button');
+    const cancelBtn = modalRef.current?.querySelector('.modal-btn--cancel');
+    (cancelBtn || focusable?.[focusable.length - 1])?.focus();
 
     return () => {
       document.body.style.overflow = previousOverflow;
@@ -32,7 +37,25 @@ function Modal({
     if (!open) return undefined;
 
     const handleKeyDown = (event) => {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+
+      const focusable = modalRef.current?.querySelectorAll('button');
+      if (!focusable || focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
 
     document.addEventListener('keydown', handleKeyDown);
@@ -49,6 +72,7 @@ function Modal({
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div
+        ref={modalRef}
         className="modal"
         role="alertdialog"
         aria-modal="true"

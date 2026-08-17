@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import backBtn from '../assets/backBtn.svg';
 import imageIcon from '../assets/image.svg';
 import voteIcon from '../assets/vote.svg';
@@ -24,6 +24,7 @@ function WritePost() {
   const { id } = useParams();
   const isEdit = Boolean(id);
   const existingPost = isEdit ? POSTS.find((item) => String(item.id) === id) : null;
+  const canEditPost = !isEdit || existingPost?.isMine === true;
 
   const fileInputRef = useRef(null);
   const [title, setTitle] = useState(existingPost?.title || '');
@@ -80,7 +81,7 @@ function WritePost() {
   const handleRemoveImage = (id) => {
     setImages((prev) => {
       const target = prev.find((image) => image.id === id);
-      if (target && !target.isExisting) URL.revokeObjectURL(target.url);
+      if (target?.url.startsWith('blob:')) URL.revokeObjectURL(target.url);
       return prev.filter((image) => image.id !== id);
     });
   };
@@ -90,7 +91,8 @@ function WritePost() {
     isSubmittingRef.current = true;
     images.forEach((image) => submittedUrlsRef.current.add(image.url));
 
-    if (isEdit && existingPost) {
+    if (isEdit) {
+      if (!existingPost?.isMine) return;
       existingPost.category = category;
       existingPost.title = title.trim();
       existingPost.description = content.trim();
@@ -120,6 +122,10 @@ function WritePost() {
     POSTS.unshift(newPost);
     navigate('/community');
   };
+
+  if (!canEditPost) {
+    return <Navigate to="/community" replace />;
+  }
 
   return (
     <div className="write-page">
