@@ -139,6 +139,13 @@
   color: #adadad;
 }
 
+.myinfo-edit-error {
+  margin: 0;
+  font-size: 13px;
+  color: #ff5b5b;
+  text-align: center;
+}
+
 .myinfo-dropdown-gap {
   margin-top: 12px;
 }

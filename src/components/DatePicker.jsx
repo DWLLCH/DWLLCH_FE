@@ -4,7 +4,7 @@ import Calendar from './Calendar';
 import { formatDateDots } from '../utils/formatters';
 import '../styles/DatePicker.css';
 
-function DatePicker({ value, onChange, placeholder = 'YYYY.MM.DD' }) {
+function DatePicker({ value, onChange, placeholder = 'YYYY.MM.DD', disabled = false }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
 
@@ -27,8 +27,9 @@ function DatePicker({ value, onChange, placeholder = 'YYYY.MM.DD' }) {
     <div className="date-picker" ref={wrapRef}>
       <button
         type="button"
-        className={`date-picker-box${open ? ' date-picker-box--open' : ''}`}
-        onClick={() => setOpen((prev) => !prev)}
+        className={`date-picker-box${open ? ' date-picker-box--open' : ''}${disabled ? ' date-picker-box--disabled' : ''}`}
+        onClick={() => !disabled && setOpen((prev) => !prev)}
+        disabled={disabled}
       >
         <span className={`date-picker-value${value ? '' : ' date-picker-value--placeholder'}`}>
           {value ? formatDateDots(value) : placeholder}
@@ -39,7 +40,7 @@ function DatePicker({ value, onChange, placeholder = 'YYYY.MM.DD' }) {
           className={`date-picker-icon${open ? ' date-picker-icon--open' : ''}`}
         />
       </button>
-      {open && <Calendar value={value} onSelect={handleSelect} />}
+      {open && !disabled && <Calendar value={value} onSelect={handleSelect} />}
     </div>
   );
 }
