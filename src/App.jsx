@@ -58,6 +58,7 @@ function App() {
                 <Route path="/home" element={<Home />} />
                 <Route path="/community" element={<Community />} />
                 <Route path="/community/write" element={<WritePost />} />
+                <Route path="/community/:id/edit" element={<WritePost />} />
                 <Route path="/community/:id" element={<PostDetail />} />
                 <Route path="/support/list" element={<SupportList />} />
                 <Route path="/theme" element={<ThemeView />} />
