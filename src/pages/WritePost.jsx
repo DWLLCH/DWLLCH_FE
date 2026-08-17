@@ -25,6 +25,11 @@ function WritePost() {
   const isEdit = Boolean(id);
   const existingPost = isEdit ? POSTS.find((item) => String(item.id) === id) : null;
   const canEditPost = !isEdit || existingPost?.isMine === true;
+  const originalTitle = existingPost?.title || '';
+  const originalContent = existingPost ? existingPost.content.join('\n\n') : '';
+  const originalCategory = existingPost?.category || null;
+  const originalImageUrls = existingPost?.images || [];
+  const originalPoll = existingPost?.poll || null;
 
   const fileInputRef = useRef(null);
   const [title, setTitle] = useState(existingPost?.title || '');
@@ -61,7 +66,16 @@ function WritePost() {
     };
   }, []);
 
-  const canSubmit = title.trim().length > 0 && content.trim().length > 0 && category !== null;
+  const isDirty =
+    !isEdit ||
+    title.trim() !== originalTitle ||
+    content !== originalContent ||
+    category !== originalCategory ||
+    JSON.stringify(images.map((image) => image.url)) !== JSON.stringify(originalImageUrls) ||
+    JSON.stringify(poll) !== JSON.stringify(originalPoll);
+
+  const canSubmit =
+    title.trim().length > 0 && content.trim().length > 0 && category !== null && isDirty;
 
   const handlePhotoClick = () => {
     fileInputRef.current?.click();
