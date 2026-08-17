@@ -90,11 +90,9 @@
   cursor: not-allowed;
 }
 
-.calendar-cell--disabled:hover {
-  background: none;
-}
-
-.calendar-cell:hover:not(.calendar-cell--muted):not(.calendar-cell--selected) {
+.calendar-cell:hover:not(.calendar-cell--muted):not(.calendar-cell--selected):not(
+    .calendar-cell--disabled
+  ) {
   background-color: #f2fbf6;
 }
 
