@@ -7,7 +7,7 @@ import '../styles/MyInfo.css';
 
 function MyInfoView() {
   const navigate = useNavigate();
-  const { data, error, refetch } = useMyInfo();
+  const { data, isLoading, error, refetch } = useMyInfo();
   const {
     birthDate,
     sido,
@@ -23,6 +23,7 @@ function MyInfoView() {
     supportNeeds,
   } = data;
 
+  // 종료일 자체는 상태와 무관하게 항상 보여주고, 아직 종료 전인지 여부에 따라 라벨만 달라집니다.
   const endDateLabel = endStatus === '보호 종료했어요' ? '보호 종료일' : '보호 종료 예정일';
 
   return (
@@ -39,7 +40,15 @@ function MyInfoView() {
         <h1>내 정보 확인하기</h1>
       </header>
 
-      {error && (
+      {isLoading && (
+        <div className="myinfo-body">
+          <section className="myinfo-card">
+            <p>불러오는 중이에요...</p>
+          </section>
+        </div>
+      )}
+
+      {!isLoading && error && (
         <div className="myinfo-body">
           <section className="myinfo-card">
             <p>{error}</p>
@@ -50,7 +59,7 @@ function MyInfoView() {
         </div>
       )}
 
-      {!error && (
+      {!isLoading && !error && (
         <div className="myinfo-body">
           <section className="myinfo-card">
             <h2 className="myinfo-card-title">기본 정보</h2>
