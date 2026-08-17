@@ -11,3 +11,9 @@ export async function updateMyProfile(payload) {
   const response = await apiClient.patch('/mypage/profile', payload);
   return response.data.data;
 }
+
+/* POST /mypage/profile | 인증 필요, 온보딩 자립 프로필 최초 등록 (이미 등록되어 있으면 409) */
+export async function createMyProfile(payload) {
+  const response = await apiClient.post('/mypage/profile', payload);
+  return response.data.data;
+}

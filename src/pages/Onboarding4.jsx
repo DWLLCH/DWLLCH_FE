@@ -8,7 +8,7 @@ import '../styles/Onboarding.css';
 
 const TOTAL_STEPS = 11;
 
-const END_STATUSES = ['아직 보호 중이에요', '보호 종료 예정이에요', '보호 종료했어요'];
+const END_STATUSES = ['아직 보호 중이에요', '보호 종료했어요'];
 
 function Onboarding4() {
   const navigate = useNavigate();
@@ -20,7 +20,7 @@ function Onboarding4() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!isValid) return;
-    navigate(endStatus === '아직 보호 중이에요' ? '/onboarding/6' : '/onboarding/5');
+    navigate('/onboarding/5');
   };
 
   return (

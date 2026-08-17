@@ -7,7 +7,7 @@ import Button from '../components/Button';
 import TermsContent from '../components/TermsContent';
 import arrowBottom from '../assets/arrow_bottom.svg';
 import arrowUp from '../assets/arrow_up.svg';
-import { checkEmailDuplicate, checkUsernameDuplicate } from '../api/auth';
+import { checkEmailDuplicate, checkUsernameDuplicate, signup, setTokens } from '../api/auth';
 import { TERMS_CONTENT } from '../constants/terms';
 import { getPasswordRules, isValidEmail, isValidId } from '../utils/validators';
 import '../styles/SignUp.css';
@@ -23,6 +23,8 @@ function SignUp() {
     terms: false,
     marketing: false,
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
   const emailCheckId = useRef(0);
   const usernameCheckId = useRef(0);
 
@@ -113,10 +115,27 @@ function SignUp() {
     agreements.privacy &&
     agreements.terms;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isFormValid) return;
-    navigate('/signup/complete');
+    if (!isFormValid || isSubmitting) return;
+
+    setSubmitError(null);
+    setIsSubmitting(true);
+
+    try {
+      const { userId, accessToken, refreshToken } = await signup({
+        email: form.email,
+        username: form.id,
+        password: form.password,
+        passwordConfirm: form.passwordConfirm,
+      });
+      setTokens({ accessToken, refreshToken, userId });
+      navigate('/signup/complete');
+    } catch (error) {
+      setSubmitError('회원가입에 실패했어요. 잠시 후 다시 시도해주세요.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -362,8 +381,14 @@ function SignUp() {
           </div>
         </div>
 
-        <Button type="submit" fullWidth disabled={!isFormValid}>
-          가입완료
+        {submitError && (
+          <p className="signup-submit-error" role="alert">
+            {submitError}
+          </p>
+        )}
+
+        <Button type="submit" fullWidth disabled={!isFormValid || isSubmitting}>
+          {isSubmitting ? '가입 중...' : '가입완료'}
         </Button>
       </form>
     </div>
