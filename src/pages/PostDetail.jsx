@@ -155,16 +155,16 @@ function PostDetail() {
   }, [post]);
 
   const handleTogglePostLike = () => {
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
     // 아직 게시글 상세 자체는 API 연동 전이라 mock 게시글은 그냥 로컬로만 토글함
     if (!canUseRealApi) {
       setLikeState((prev) => ({
         liked: !prev.liked,
         count: prev.count + (prev.liked ? -1 : 1),
       }));
-      return;
-    }
-    if (!isLoggedIn) {
-      setShowLoginModal(true);
       return;
     }
     const wasLiked = likeState.liked;
