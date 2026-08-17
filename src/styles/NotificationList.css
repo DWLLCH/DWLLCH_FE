@@ -19,8 +19,8 @@
 }
 
 .notification-list-header h1 {
-  margin: 0;
-  font-size: 25px;
+  margin: 0 0 6px;
+  font-size: 19px;
   font-weight: 500;
   color: #000;
 }
