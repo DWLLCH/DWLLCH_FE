@@ -5,3 +5,10 @@ export async function getGuestHome() {
   const response = await apiClient.get('/home/guest');
   return response.data.data;
 }
+
+/* GET /home/curation | 인증 필요, AI 맞춤 정책 큐레이션(지역 매칭 + 조건 매칭) 반환
+   페이지네이션 없음, 로그인 안 된 상태로 호출하면 client.js 인터셉터가 재발급 시도 후 실패 시 /login으로 보냄 */
+export async function getHomeCuration() {
+  const response = await apiClient.get('/home/curation');
+  return response.data.data;
+}
