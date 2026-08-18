@@ -112,20 +112,30 @@ function PostDetail() {
 
   const isMyPost = Boolean(post?.isMine);
 
+  // StrictMode 개발 모드에서 effect가 두 번 실행되는데, 가드 없이 fetchPost를 그대로 부르면
+  // GET을 두 번 보내서 viewCount가 조회할 때마다 2씩 올라가는 문제가 있었음
+  // id별로 한 번만 실제로 fetchPost를 호출하도록 ref로 막아줌
   const fetchedPostIdRef = useRef(null);
+  // 게시글 A에서 B로 빠르게 이동하면 A 요청 응답이 B 화면이 뜬 뒤에 늦게 도착할 수 있어서
+  // 요청마다 세대 번호를 매기고, 최신 요청의 응답만 상태에 반영되도록 막아줌
+  // (재시도 버튼은 fetchPost를 effect 밖에서 직접 불러서 항상 새 요청을 강제로 시작함)
+  const postRequestIdRef = useRef(0);
 
   const fetchPost = useCallback(() => {
+    const requestId = ++postRequestIdRef.current;
     setPostLoading(true);
     setPostError(false);
     setPostNotFound(false);
     getPost(id)
       .then((data) => {
+        if (requestId !== postRequestIdRef.current) return;
         setPost(data);
         setLikeState({ liked: Boolean(data.isLiked), count: data.likeCount ?? 0 });
         setCommentText('');
         setAnonymous(true);
       })
       .catch((error) => {
+        if (requestId !== postRequestIdRef.current) return;
         if (error.response?.status === 404) {
           setPostNotFound(true);
         } else {
@@ -133,6 +143,7 @@ function PostDetail() {
         }
       })
       .finally(() => {
+        if (requestId !== postRequestIdRef.current) return;
         setPostLoading(false);
       });
   }, [id]);
@@ -143,17 +154,23 @@ function PostDetail() {
     fetchPost();
   }, [id, fetchPost]);
 
+  const commentsRequestIdRef = useRef(0);
+
   const fetchComments = useCallback(() => {
+    const requestId = ++commentsRequestIdRef.current;
     setCommentsLoading(true);
     setCommentsError(false);
     getComments(id)
       .then((data) => {
+        if (requestId !== commentsRequestIdRef.current) return;
         setRawComments(data || []);
       })
       .catch(() => {
+        if (requestId !== commentsRequestIdRef.current) return;
         setCommentsError(true);
       })
       .finally(() => {
+        if (requestId !== commentsRequestIdRef.current) return;
         setCommentsLoading(false);
       });
   }, [id]);

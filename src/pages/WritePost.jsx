@@ -65,13 +65,20 @@ function WritePost() {
   const imagesRef = useRef(images);
   const submittedUrlsRef = useRef(new Set());
 
+  // 요청마다 세대 번호를 매겨서 최신 요청의 응답만 반영
+  const postRequestIdRef = useRef(0);
+  // StrictMode 개발 모드에서 effect가 두 번 실행돼서 GET을 중복으로 보내는 것도 막아줌
+  const fetchedPostIdRef = useRef(null);
+
   const fetchExistingPost = useCallback(() => {
     if (!isEdit) return;
+    const requestId = ++postRequestIdRef.current;
     setPostLoading(true);
     setPostError(false);
     setPostNotFound(false);
     getPost(id)
       .then((data) => {
+        if (requestId !== postRequestIdRef.current) return;
         setExistingPost(data);
         setTitle(data.title || '');
         setContent(data.content || '');
@@ -95,6 +102,7 @@ function WritePost() {
         setPollHasVotes(Boolean(data.poll?.totalVoters > 0));
       })
       .catch((error) => {
+        if (requestId !== postRequestIdRef.current) return;
         if (error.response?.status === 404) {
           setPostNotFound(true);
         } else {
@@ -102,13 +110,17 @@ function WritePost() {
         }
       })
       .finally(() => {
+        if (requestId !== postRequestIdRef.current) return;
         setPostLoading(false);
       });
   }, [isEdit, id]);
 
   useEffect(() => {
+    if (!isEdit) return;
+    if (fetchedPostIdRef.current === id) return;
+    fetchedPostIdRef.current = id;
     fetchExistingPost();
-  }, [fetchExistingPost]);
+  }, [isEdit, id, fetchExistingPost]);
 
   useEffect(() => {
     imagesRef.current = images;
