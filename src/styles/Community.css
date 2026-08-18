@@ -105,7 +105,7 @@
   border: 1px solid #ececec;
   border-radius: 10px;
   background: #fff;
-  color: #6cd59b;
+  color: #25834f;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -114,4 +114,20 @@
 .community-more-btn:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+.community-loadmore-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0;
+  padding: 12px;
+  text-align: center;
+}
+
+.community-loadmore-error p {
+  margin: 0;
+  font-size: 13px;
+  color: #999;
 }

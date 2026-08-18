@@ -40,6 +40,7 @@ function Community() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(false);
+  const [loadMoreError, setLoadMoreError] = useState(false);
 
   const boardType = LABEL_TO_BOARD_TYPE[activeCategory];
   const requestIdRef = useRef(0);
@@ -47,9 +48,14 @@ function Community() {
   const fetchPosts = useCallback(
     (targetPage) => {
       const requestId = ++requestIdRef.current;
-      if (targetPage === 0) setLoading(true);
-      else setLoadingMore(true);
-      setError(false);
+      if (targetPage === 0) {
+        setLoading(true);
+        setError(false);
+        setLoadMoreError(false);
+      } else {
+        setLoadingMore(true);
+        setLoadMoreError(false);
+      }
       getPosts(boardType, targetPage)
         .then((data) => {
           if (requestId !== requestIdRef.current) return;
@@ -59,7 +65,8 @@ function Community() {
         })
         .catch(() => {
           if (requestId !== requestIdRef.current) return;
-          setError(true);
+          if (targetPage === 0) setError(true);
+          else setLoadMoreError(true);
         })
         .finally(() => {
           if (requestId !== requestIdRef.current) return;
@@ -124,15 +131,28 @@ function Community() {
                 />
               ))}
             </ul>
-            {hasNext && (
-              <button
-                type="button"
-                className="community-more-btn"
-                onClick={() => fetchPosts(page + 1)}
-                disabled={loadingMore}
-              >
-                {loadingMore ? <LoadingSpinner size={16} /> : '더 보기'}
-              </button>
+            {loadMoreError ? (
+              <div className="community-loadmore-error">
+                <p>게시글을 더 불러오지 못했어요</p>
+                <button
+                  type="button"
+                  className="community-more-btn"
+                  onClick={() => fetchPosts(page + 1)}
+                >
+                  다시 시도
+                </button>
+              </div>
+            ) : (
+              hasNext && (
+                <button
+                  type="button"
+                  className="community-more-btn"
+                  onClick={() => fetchPosts(page + 1)}
+                  disabled={loadingMore}
+                >
+                  {loadingMore ? <LoadingSpinner size={16} /> : '더 보기'}
+                </button>
+              )
             )}
           </>
         )}

@@ -144,6 +144,9 @@ function WritePost() {
           URL.revokeObjectURL(url);
         }
       });
+      // existingPost.images가 이 blob URL들을 계속 들고 있어야 해서(mock 데이터),
+      // unmount cleanup이 지워버리지 않도록 제출된 URL로 등록해둠
+      images.forEach((image) => submittedUrlsRef.current.add(image.url));
       existingPost.category = category;
       existingPost.title = title.trim();
       existingPost.description = content.trim();
@@ -188,7 +191,8 @@ function WritePost() {
         images: images.map((image) => image.file).filter(Boolean),
         poll: pollPayload,
       });
-      images.forEach((image) => submittedUrlsRef.current.add(image.url));
+      // 실제 이미지는 서버에 업로드됐고 여기 blob 미리보기 URL은 더 필요 없으니
+      // submittedUrlsRef에 등록하지 않아서 unmount cleanup이 정상적으로 해제하게 둠
       navigate(`/community/${createdPost.id}`);
     } catch (error) {
       setIsSubmitting(false);
@@ -288,7 +292,11 @@ function WritePost() {
           />
         </div>
 
-        {imageError && <p className="write-error-text">{imageError}</p>}
+        {imageError && (
+          <p className="write-error-text" role="alert">
+            {imageError}
+          </p>
+        )}
 
         {poll && (
           <div className="write-poll-card">
@@ -335,7 +343,11 @@ function WritePost() {
           <Toggle checked={notifyEnabled} onChange={setNotifyEnabled} ariaLabel="알림 설정" />
         </div>
 
-        {submitError && <p className="write-error-text">{submitError}</p>}
+        {submitError && (
+          <p className="write-error-text" role="alert">
+            {submitError}
+          </p>
+        )}
 
         <div className="write-guide-box">
           <p className="write-guide-title">커뮤니티 이용 안내</p>
