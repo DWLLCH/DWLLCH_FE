@@ -13,8 +13,8 @@ export async function getPosts(boardType, page = 0) {
 
 /* POST /community/boards/{boardType}/posts | 인증 필요
    이미지가 있으면 multipart/form-data, 없으면 application/json으로 전송
-   주의: 백엔드가 아직 multipart 요청 안에서 poll 같은 중첩 객체를 파싱하지 못해서
-   이미지+poll을 함께 보내는 건 지원되지 않음 (호출하는 쪽에서 미리 막아야 함, 백엔드팀 확인 요청함) */
+   multipart일 때는 poll을 JSON 문자열로 실어보냄 (백엔드가 parse_post_request_data에서
+   poll 필드를 json.loads로 파싱해서 nested serializer가 읽을 수 있는 dict로 바꿔줌) */
 export async function createPost(
   boardType,
   { title, content, isAnonymous = false, allowNotification = true, images = [], poll } = {},
@@ -26,6 +26,7 @@ export async function createPost(
     formData.append('isAnonymous', String(isAnonymous));
     formData.append('allowNotification', String(allowNotification));
     images.forEach((file) => formData.append('images', file));
+    if (poll) formData.append('poll', JSON.stringify(poll));
 
     const response = await apiClient.post(`/community/boards/${boardType}/posts`, formData, {
       headers: { 'Content-Type': undefined },

@@ -197,12 +197,6 @@ function WritePost() {
       return;
     }
 
-    // 백엔드가 아직 multipart 요청 안에서 poll을 파싱하지 못해서 이미지+poll 동시 등록은 막아둠
-    if (images.length > 0 && poll) {
-      setSubmitError('이미지와 투표는 아직 함께 등록할 수 없어요. 하나만 선택해주세요');
-      return;
-    }
-
     const boardType = LABEL_TO_BOARD_TYPE[category];
     if (!boardType) {
       setSubmitError('카테고리를 다시 선택해주세요');
