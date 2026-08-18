@@ -6,7 +6,7 @@ function AccountChangeSuccess({ message, onConfirm }) {
     <div className="account-change-success">
       <div className="account-change-success-content">
         <span className="account-change-success-icon">
-          <svg width="44" height="33" viewBox="0 0 32 24" fill="none" aria-hidden="true">
+          <svg width="55" height="44" viewBox="-4 -4 40 32" fill="none" aria-hidden="true">
             <path
               className="account-change-success-check"
               d="M2 13L11 22L30 2"
