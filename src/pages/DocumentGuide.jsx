@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import backBtn from '../assets/backBtn.svg';
 import documentIcon from '../assets/document.svg';
@@ -10,49 +10,22 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import { DocumentChecklistContext } from '../components/DocumentChecklistProvider';
 import { getPolicyDetail } from '../api/policy';
 import { parseRequiredDocuments } from '../utils/formatters';
+import useFetchOnce from '../hooks/useFetchOnce';
 import '../styles/DocumentGuide.css';
 
 function DocumentGuide() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const [policy, setPolicy] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [notFound, setNotFound] = useState(false);
+  const {
+    data: policy,
+    loading,
+    error,
+    notFound,
+    refetch: fetchPolicy,
+  } = useFetchOnce(id, getPolicyDetail);
 
   const { getChecked, toggleChecked } = useContext(DocumentChecklistContext);
-
-  // StrictMode 개발 모드에서 effect가 두 번 실행되는 걸 막는 가드 (PolicyDetail.jsx와 동일한 패턴)
-  const fetchedPolicyIdRef = useRef(null);
-  const requestIdRef = useRef(0);
-
-  const fetchPolicy = useCallback(() => {
-    const requestId = ++requestIdRef.current;
-    setLoading(true);
-    setError(false);
-    setNotFound(false);
-    getPolicyDetail(id)
-      .then((data) => {
-        if (requestId !== requestIdRef.current) return;
-        setPolicy(data);
-      })
-      .catch((err) => {
-        if (requestId !== requestIdRef.current) return;
-        if (err.response?.status === 404) setNotFound(true);
-        else setError(true);
-      })
-      .finally(() => {
-        if (requestId !== requestIdRef.current) return;
-        setLoading(false);
-      });
-  }, [id]);
-
-  useEffect(() => {
-    if (fetchedPolicyIdRef.current === id) return;
-    fetchedPolicyIdRef.current = id;
-    fetchPolicy();
-  }, [id, fetchPolicy]);
 
   if (loading || notFound || error || !policy) {
     return (

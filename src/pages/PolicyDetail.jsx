@@ -1,7 +1,8 @@
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { DocumentChecklistContext } from '../components/DocumentChecklistProvider';
 import useBookmarks from '../hooks/useBookmarks';
+import useFetchOnce from '../hooks/useFetchOnce';
 import Toast from '../components/Toast';
 import ErrorState from '../components/ErrorState';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -35,47 +36,18 @@ function PolicyDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const [policy, setPolicy] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [notFound, setNotFound] = useState(false);
+  const {
+    data: policy,
+    loading,
+    error,
+    notFound,
+    refetch: fetchPolicy,
+  } = useFetchOnce(id, getPolicyDetail);
 
   const { isBookmarked, toggleBookmark, maxCount } = useBookmarks();
   const { getChecked, toggleChecked } = useContext(DocumentChecklistContext);
   const [toastMessage, setToastMessage] = useState('');
   const toastTimerRef = useRef(null);
-
-  // StrictMode 개발 모드에서 effect가 두 번 실행돼서 가드 없이 부르면
-  // GET을 두 번 보내는 문제가 있었음 (PostDetail.jsx와 동일한 패턴)
-  const fetchedPolicyIdRef = useRef(null);
-  const policyRequestIdRef = useRef(0);
-
-  const fetchPolicy = useCallback(() => {
-    const requestId = ++policyRequestIdRef.current;
-    setLoading(true);
-    setError(false);
-    setNotFound(false);
-    getPolicyDetail(id)
-      .then((data) => {
-        if (requestId !== policyRequestIdRef.current) return;
-        setPolicy(data);
-      })
-      .catch((err) => {
-        if (requestId !== policyRequestIdRef.current) return;
-        if (err.response?.status === 404) setNotFound(true);
-        else setError(true);
-      })
-      .finally(() => {
-        if (requestId !== policyRequestIdRef.current) return;
-        setLoading(false);
-      });
-  }, [id]);
-
-  useEffect(() => {
-    if (fetchedPolicyIdRef.current === id) return;
-    fetchedPolicyIdRef.current = id;
-    fetchPolicy();
-  }, [id, fetchPolicy]);
 
   useEffect(
     () => () => {
