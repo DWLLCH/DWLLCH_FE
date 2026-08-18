@@ -16,8 +16,6 @@ function Onboarding5() {
   const isCompleted = endStatus === '보호 종료했어요';
   const label = isCompleted ? '보호 종료일을 알려주세요' : '보호 종료 예정일을 알려주세요';
 
-  // 내 정보 수정하기(MyInfoEdit)와 동일한 기준: 보호 종료 예정일은 오늘 이전으로 못 고르고,
-  // 이미 보호 종료했다면 종료일을 오늘 이후로 못 고름
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const minDate = endStatus === '아직 보호 중이에요' ? today : null;

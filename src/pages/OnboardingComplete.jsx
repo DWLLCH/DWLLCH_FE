@@ -25,13 +25,15 @@ function OnboardingComplete() {
 
         <img src={logoImage} alt="로고" className="onboarding-complete-logo" />
 
-        <p className="onboarding-complete-desc">
-          이제 <span className="onboarding-complete-brand">Fledge</span>와 함께 시작해볼까요?
-        </p>
+        <div className="onboarding-complete-bottom">
+          <p className="onboarding-complete-desc">
+            이제 <span className="onboarding-complete-brand">Fledge</span>와 함께 시작해볼까요?
+          </p>
 
-        <Button className="onboarding-next-btn" onClick={() => navigate('/home')}>
-          나에게 맞는 지원 확인하기
-        </Button>
+          <Button className="onboarding-next-btn" onClick={() => navigate('/home')}>
+            나에게 맞는 지원 확인하기
+          </Button>
+        </div>
       </div>
     </div>
   );
