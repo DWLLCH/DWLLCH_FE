@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import backBtn from '../assets/backBtn.svg';
+import Button from '../components/Button';
 import MyCommentCard from '../components/MyCommentCard';
 import ErrorState from '../components/ErrorState';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -98,24 +99,24 @@ function MyComments() {
             {loadMoreError ? (
               <div className="my-activity-loadmore-error">
                 <p>댓글을 더 불러오지 못했어요</p>
-                <button
-                  type="button"
+                <Button
+                  fullWidth
                   className="my-activity-more-btn"
                   onClick={() => fetchMyComments(page + 1)}
                 >
                   다시 시도
-                </button>
+                </Button>
               </div>
             ) : (
               hasNext && (
-                <button
-                  type="button"
+                <Button
+                  fullWidth
                   className="my-activity-more-btn"
                   onClick={() => fetchMyComments(page + 1)}
                   disabled={loadingMore}
                 >
                   {loadingMore ? <LoadingSpinner size={16} /> : '더 보기'}
-                </button>
+                </Button>
               )
             )}
           </>
