@@ -23,6 +23,17 @@ const GUIDE_ITEMS = [
   '허위 정보, 비방, 광고성 글은 사전 안내 없이 삭제될 수 있어요.',
 ];
 
+// PollFormSheet가 options를 문자열 배열로 넘겨주는데, 백엔드 PollCreateSerializer는
+// options를 [{ text }] 형태로 기대해서 여기서 변환해줌
+function toPollPayload(poll) {
+  if (!poll) return undefined;
+  return {
+    question: poll.question,
+    allowMultiple: Boolean(poll.allowMultiple),
+    options: poll.options.map((text) => ({ text })),
+  };
+}
+
 function WritePost() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -32,6 +43,8 @@ function WritePost() {
   const [postLoading, setPostLoading] = useState(isEdit);
   const [postError, setPostError] = useState(false);
   const [postNotFound, setPostNotFound] = useState(false);
+  const [originalPoll, setOriginalPoll] = useState(null);
+  const [pollHasVotes, setPollHasVotes] = useState(false);
 
   const originalTitle = existingPost?.title || '';
   const originalContent = existingPost?.content || '';
@@ -70,15 +83,16 @@ function WritePost() {
             .sort((a, b) => a.order - b.order)
             .map((image) => ({ id: `existing-${image.id}`, url: image.image, isExisting: true })),
         );
-        setPoll(
-          data.poll
-            ? {
-                question: data.poll.question,
-                options: data.poll.options.map((option) => option.text),
-                allowMultiple: data.poll.allowMultiple,
-              }
-            : null,
-        );
+        const pollFromData = data.poll
+          ? {
+              question: data.poll.question,
+              options: data.poll.options.map((option) => option.text),
+              allowMultiple: data.poll.allowMultiple,
+            }
+          : null;
+        setPoll(pollFromData);
+        setOriginalPoll(pollFromData);
+        setPollHasVotes(Boolean(data.poll?.totalVoters > 0));
       })
       .catch((error) => {
         if (error.response?.status === 404) {
@@ -111,11 +125,14 @@ function WritePost() {
     };
   }, []);
 
+  const pollChanged = JSON.stringify(poll) !== JSON.stringify(originalPoll);
+
   const isDirty =
     !isEdit ||
     title.trim() !== originalTitle ||
     content !== originalContent ||
-    notifyEnabled !== originalNotify;
+    notifyEnabled !== originalNotify ||
+    (!pollHasVotes && pollChanged);
 
   const canSubmit =
     title.trim().length > 0 && content.trim().length > 0 && category !== null && isDirty;
@@ -187,6 +204,7 @@ function WritePost() {
           title: title.trim(),
           content: content.trim(),
           allowNotification: notifyEnabled,
+          poll: !pollHasVotes && pollChanged ? toPollPayload(poll) : undefined,
         });
         navigate(`/community/${updated.id}`);
       } catch (error) {
@@ -206,15 +224,7 @@ function WritePost() {
     setSubmitError('');
     setIsSubmitting(true);
 
-    // PollFormSheet가 options를 문자열 배열로 넘겨주는데, 백엔드 PollCreateSerializer는
-    // options를 [{ text }] 형태로 기대해서 여기서 변환해줌
-    const pollPayload = poll
-      ? {
-          question: poll.question,
-          allowMultiple: Boolean(poll.allowMultiple),
-          options: poll.options.map((text) => ({ text })),
-        }
-      : undefined;
+    const pollPayload = toPollPayload(poll);
 
     try {
       const createdPost = await createPost(boardType, {
@@ -368,7 +378,7 @@ function WritePost() {
             type="button"
             className="write-tool-btn"
             onClick={() => setPollSheetOpen(true)}
-            disabled={isEdit}
+            disabled={isEdit && pollHasVotes}
           >
             <span>투표</span>
             <img src={voteIcon} alt="" />
@@ -383,8 +393,10 @@ function WritePost() {
           />
         </div>
 
-        {isEdit && (
-          <p className="write-hint-text">이미지와 투표는 아직 수정에서 변경할 수 없어요</p>
+        {isEdit && <p className="write-hint-text">이미지는 아직 수정에서 변경할 수 없어요</p>}
+
+        {isEdit && pollHasVotes && (
+          <p className="write-hint-text">투표가 진행된 설문은 수정할 수 없어요</p>
         )}
 
         {imageError && (
@@ -397,7 +409,7 @@ function WritePost() {
           <div className="write-poll-card">
             <img src={chartIcon} alt="" />
             <span>투표를 추가했어요!</span>
-            {!isEdit && (
+            {!pollHasVotes && (
               <button type="button" onClick={() => setPollSheetOpen(true)}>
                 수정
               </button>

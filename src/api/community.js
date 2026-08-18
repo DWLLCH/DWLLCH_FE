@@ -52,12 +52,15 @@ export async function deletePost(postId) {
   await apiClient.delete(`/community/posts/${postId}`);
 }
 
-/* PATCH /community/posts/{postId} | 인증 필요, 본인 게시글만 수정 가능 */
-export async function updatePost(postId, { title, content, allowNotification } = {}) {
+/* PATCH /community/posts/{postId} | 인증 필요, 본인 게시글만 수정 가능
+   poll을 같이 보내면 설문이 교체/신규 생성됨 (이미 투표가 있으면 백엔드가 400으로 거부하므로
+   투표 여부는 호출하는 쪽에서 미리 걸러서 poll을 undefined로 보내야 함) */
+export async function updatePost(postId, { title, content, allowNotification, poll } = {}) {
   const payload = {};
   if (title !== undefined) payload.title = title;
   if (content !== undefined) payload.content = content;
   if (allowNotification !== undefined) payload.allowNotification = allowNotification;
+  if (poll !== undefined) payload.poll = poll;
 
   const response = await apiClient.patch(`/community/posts/${postId}`, payload);
   return response.data.data;

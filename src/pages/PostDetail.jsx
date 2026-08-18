@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import backBtn from '../assets/backBtn.svg';
 import like from '../assets/like.svg';
@@ -111,6 +111,11 @@ function PostDetail() {
 
   const isMyPost = Boolean(post?.isMine);
 
+  // StrictMode 개발 모드에서 effect가 두 번 실행되는데, 가드 없이 fetchPost를 그대로 부르면
+  // GET을 두 번 보내서 viewCount가 조회할 때마다 2씩 올라가는 문제가 있었음
+  // id별로 한 번만 실제로 fetchPost를 호출하도록 ref로 막아줌
+  const fetchedPostIdRef = useRef(null);
+
   const fetchPost = useCallback(() => {
     setPostLoading(true);
     setPostError(false);
@@ -135,8 +140,10 @@ function PostDetail() {
   }, [id]);
 
   useEffect(() => {
+    if (fetchedPostIdRef.current === id) return;
+    fetchedPostIdRef.current = id;
     fetchPost();
-  }, [fetchPost]);
+  }, [id, fetchPost]);
 
   const fetchComments = useCallback(() => {
     setCommentsLoading(true);
