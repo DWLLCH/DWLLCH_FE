@@ -10,7 +10,7 @@ import '../styles/AccountChange.css';
 
 function EmailChange() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ newEmail: '', accountPassword: '' });
+  const [form, setForm] = useState({ newEmail: '', currentPassword: '' });
   const [toastMessage, setToastMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -26,7 +26,7 @@ function EmailChange() {
   }, []);
 
   const isEmailValid = isValidEmail(form.newEmail);
-  const isPasswordValid = form.accountPassword.length > 0;
+  const isPasswordValid = form.currentPassword.length > 0;
   const isFormValid = isEmailValid && isPasswordValid;
 
   const handleChange = (e) => {
@@ -42,7 +42,7 @@ function EmailChange() {
     try {
       const response = await changeEmail({
         newEmail: form.newEmail,
-        accountPassword: form.accountPassword,
+        currentPassword: form.currentPassword,
       });
       if (!isMountedRef.current) return;
       if (!response.success) {
@@ -52,10 +52,20 @@ function EmailChange() {
       }
       setToastMessage('이메일이 변경됐어요');
       navigateTimerRef.current = setTimeout(() => navigate('/mypage', { replace: true }), 1200);
-    } catch {
+    } catch (error) {
       if (!isMountedRef.current) return;
       setIsSubmitting(false);
-      setSubmitError('이메일 변경에 실패했어요. 다시 시도해주세요');
+      // AUTH_400_CURRENT_PASSWORD_MISMATCH(비밀번호 불일치)와 newEmail 필드 오류
+      // (중복 이메일, 현재 이메일과 동일)는 구분해서 안내하고, 그 외는 일반 오류 문구를 보여줍니다
+      const code = error.response?.data?.code;
+      const newEmailError = error.response?.data?.data?.newEmail?.[0];
+      if (code === 'AUTH_400_CURRENT_PASSWORD_MISMATCH') {
+        setSubmitError('현재 비밀번호가 일치하지 않아요');
+      } else if (newEmailError) {
+        setSubmitError(newEmailError);
+      } else {
+        setSubmitError('이메일 변경에 실패했어요. 다시 시도해주세요');
+      }
     }
   };
 
@@ -100,11 +110,11 @@ function EmailChange() {
         <section className="account-change-section">
           <p className="account-change-label">계정 비밀번호</p>
           <TextField
-            id="accountPassword"
-            name="accountPassword"
+            id="currentPassword"
+            name="currentPassword"
             type="password"
             placeholder="계정 비밀번호"
-            value={form.accountPassword}
+            value={form.currentPassword}
             onChange={handleChange}
             autoComplete="current-password"
           />

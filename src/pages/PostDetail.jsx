@@ -187,14 +187,14 @@ function PostDetail() {
   }, [isLoggedIn]);
 
   useEffect(() => {
-    if (!targetCommentId) return undefined;
+    if (!targetCommentId || postLoading || commentsLoading) return undefined;
     const el = document.getElementById(`comment-${targetCommentId}`);
     if (!el) return undefined;
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     setHighlightedCommentId(targetCommentId);
     const timer = setTimeout(() => setHighlightedCommentId(null), 1600);
     return () => clearTimeout(timer);
-  }, [targetCommentId]);
+  }, [targetCommentId, postLoading, commentsLoading]);
 
   const handleTogglePostLike = () => {
     if (!isLoggedIn) {
