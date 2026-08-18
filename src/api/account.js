@@ -11,3 +11,9 @@ export function changeEmail(payload) {
     setTimeout(() => resolve({ success: true }), 300);
   });
 }
+
+export function changeUsername(payload) {
+  return new Promise((resolve) => {
+    setTimeout(() => resolve({ success: true }), 300);
+  });
+}

@@ -121,3 +121,81 @@
   line-height: 1.6;
   word-break: keep-all;
 }
+
+/* 변경 완료 화면 */
+.account-change-success {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px 150px;
+}
+
+.account-change-success-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.account-change-success-icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  margin-bottom: 24px;
+  border-radius: 50%;
+  background-color: #eafbf1;
+  opacity: 0;
+  transform: scale(0.6);
+  animation: account-change-success-pop 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.account-change-success-check {
+  stroke-dasharray: 42;
+  stroke-dashoffset: 42;
+  animation: account-change-success-draw 0.4s ease-out 0.3s forwards;
+}
+
+@keyframes account-change-success-pop {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes account-change-success-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.account-change-success-message {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #202020;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.account-change-success-confirm {
+  position: absolute;
+  left: 32px;
+  right: 32px;
+  bottom: 105px;
+  width: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .account-change-success-icon,
+  .account-change-success-check {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    stroke-dashoffset: 0;
+  }
+}
