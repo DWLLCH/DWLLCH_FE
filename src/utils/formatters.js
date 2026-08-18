@@ -102,6 +102,17 @@ export function toPolicyLevel(matchLevel) {
   return MATCH_LEVEL_TO_KEY[matchLevel] || null;
 }
 
+/* 정책 requiredDocuments("신분증 사본, 보호종료확인서" 같은 콤마 구분 텍스트)를
+   체크리스트 항목 배열로 변환함 (PolicyDetail.jsx, DocumentGuide.jsx 공용)
+   BE가 서류별 발급방법/링크 등 구조화된 정보는 아직 안 줘서 label만 채워짐 */
+export function parseRequiredDocuments(requiredDocuments) {
+  return (requiredDocuments || '')
+    .split(',')
+    .map((label) => label.trim())
+    .filter(Boolean)
+    .map((label) => ({ label, checked: false }));
+}
+
 export function formatDateKey(date) {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
   const year = date.getFullYear();

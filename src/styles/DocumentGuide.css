@@ -54,6 +54,23 @@
   display: none;
 }
 
+.doc-guide-notfound {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  font-size: 14px;
+  color: #999;
+}
+
+.doc-guide-empty {
+  margin-top: 24px;
+  padding: 24px 0;
+  text-align: center;
+  font-size: 14px;
+  color: #999;
+}
+
 /* 안내 배너 */
 .doc-guide-intro {
   display: flex;

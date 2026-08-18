@@ -23,7 +23,7 @@ import Button from '../components/Button';
 import ChatbotButton from '../components/ChatbotButton';
 import { LEVEL_CONFIG } from '../constants/supportList';
 import { getPolicyDetail } from '../api/policy';
-import { formatDday, formatDateRangeDots } from '../utils/formatters';
+import { formatDday, formatDateRangeDots, parseRequiredDocuments } from '../utils/formatters';
 import '../styles/PolicyDetail.css';
 
 // 지원 금액/신청 경로처럼 BE가 별도 필드로 안 주는 항목은 아래 문구로 대체 표시함
@@ -113,12 +113,7 @@ function PolicyDetail() {
 
   const bookmarked = isBookmarked(policy.id);
 
-  // 서류는 BE가 콤마로 구분된 한 줄 텍스트로만 줘서 개별 항목 발급방법/링크는 없음
-  const documents = (policy.requiredDocuments || '')
-    .split(',')
-    .map((label) => label.trim())
-    .filter(Boolean)
-    .map((label) => ({ label, checked: false }));
+  const documents = parseRequiredDocuments(policy.requiredDocuments);
 
   const handleToggleBookmark = () => {
     const result = toggleBookmark(policy.id);
