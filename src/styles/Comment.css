@@ -129,11 +129,6 @@
 
 .comment-reply-arrow {
   width: 9px;
-  transition: transform 0.15s ease;
-}
-
-.comment-reply-arrow--open {
-  transform: rotate(180deg);
 }
 
 .comment-edit-btn {

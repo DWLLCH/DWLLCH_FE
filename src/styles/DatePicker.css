@@ -51,9 +51,4 @@
 .date-picker-icon {
   flex-shrink: 0;
   width: 14px;
-  transition: transform 0.15s ease;
-}
-
-.date-picker-icon--open {
-  transform: rotate(180deg);
 }
