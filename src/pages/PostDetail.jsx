@@ -11,8 +11,12 @@ import Comment from '../components/Comment';
 import PollCard from '../components/PollCard';
 import Modal from '../components/Modal';
 import LoginRequiredModal from '../components/LoginRequiredModal';
-import { NOTICE_POST, POSTS } from '../constants/community';
+import ErrorState from '../components/ErrorState';
+import LoadingSpinner from '../components/LoadingSpinner';
+import { BOARD_TYPE_TO_LABEL } from '../constants/community';
 import {
+  getPost,
+  deletePost,
   getComments,
   createComment,
   updateComment,
@@ -27,12 +31,7 @@ import { getAccessToken, getUserId } from '../api/auth';
 import { formatDateTimeShort } from '../utils/formatters';
 import '../styles/PostDetail.css';
 
-// 댓글 목록(GET)은 post/comment를 parentId 기준으로 평탄화해서 내려주기 때문에
-// 프론트에서 최상위 댓글 + 답글(1depth) 트리로 묶어줘야 함
 function buildCommentTree(rawComments, { username, myCommentIds, currentUserId }) {
-  // 백엔드가 isMine 필드를 내려주기 시작하면 그 값을 그대로 신뢰하고,
-  // 없으면 authorId(익명 여부와 무관하게 항상 내려옴)를 로그인한 내 id와 비교함
-  // 그마저도 없을 때만 세션 추적 + 닉네임 비교로 임시로 추정함(익명 댓글은 새로고침하면 못 알아봄)
   const isMine = (item) => {
     if (typeof item.isMine === 'boolean') return item.isMine;
     if (item.authorId != null && currentUserId != null) {
@@ -85,19 +84,19 @@ function PostDetail() {
   const navigate = useNavigate();
   const location = useLocation();
   const { id } = useParams();
-  const post = [NOTICE_POST, ...POSTS].find((item) => String(item.id) === id);
   const targetCommentId = location.state?.commentId;
-  const isMyPost = Boolean(post?.isMine);
-
-  // 댓글좋아요 API는 실제로 백엔드에 시드돼있는 게시글(id가 숫자)에만 연동함
-  const canUseRealApi = typeof post?.id === 'number';
 
   const [isLoggedIn] = useState(() => Boolean(getAccessToken()));
   const [currentUserId] = useState(() => getUserId());
-  const [likeState, setLikeState] = useState({ liked: false, count: post?.likeCount ?? 0 });
+
+  const [post, setPost] = useState(null);
+  const [postLoading, setPostLoading] = useState(true);
+  const [postError, setPostError] = useState(false);
+  const [postNotFound, setPostNotFound] = useState(false);
+  const [likeState, setLikeState] = useState({ liked: false, count: 0 });
 
   const [rawComments, setRawComments] = useState([]);
-  const [commentsLoading, setCommentsLoading] = useState(canUseRealApi);
+  const [commentsLoading, setCommentsLoading] = useState(true);
   const [commentsError, setCommentsError] = useState(false);
   // authorId 없는 옛날 응답 대비용 폴백 (지금은 백엔드가 authorId를 내려줘서 거의 안 쓰임)
   const [myCommentIds, setMyCommentIds] = useState(() => new Set());
@@ -108,17 +107,41 @@ function PostDetail() {
   const [highlightedCommentId, setHighlightedCommentId] = useState(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [isDeletingPost, setIsDeletingPost] = useState(false);
+
+  const isMyPost = Boolean(post?.isMine);
+
+  const fetchPost = useCallback(() => {
+    setPostLoading(true);
+    setPostError(false);
+    setPostNotFound(false);
+    getPost(id)
+      .then((data) => {
+        setPost(data);
+        setLikeState({ liked: Boolean(data.isLiked), count: data.likeCount ?? 0 });
+        setCommentText('');
+        setAnonymous(true);
+      })
+      .catch((error) => {
+        if (error.response?.status === 404) {
+          setPostNotFound(true);
+        } else {
+          setPostError(true);
+        }
+      })
+      .finally(() => {
+        setPostLoading(false);
+      });
+  }, [id]);
+
+  useEffect(() => {
+    fetchPost();
+  }, [fetchPost]);
 
   const fetchComments = useCallback(() => {
-    if (!canUseRealApi) {
-      setRawComments([]);
-      setCommentsLoading(false);
-      setCommentsError(false);
-      return;
-    }
     setCommentsLoading(true);
     setCommentsError(false);
-    getComments(post.id)
+    getComments(id)
       .then((data) => {
         setRawComments(data || []);
       })
@@ -128,7 +151,7 @@ function PostDetail() {
       .finally(() => {
         setCommentsLoading(false);
       });
-  }, [canUseRealApi, post?.id]);
+  }, [id]);
 
   useEffect(() => {
     fetchComments();
@@ -151,24 +174,9 @@ function PostDetail() {
     return () => clearTimeout(timer);
   }, [targetCommentId]);
 
-  useEffect(() => {
-    if (!post) return;
-    setLikeState({ liked: false, count: post.likeCount ?? 0 });
-    setCommentText('');
-    setAnonymous(true);
-  }, [post]);
-
   const handleTogglePostLike = () => {
     if (!isLoggedIn) {
       setShowLoginModal(true);
-      return;
-    }
-    // 아직 게시글 상세 자체는 API 연동 전이라 mock 게시글은 그냥 로컬로만 토글함
-    if (!canUseRealApi) {
-      setLikeState((prev) => ({
-        liked: !prev.liked,
-        count: prev.count + (prev.liked ? -1 : 1),
-      }));
       return;
     }
     const wasLiked = likeState.liked;
@@ -219,7 +227,7 @@ function PostDetail() {
   const handleShare = async () => {
     const shareData = {
       title: post.title,
-      text: post.description || post.title,
+      text: post.content ? post.content.slice(0, 80) : post.title,
       url: window.location.href,
     };
     if (navigator.share) {
@@ -243,7 +251,6 @@ function PostDetail() {
   };
 
   const handleAddComment = () => {
-    if (!canUseRealApi) return;
     if (!isLoggedIn) {
       setShowLoginModal(true);
       return;
@@ -261,7 +268,6 @@ function PostDetail() {
   };
 
   const handleAddReply = (commentId, text, replyAnonymous) => {
-    if (!canUseRealApi) return;
     if (!isLoggedIn) {
       setShowLoginModal(true);
       return;
@@ -326,14 +332,17 @@ function PostDetail() {
   };
 
   const handleDeletePost = () => {
-    const index = POSTS.findIndex((item) => String(item.id) === id);
-    if (index !== -1) {
-      const [removed] = POSTS.splice(index, 1);
-      removed.images?.forEach((url) => {
-        if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+    if (isDeletingPost) return;
+    setIsDeletingPost(true);
+    deletePost(post.id)
+      .then(() => {
+        navigate('/community');
+      })
+      .catch(() => {
+        setIsDeletingPost(false);
+        setDeleteModalOpen(false);
+        alert('게시글 삭제에 실패했습니다.');
       });
-    }
-    navigate('/community');
   };
 
   const handleDeleteReply = (commentId, replyId) => {
@@ -347,7 +356,7 @@ function PostDetail() {
       });
   };
 
-  if (!post) {
+  if (postLoading || postNotFound || postError || !post) {
     return (
       <div className="post-detail-page">
         <header className="post-detail-header">
@@ -362,13 +371,37 @@ function PostDetail() {
           <h1>커뮤니티</h1>
         </header>
         <div className="post-detail-notfound">
-          <p>게시글을 찾을 수 없습니다.</p>
+          {postLoading ? (
+            <LoadingSpinner />
+          ) : postNotFound ? (
+            <p>게시글을 찾을 수 없습니다.</p>
+          ) : (
+            <ErrorState message="게시글을 불러오지 못했어요" onRetry={fetchPost} />
+          )}
         </div>
       </div>
     );
   }
 
   const comments = buildCommentTree(rawComments, { username, myCommentIds, currentUserId });
+
+  const imageUrls = (post.images || [])
+    .slice()
+    .sort((a, b) => a.order - b.order)
+    .map((image) => image.image);
+  const contentParagraphs = (post.content || '').split(/\n\s*\n/).filter(Boolean);
+  const pollForCard = post.poll
+    ? {
+        question: post.poll.question,
+        options: post.poll.options.map((option) => option.text),
+        allowMultiple: post.poll.allowMultiple,
+        voterCount: post.poll.totalVoters,
+        // 이미 투표한 선택지가 있으면 결과 화면부터 보여주고, 없으면 선택 화면부터 보여줌
+        ...(post.poll.myVotedOptionIds && post.poll.myVotedOptionIds.length > 0
+          ? { votes: post.poll.options.map((option) => option.voteCount) }
+          : {}),
+      }
+    : null;
 
   return (
     <div className="post-detail-page">
@@ -386,10 +419,12 @@ function PostDetail() {
 
       <div className="post-detail-body">
         <div className="post-detail-top">
-          {post.badge === 'notice' ? (
+          {post.isPinned ? (
             <PostBadge type="notice" />
           ) : (
-            <span className="post-detail-category">{post.category}</span>
+            <span className="post-detail-category">
+              {BOARD_TYPE_TO_LABEL[post.boardType] || post.boardType}
+            </span>
           )}
           {isMyPost && (
             <div className="post-detail-owner-actions">
@@ -413,19 +448,19 @@ function PostDetail() {
 
         <h2 className="post-detail-title">{post.title}</h2>
         <div className="post-detail-meta">
-          <span>{post.author}</span>
+          <span>{post.authorName}</span>
           <span>
             {formatDateTimeShort(post.createdAt)} · 조회 {post.viewCount.toLocaleString()}회
           </span>
         </div>
 
-        {post.images && post.images.length > 0 && (
+        {imageUrls.length > 0 && (
           <div
-            className={`post-detail-images${post.images.length > 1 ? ' post-detail-images--multi' : ''}`}
+            className={`post-detail-images${imageUrls.length > 1 ? ' post-detail-images--multi' : ''}`}
           >
-            {post.images.map((image, index) => (
+            {imageUrls.map((image, index) => (
               <img
-                key={image + index}
+                key={image}
                 src={image}
                 alt={`${post.title} 이미지 ${index + 1}`}
                 className="post-detail-image"
@@ -435,12 +470,12 @@ function PostDetail() {
         )}
 
         <div className="post-detail-content">
-          {post.content.map((paragraph) => (
+          {contentParagraphs.map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>
           ))}
         </div>
 
-        {post.poll && <PollCard key={post.id} poll={post.poll} />}
+        {pollForCard && <PollCard key={post.id} poll={pollForCard} />}
 
         <div className="post-detail-actions">
           <PostActionButton
@@ -495,15 +530,13 @@ function PostDetail() {
         )}
       </div>
 
-      {canUseRealApi && (
-        <CommentInputBar
-          value={commentText}
-          onChange={setCommentText}
-          onSubmit={handleAddComment}
-          anonymous={anonymous}
-          onToggleAnonymous={() => setAnonymous((prev) => !prev)}
-        />
-      )}
+      <CommentInputBar
+        value={commentText}
+        onChange={setCommentText}
+        onSubmit={handleAddComment}
+        anonymous={anonymous}
+        onToggleAnonymous={() => setAnonymous((prev) => !prev)}
+      />
 
       <Modal
         open={deleteModalOpen}

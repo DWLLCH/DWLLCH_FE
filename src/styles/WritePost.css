@@ -278,6 +278,23 @@
   word-break: keep-all;
 }
 
+.write-hint-text {
+  margin: 0 0 14px;
+  font-size: 12px;
+  color: #adadad;
+  word-break: keep-all;
+}
+
+.write-loading-state {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  font-size: 14px;
+  color: #999;
+}
+
 .write-image-preview-item button {
   position: absolute;
   top: -6px;

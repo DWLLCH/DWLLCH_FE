@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import backBtn from '../assets/backBtn.svg';
 import imageIcon from '../assets/image.svg';
@@ -7,8 +7,10 @@ import chartIcon from '../assets/chart.svg';
 import CategoryChip from '../components/CategoryChip';
 import Toggle from '../components/Toggle';
 import PollFormSheet from '../components/PollFormSheet';
-import { POSTS, POST_CATEGORIES, LABEL_TO_BOARD_TYPE } from '../constants/community';
-import { createPost } from '../api/community';
+import ErrorState from '../components/ErrorState';
+import LoadingSpinner from '../components/LoadingSpinner';
+import { POST_CATEGORIES, LABEL_TO_BOARD_TYPE, BOARD_TYPE_TO_LABEL } from '../constants/community';
+import { createPost, getPost, updatePost } from '../api/community';
 import '../styles/WritePost.css';
 
 const MAX_IMAGES = 5;
@@ -25,35 +27,74 @@ function WritePost() {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEdit = Boolean(id);
-  const existingPost = isEdit ? POSTS.find((item) => String(item.id) === id) : null;
-  const canEditPost = !isEdit || existingPost?.isMine === true;
+
+  const [existingPost, setExistingPost] = useState(null);
+  const [postLoading, setPostLoading] = useState(isEdit);
+  const [postError, setPostError] = useState(false);
+  const [postNotFound, setPostNotFound] = useState(false);
+
   const originalTitle = existingPost?.title || '';
-  const originalContent = existingPost ? existingPost.content.join('\n\n') : '';
-  const originalCategory = existingPost?.category || null;
-  const originalImageUrls = existingPost?.images || [];
-  const originalPoll = existingPost?.poll || null;
+  const originalContent = existingPost?.content || '';
+  const originalNotify = existingPost?.allowNotification ?? true;
 
   const fileInputRef = useRef(null);
-  const [title, setTitle] = useState(existingPost?.title || '');
-  const [content, setContent] = useState(existingPost ? existingPost.content.join('\n\n') : '');
-  const [category, setCategory] = useState(existingPost?.category || null);
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [category, setCategory] = useState(null);
   const [anonymous, setAnonymous] = useState(false);
   const [notifyEnabled, setNotifyEnabled] = useState(true);
-  const [images, setImages] = useState(
-    () =>
-      existingPost?.images?.map((url, index) => ({
-        id: `existing-${index}`,
-        url,
-        isExisting: true,
-      })) || [],
-  );
-  const [poll, setPoll] = useState(existingPost?.poll || null);
+  const [images, setImages] = useState([]);
+  const [poll, setPoll] = useState(null);
   const [pollSheetOpen, setPollSheetOpen] = useState(false);
   const [imageError, setImageError] = useState('');
   const [submitError, setSubmitError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const imagesRef = useRef(images);
   const submittedUrlsRef = useRef(new Set());
+
+  const fetchExistingPost = useCallback(() => {
+    if (!isEdit) return;
+    setPostLoading(true);
+    setPostError(false);
+    setPostNotFound(false);
+    getPost(id)
+      .then((data) => {
+        setExistingPost(data);
+        setTitle(data.title || '');
+        setContent(data.content || '');
+        setCategory(BOARD_TYPE_TO_LABEL[data.boardType] || null);
+        setNotifyEnabled(data.allowNotification ?? true);
+        setImages(
+          (data.images || [])
+            .slice()
+            .sort((a, b) => a.order - b.order)
+            .map((image) => ({ id: `existing-${image.id}`, url: image.image, isExisting: true })),
+        );
+        setPoll(
+          data.poll
+            ? {
+                question: data.poll.question,
+                options: data.poll.options.map((option) => option.text),
+                allowMultiple: data.poll.allowMultiple,
+              }
+            : null,
+        );
+      })
+      .catch((error) => {
+        if (error.response?.status === 404) {
+          setPostNotFound(true);
+        } else {
+          setPostError(true);
+        }
+      })
+      .finally(() => {
+        setPostLoading(false);
+      });
+  }, [isEdit, id]);
+
+  useEffect(() => {
+    fetchExistingPost();
+  }, [fetchExistingPost]);
 
   useEffect(() => {
     imagesRef.current = images;
@@ -74,18 +115,18 @@ function WritePost() {
     !isEdit ||
     title.trim() !== originalTitle ||
     content !== originalContent ||
-    category !== originalCategory ||
-    JSON.stringify(images.map((image) => image.url)) !== JSON.stringify(originalImageUrls) ||
-    JSON.stringify(poll) !== JSON.stringify(originalPoll);
+    notifyEnabled !== originalNotify;
 
   const canSubmit =
     title.trim().length > 0 && content.trim().length > 0 && category !== null && isDirty;
 
   const handlePhotoClick = () => {
+    if (isEdit) return;
     fileInputRef.current?.click();
   };
 
   const handleFileChange = (e) => {
+    if (isEdit) return;
     const files = Array.from(e.target.files || []);
     e.target.value = '';
     if (files.length === 0) return;
@@ -125,6 +166,7 @@ function WritePost() {
   };
 
   const handleRemoveImage = (id) => {
+    if (isEdit) return;
     setImageError('');
     setImages((prev) => {
       const target = prev.find((image) => image.id === id);
@@ -138,22 +180,20 @@ function WritePost() {
 
     if (isEdit) {
       if (!existingPost?.isMine) return;
-      const nextImageUrls = images.map((image) => image.url);
-      (existingPost.images || []).forEach((url) => {
-        if (url.startsWith('blob:') && !nextImageUrls.includes(url)) {
-          URL.revokeObjectURL(url);
-        }
-      });
-      // existingPost.images가 이 blob URL들을 계속 들고 있어야 해서(mock 데이터),
-      // unmount cleanup이 지워버리지 않도록 제출된 URL로 등록해둠
-      images.forEach((image) => submittedUrlsRef.current.add(image.url));
-      existingPost.category = category;
-      existingPost.title = title.trim();
-      existingPost.description = content.trim();
-      existingPost.content = content.trim().split(/\n\s*\n/);
-      existingPost.images = nextImageUrls;
-      existingPost.poll = poll;
-      navigate(`/community/${existingPost.id}`);
+      setSubmitError('');
+      setIsSubmitting(true);
+      try {
+        const updated = await updatePost(existingPost.id, {
+          title: title.trim(),
+          content: content.trim(),
+          allowNotification: notifyEnabled,
+        });
+        navigate(`/community/${updated.id}`);
+      } catch (error) {
+        setIsSubmitting(false);
+        const message = error.response?.data?.message;
+        setSubmitError(message || '게시글 수정에 실패했어요. 다시 시도해주세요');
+      }
       return;
     }
 
@@ -201,7 +241,53 @@ function WritePost() {
     }
   };
 
-  if (!canEditPost) {
+  if (isEdit && postLoading) {
+    return (
+      <div className="write-page">
+        <header className="write-header">
+          <button
+            type="button"
+            className="write-back"
+            onClick={() => navigate(-1)}
+            aria-label="뒤로가기"
+          >
+            <img src={backBtn} alt="" />
+          </button>
+          <h1>게시글 수정</h1>
+        </header>
+        <div className="write-loading-state">
+          <LoadingSpinner />
+        </div>
+      </div>
+    );
+  }
+
+  if (isEdit && (postNotFound || postError || !existingPost)) {
+    return (
+      <div className="write-page">
+        <header className="write-header">
+          <button
+            type="button"
+            className="write-back"
+            onClick={() => navigate(-1)}
+            aria-label="뒤로가기"
+          >
+            <img src={backBtn} alt="" />
+          </button>
+          <h1>게시글 수정</h1>
+        </header>
+        <div className="write-loading-state">
+          {postNotFound ? (
+            <p>게시글을 찾을 수 없습니다.</p>
+          ) : (
+            <ErrorState message="게시글을 불러오지 못했어요" onRetry={fetchExistingPost} />
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (isEdit && !existingPost.isMine) {
     return <Navigate to="/community" replace />;
   }
 
@@ -223,7 +309,7 @@ function WritePost() {
           onClick={handleSubmit}
           disabled={!canSubmit || isSubmitting}
         >
-          {isSubmitting ? '등록 중' : isEdit ? '수정' : '등록'}
+          {isSubmitting ? (isEdit ? '수정 중' : '등록 중') : isEdit ? '수정' : '등록'}
         </button>
       </header>
 
@@ -254,6 +340,7 @@ function WritePost() {
                 label={item}
                 selected={category === item}
                 onClick={() => setCategory(item)}
+                disabled={isEdit}
               />
             ))}
           </div>
@@ -274,11 +361,21 @@ function WritePost() {
         </div>
 
         <div className="write-tools">
-          <button type="button" className="write-tool-btn" onClick={handlePhotoClick}>
+          <button
+            type="button"
+            className="write-tool-btn"
+            onClick={handlePhotoClick}
+            disabled={isEdit}
+          >
             <span>사진</span>
             <img src={imageIcon} alt="" />
           </button>
-          <button type="button" className="write-tool-btn" onClick={() => setPollSheetOpen(true)}>
+          <button
+            type="button"
+            className="write-tool-btn"
+            onClick={() => setPollSheetOpen(true)}
+            disabled={isEdit}
+          >
             <span>투표</span>
             <img src={voteIcon} alt="" />
           </button>
@@ -292,6 +389,10 @@ function WritePost() {
           />
         </div>
 
+        {isEdit && (
+          <p className="write-hint-text">이미지와 투표는 아직 수정에서 변경할 수 없어요</p>
+        )}
+
         {imageError && (
           <p className="write-error-text" role="alert">
             {imageError}
@@ -302,9 +403,11 @@ function WritePost() {
           <div className="write-poll-card">
             <img src={chartIcon} alt="" />
             <span>투표를 추가했어요!</span>
-            <button type="button" onClick={() => setPollSheetOpen(true)}>
-              수정
-            </button>
+            {!isEdit && (
+              <button type="button" onClick={() => setPollSheetOpen(true)}>
+                수정
+              </button>
+            )}
           </div>
         )}
 
@@ -313,13 +416,15 @@ function WritePost() {
             {images.map((image) => (
               <div key={image.id} className="write-image-preview-item">
                 <img src={image.url} alt="" />
-                <button
-                  type="button"
-                  onClick={() => handleRemoveImage(image.id)}
-                  aria-label="이미지 삭제"
-                >
-                  ×
-                </button>
+                {!isEdit && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage(image.id)}
+                    aria-label="이미지 삭제"
+                  >
+                    ×
+                  </button>
+                )}
               </div>
             ))}
           </div>

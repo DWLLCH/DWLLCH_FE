@@ -8,7 +8,10 @@ export async function getPosts(boardType, page = 0) {
   return response.data;
 }
 
-/* POST /community/boards/{boardType}/posts | 인증 필요 */
+/* POST /community/boards/{boardType}/posts | 인증 필요
+   이미지가 있으면 multipart/form-data, 없으면 application/json으로 전송
+   주의: 백엔드가 아직 multipart 요청 안에서 poll 같은 중첩 객체를 파싱하지 못해서
+   이미지+poll을 함께 보내는 건 지원되지 않음 (호출하는 쪽에서 미리 막아야 함, 백엔드팀 확인 요청함) */
 export async function createPost(
   boardType,
   { title, content, isAnonymous = false, allowNotification = true, images = [], poll } = {},
@@ -21,8 +24,6 @@ export async function createPost(
     formData.append('allowNotification', String(allowNotification));
     images.forEach((file) => formData.append('images', file));
 
-    // Content-Type을 명시하면 axios/브라우저가 boundary를 못 붙이므로 헤더를 지워서
-    // 브라우저가 자동으로 multipart boundary를 채우도록 함
     const response = await apiClient.post(`/community/boards/${boardType}/posts`, formData, {
       headers: { 'Content-Type': undefined },
     });
@@ -33,6 +34,28 @@ export async function createPost(
   if (poll) payload.poll = poll;
 
   const response = await apiClient.post(`/community/boards/${boardType}/posts`, payload);
+  return response.data.data;
+}
+
+/* GET /community/posts/{postId} | 인증 불필요, 조회할 때마다 viewCount 1 증가 */
+export async function getPost(postId) {
+  const response = await apiClient.get(`/community/posts/${postId}`);
+  return response.data.data;
+}
+
+/* DELETE /community/posts/{postId} | 인증 필요, 본인 게시글만 삭제 가능 */
+export async function deletePost(postId) {
+  await apiClient.delete(`/community/posts/${postId}`);
+}
+
+/* PATCH /community/posts/{postId} | 인증 필요, 본인 게시글만 수정 가능 */
+export async function updatePost(postId, { title, content, allowNotification } = {}) {
+  const payload = {};
+  if (title !== undefined) payload.title = title;
+  if (content !== undefined) payload.content = content;
+  if (allowNotification !== undefined) payload.allowNotification = allowNotification;
+
+  const response = await apiClient.patch(`/community/posts/${postId}`, payload);
   return response.data.data;
 }
 
@@ -59,8 +82,7 @@ export async function updateComment(commentId, { content, isAnonymous } = {}) {
   return response.data.data;
 }
 
-/* DELETE /community/comments/{commentId} | 인증 필요, 본인 댓글만 삭제 가능
-   답글이 달린 댓글은 서버에서 소프트 삭제(내용만 "삭제된 댓글입니다"로 대체) 처리됨 */
+/* DELETE /community/comments/{commentId} | 인증 필요, 본인 댓글만 삭제 가능 */
 export async function deleteComment(commentId) {
   await apiClient.delete(`/community/comments/${commentId}`);
 }
