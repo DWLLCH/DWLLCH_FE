@@ -32,6 +32,7 @@ function SupportList() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
+  const [loadMoreError, setLoadMoreError] = useState(null);
 
   const loadPolicies = useCallback(async (targetPage) => {
     const isFirstPage = targetPage === 0;
@@ -40,6 +41,7 @@ function SupportList() {
       setError(null);
     } else {
       setLoadingMore(true);
+      setLoadMoreError(null);
     }
 
     try {
@@ -50,6 +52,7 @@ function SupportList() {
       setTotalElements(data.totalElements);
     } catch (err) {
       if (isFirstPage) setError('정책 목록을 불러오지 못했어요');
+      else setLoadMoreError('추가 목록을 불러오지 못했어요');
     } finally {
       if (isFirstPage) setLoading(false);
       else setLoadingMore(false);
@@ -141,7 +144,7 @@ function SupportList() {
               ))}
             </ul>
 
-            {hasNext && (
+            {hasNext && !loadMoreError && (
               <Button
                 variant="gray"
                 fullWidth
@@ -151,6 +154,14 @@ function SupportList() {
               >
                 {loadingMore ? '불러오는 중' : '더보기'}
               </Button>
+            )}
+
+            {loadMoreError && (
+              <ErrorState
+                message={loadMoreError}
+                retryLabel="다시 시도"
+                onRetry={() => loadPolicies(page + 1)}
+              />
             )}
           </>
         )}

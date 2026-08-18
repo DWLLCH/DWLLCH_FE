@@ -54,8 +54,18 @@ export function formatRelativeTime(date) {
 export function formatDday(applicationEnd) {
   if (!applicationEnd) return null;
 
-  const end = new Date(applicationEnd);
-  if (Number.isNaN(end.getTime())) return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(applicationEnd);
+  if (!match) return null;
+
+  const [, yearStr, monthStr, dayStr] = match;
+  const year = Number(yearStr);
+  const month = Number(monthStr);
+  const day = Number(dayStr);
+
+  const end = new Date(year, month - 1, day);
+  const isValidCalendarDate =
+    end.getFullYear() === year && end.getMonth() === month - 1 && end.getDate() === day;
+  if (!isValidCalendarDate) return null;
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
