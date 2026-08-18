@@ -381,7 +381,17 @@ function PostDetail() {
     // 답글에는 대댓글이 달릴 수 없어서 답글 삭제는 항상 완전 삭제(하드 삭제)됨
     deleteComment(replyId)
       .then(() => {
-        setRawComments((prev) => prev.filter((item) => item.id !== replyId));
+        setRawComments((prev) => {
+          const withoutReply = prev.filter((item) => item.id !== replyId);
+          // 부모 댓글이 답글 때문에 소프트 삭제(플레이스홀더)로 남아있던 거라면,
+          // 마지막 답글까지 없어진 시점에 부모도 같이 목록에서 지워줌
+          const parent = withoutReply.find((item) => item.id === commentId);
+          const parentStillHasReplies = withoutReply.some((item) => item.parentId === commentId);
+          if (parent?.isDeleted && !parentStillHasReplies) {
+            return withoutReply.filter((item) => item.id !== commentId);
+          }
+          return withoutReply;
+        });
       })
       .catch(() => {
         alert('답글 삭제에 실패했습니다.');

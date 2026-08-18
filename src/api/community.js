@@ -11,7 +11,10 @@ export async function getPosts(boardType, page = 0) {
   return response.data;
 }
 
-/* POST /community/boards/{boardType}/posts | 인증 필요 */
+/* POST /community/boards/{boardType}/posts | 인증 필요
+   이미지가 있으면 multipart/form-data, 없으면 application/json으로 전송
+   multipart일 때는 poll을 JSON 문자열로 실어보냄 (백엔드가 parse_post_request_data에서
+   poll 필드를 json.loads로 파싱해서 nested serializer가 읽을 수 있는 dict로 바꿔줌) */
 export async function createPost(
   boardType,
   { title, content, isAnonymous = false, allowNotification = true, images = [], poll } = {},
@@ -49,19 +52,48 @@ export async function deletePost(postId) {
   await apiClient.delete(`/community/posts/${postId}`);
 }
 
-/* PATCH /community/posts/{postId} | 인증 필요, 본인 게시글만 수정 가능 */
-export async function updatePost(postId, { title, content, allowNotification, poll } = {}) {
+/* PATCH /community/posts/{postId} | 인증 필요, 본인 게시글만 수정 가능
+   poll을 같이 보내면 설문이 교체/신규 생성됨 (이미 투표가 있으면 백엔드가 400으로 거부하므로
+   투표 여부는 호출하는 쪽에서 미리 걸러서 poll을 undefined로 보내야 함)
+   keepImageIds: 유지할 기존 이미지 id 배열, undefined면 기존 이미지 그대로 유지,
+   []면 기존 이미지 전부 삭제. newImages는 유지 이미지 뒤에 새로 추가됨
+   newImages가 있으면 multipart, 없으면 keepImageIds/boardType 등도 JSON으로 보낼 수 있음
+   (백엔드가 PATCH에 MultiPartParser/FormParser/JSONParser를 모두 허용) */
+export async function updatePost(
+  postId,
+  { title, content, allowNotification, boardType, poll, keepImageIds, newImages = [] } = {},
+) {
+  if (newImages.length > 0) {
+    const formData = new FormData();
+    if (title !== undefined) formData.append('title', title);
+    if (content !== undefined) formData.append('content', content);
+    if (allowNotification !== undefined)
+      formData.append('allowNotification', String(allowNotification));
+    if (boardType !== undefined) formData.append('boardType', boardType);
+    if (poll !== undefined) formData.append('poll', JSON.stringify(poll));
+    if (keepImageIds !== undefined) formData.append('keepImageIds', JSON.stringify(keepImageIds));
+    newImages.forEach((file) => formData.append('images', file));
+
+    const response = await apiClient.patch(`/community/posts/${postId}`, formData, {
+      headers: { 'Content-Type': undefined },
+    });
+    return response.data.data;
+  }
+
   const payload = {};
   if (title !== undefined) payload.title = title;
   if (content !== undefined) payload.content = content;
   if (allowNotification !== undefined) payload.allowNotification = allowNotification;
+  if (boardType !== undefined) payload.boardType = boardType;
   if (poll !== undefined) payload.poll = poll;
+  if (keepImageIds !== undefined) payload.keepImageIds = keepImageIds;
 
   const response = await apiClient.patch(`/community/posts/${postId}`, payload);
   return response.data.data;
 }
 
-/* POST /community/posts/{postId}/poll/vote | 인증 필요, optionIds는 선택한 선택지 id 배열 */
+/* POST /community/posts/{postId}/poll/vote | 인증 필요, optionIds는 선택한 선택지 id 배열
+   이미 투표한 경우/유효하지 않은 선택지인 경우 400, 응답 data는 갱신된 poll 객체 */
 export async function votePoll(postId, optionIds) {
   const response = await apiClient.post(`/community/posts/${postId}/poll/vote`, {
     optionIds,

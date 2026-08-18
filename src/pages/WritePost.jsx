@@ -49,6 +49,12 @@ function WritePost() {
   const originalTitle = existingPost?.title || '';
   const originalContent = existingPost?.content || '';
   const originalNotify = existingPost?.allowNotification ?? true;
+  const originalCategory = existingPost
+    ? BOARD_TYPE_TO_LABEL[existingPost.boardType] || null
+    : null;
+  const originalImageIds = existingPost
+    ? (existingPost.images || []).map((image) => `existing-${image.id}`)
+    : [];
 
   const fileInputRef = useRef(null);
   const [title, setTitle] = useState('');
@@ -65,7 +71,7 @@ function WritePost() {
   const imagesRef = useRef(images);
   const submittedUrlsRef = useRef(new Set());
 
-  // 요청마다 세대 번호를 매겨서 최신 요청의 응답만 반영
+  //  요청마다 세대 번호를 매겨서 최신 요청의 응답만 반영
   const postRequestIdRef = useRef(0);
   // StrictMode 개발 모드에서 effect가 두 번 실행돼서 GET을 중복으로 보내는 것도 막아줌
   const fetchedPostIdRef = useRef(null);
@@ -139,23 +145,32 @@ function WritePost() {
 
   const pollChanged = JSON.stringify(poll) !== JSON.stringify(originalPoll);
 
+  const currentExistingImageIds = images
+    .filter((image) => image.isExisting)
+    .map((image) => image.id);
+  const hasNewImages = images.some((image) => !image.isExisting);
+  const imagesRemoved = originalImageIds.some(
+    (imageId) => !currentExistingImageIds.includes(imageId),
+  );
+  const imagesChanged = hasNewImages || imagesRemoved;
+
   const isDirty =
     !isEdit ||
     title.trim() !== originalTitle ||
     content !== originalContent ||
     notifyEnabled !== originalNotify ||
+    category !== originalCategory ||
+    imagesChanged ||
     (!pollHasVotes && pollChanged);
 
   const canSubmit =
     title.trim().length > 0 && content.trim().length > 0 && category !== null && isDirty;
 
   const handlePhotoClick = () => {
-    if (isEdit) return;
     fileInputRef.current?.click();
   };
 
   const handleFileChange = (e) => {
-    if (isEdit) return;
     const files = Array.from(e.target.files || []);
     e.target.value = '';
     if (files.length === 0) return;
@@ -195,7 +210,6 @@ function WritePost() {
   };
 
   const handleRemoveImage = (id) => {
-    if (isEdit) return;
     setImageError('');
     setImages((prev) => {
       const target = prev.find((image) => image.id === id);
@@ -211,15 +225,23 @@ function WritePost() {
       if (!existingPost?.isMine) return;
       setSubmitError('');
       setIsSubmitting(true);
+
+      const keptExistingImageIds = images
+        .filter((image) => image.isExisting)
+        .map((image) => Number(image.id.replace('existing-', '')));
+      const newImageFiles = images.filter((image) => !image.isExisting).map((image) => image.file);
+
       try {
         const updated = await updatePost(existingPost.id, {
           title: title.trim(),
           content: content.trim(),
           allowNotification: notifyEnabled,
+          boardType: category !== originalCategory ? LABEL_TO_BOARD_TYPE[category] : undefined,
           poll: !pollHasVotes && pollChanged ? toPollPayload(poll) : undefined,
+          keepImageIds: imagesRemoved ? keptExistingImageIds : undefined,
+          newImages: newImageFiles,
         });
-        // replace: true로 글쓰기 화면을 히스토리에서 빼줘야 상세에서 뒤로가기 눌렀을 때
-        // 글쓰기 화면이 아니라 그 전 화면(목록 등)으로 돌아감
+
         navigate(`/community/${updated.id}`, { replace: true });
       } catch (error) {
         setIsSubmitting(false);
@@ -360,7 +382,6 @@ function WritePost() {
                 label={item}
                 selected={category === item}
                 onClick={() => setCategory(item)}
-                disabled={isEdit}
               />
             ))}
           </div>
@@ -381,12 +402,7 @@ function WritePost() {
         </div>
 
         <div className="write-tools">
-          <button
-            type="button"
-            className="write-tool-btn"
-            onClick={handlePhotoClick}
-            disabled={isEdit}
-          >
+          <button type="button" className="write-tool-btn" onClick={handlePhotoClick}>
             <span>사진</span>
             <img src={imageIcon} alt="" />
           </button>
@@ -408,8 +424,6 @@ function WritePost() {
             onChange={handleFileChange}
           />
         </div>
-
-        {isEdit && <p className="write-hint-text">이미지는 아직 수정에서 변경할 수 없어요</p>}
 
         {isEdit && pollHasVotes && (
           <p className="write-hint-text">투표가 진행된 설문은 수정할 수 없어요</p>
@@ -438,15 +452,13 @@ function WritePost() {
             {images.map((image) => (
               <div key={image.id} className="write-image-preview-item">
                 <img src={image.url} alt="" />
-                {!isEdit && (
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveImage(image.id)}
-                    aria-label="이미지 삭제"
-                  >
-                    ×
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => handleRemoveImage(image.id)}
+                  aria-label="이미지 삭제"
+                >
+                  ×
+                </button>
               </div>
             ))}
           </div>
