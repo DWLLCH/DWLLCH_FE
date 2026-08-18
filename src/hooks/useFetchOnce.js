@@ -41,6 +41,12 @@ function useFetchOnce(id, fetchFn) {
     refetch();
   }, [id, refetch]);
 
+  // id가 막 바뀐 렌더에서는 아직 이전 id의 data/loading 상태가 남아있어서
+  // (effect는 렌더 이후에 실행되므로) 반환 직전에 한 번 더 동기화해서 이전 데이터가 잠깐 보이는 걸 막음
+  if (fetchedIdRef.current !== id) {
+    return { data: null, loading: true, error: false, notFound: false, refetch };
+  }
+
   return { data, loading, error, notFound, refetch };
 }
 
