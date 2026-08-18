@@ -4,26 +4,17 @@ import CommentInputBar from './CommentInputBar';
 import { formatDateTimeShort } from '../utils/formatters';
 import '../styles/Comment.css';
 
-function CommentLikeButton({ likeCount }) {
-  const [likeState, setLikeState] = useState({ liked: false, count: likeCount });
-
-  const toggleLike = () => {
-    setLikeState((prev) => ({
-      liked: !prev.liked,
-      count: prev.count + (prev.liked ? -1 : 1),
-    }));
-  };
-
+function CommentLikeButton({ liked, count, onToggle }) {
   return (
     <button
       type="button"
-      className={`comment-like-btn${likeState.liked ? ' comment-like-btn--active' : ''}`}
-      onClick={toggleLike}
-      aria-label={`좋아요 ${likeState.count}개`}
-      aria-pressed={likeState.liked}
+      className={`comment-like-btn${liked ? ' comment-like-btn--active' : ''}`}
+      onClick={onToggle}
+      aria-label={`좋아요 ${count}개`}
+      aria-pressed={liked}
     >
       <span className="comment-like-icon" />
-      {likeState.count}
+      {count}
     </button>
   );
 }
@@ -57,7 +48,7 @@ function CommentEditBox({ initialText, onSave, onCancel }) {
   );
 }
 
-function Reply({ reply, commentId, onEditReply, onDeleteReply }) {
+function Reply({ reply, commentId, onEditReply, onDeleteReply, onToggleLike }) {
   const [isEditing, setIsEditing] = useState(false);
 
   const handleSaveEdit = (text) => {
@@ -78,7 +69,11 @@ function Reply({ reply, commentId, onEditReply, onDeleteReply }) {
         <p className="comment-reply-text">{reply.text}</p>
       )}
       <div className="comment-reply-footer">
-        <CommentLikeButton likeCount={reply.likeCount} />
+        <CommentLikeButton
+          liked={reply.isLiked}
+          count={reply.likeCount}
+          onToggle={() => onToggleLike(reply.id)}
+        />
         <span className="comment-reply-time">{formatDateTimeShort(reply.createdAt)}</span>
         {reply.isMine && !isEditing && (
           <>
@@ -108,6 +103,7 @@ function Comment({
   onDeleteComment,
   onEditReply,
   onDeleteReply,
+  onToggleLike,
 }) {
   const [expanded, setExpanded] = useState(false);
   const [replyText, setReplyText] = useState('');
@@ -145,7 +141,11 @@ function Comment({
         </p>
       )}
       <div className="comment-footer">
-        <CommentLikeButton likeCount={comment.likeCount} />
+        <CommentLikeButton
+          liked={comment.isLiked}
+          count={comment.likeCount}
+          onToggle={() => onToggleLike(comment.id)}
+        />
         <button
           type="button"
           className="comment-reply-toggle"
@@ -186,6 +186,7 @@ function Comment({
               commentId={comment.id}
               onEditReply={onEditReply}
               onDeleteReply={onDeleteReply}
+              onToggleLike={onToggleLike}
             />
           ))}
           {!comment.deleted && (

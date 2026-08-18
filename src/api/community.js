@@ -28,3 +28,25 @@ export async function updateComment(commentId, { content, isAnonymous } = {}) {
 export async function deleteComment(commentId) {
   await apiClient.delete(`/community/comments/${commentId}`);
 }
+
+/* POST /community/posts/{postId}/like | 인증 필요, 이미 좋아요한 경우 400 */
+export async function likePost(postId) {
+  const response = await apiClient.post(`/community/posts/${postId}/like`);
+  return response.data.data;
+}
+
+/* DELETE /community/posts/{postId}/like | 인증 필요 */
+export async function unlikePost(postId) {
+  await apiClient.delete(`/community/posts/${postId}/like`);
+}
+
+/* POST /community/comments/{commentId}/like | 인증 필요, 이미 좋아요한 경우 400 */
+export async function likeComment(commentId) {
+  const response = await apiClient.post(`/community/comments/${commentId}/like`);
+  return response.data.data;
+}
+
+/* DELETE /community/comments/{commentId}/like | 인증 필요 */
+export async function unlikeComment(commentId) {
+  await apiClient.delete(`/community/comments/${commentId}/like`);
+}
