@@ -79,7 +79,7 @@ function Community() {
 
   useEffect(() => {
     fetchPosts(0);
-  }, [boardType]);
+  }, [fetchPosts]);
 
   return (
     <div className="community-page">
