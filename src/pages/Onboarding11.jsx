@@ -69,7 +69,7 @@ function Onboarding11() {
       supportReceived: fromSupportReceivedLabels(data.currentSupports),
       neededHelp: fromNeededHelpLabels(data.supportNeeds),
     };
-    if ((protectionStatus === 'SCHEDULED' || protectionStatus === 'ENDED') && data.endDate) {
+    if ((protectionStatus === 'PROTECTED' || protectionStatus === 'ENDED') && data.endDate) {
       payload.protectionEndDate = formatDateKey(data.endDate);
     }
 

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import arrowBottom from '../assets/arrow_bottom.svg';
+import arrowUp from '../assets/arrow_up.svg';
 import CommentInputBar from './CommentInputBar';
 import { formatDateTimeShort } from '../utils/formatters';
 import '../styles/Comment.css';
@@ -155,11 +156,7 @@ function Comment({
         >
           <span className="comment-reply-icon" />
           {replies.length}
-          <img
-            src={arrowBottom}
-            alt=""
-            className={`comment-reply-arrow${expanded ? ' comment-reply-arrow--open' : ''}`}
-          />
+          <img src={expanded ? arrowUp : arrowBottom} alt="" className="comment-reply-arrow" />
         </button>
         {comment.isMine && !comment.deleted && !isEditing && (
           <>

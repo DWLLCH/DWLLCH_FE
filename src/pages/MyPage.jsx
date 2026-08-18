@@ -138,15 +138,20 @@ function MyPage() {
         </div>
 
         <section className="mypage-section">
-          <h2 className="mypage-section-title">프로필</h2>
+          <h2 className="mypage-section-title">계정</h2>
           <div className="mypage-card">
-            <SettingsRow label="아이디" value={profile.email} />
+            <SettingsRow
+              label="이메일"
+              value={profile.email}
+              chevron
+              onClick={() => navigate('/mypage/email')}
+            />
             <SettingsRow
               label="비밀번호 변경"
               chevron
               onClick={() => navigate('/mypage/password')}
             />
-            <SettingsRow label="이메일 변경" chevron onClick={() => navigate('/mypage/email')} />
+            <SettingsRow label="아이디 변경" chevron onClick={() => navigate('/mypage/id')} />
           </div>
         </section>
 

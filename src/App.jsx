@@ -38,6 +38,7 @@ import BriefingDetail from './pages/BriefingDetail';
 import MyPage from './pages/MyPage';
 import PasswordChange from './pages/PasswordChange';
 import EmailChange from './pages/EmailChange';
+import IdChange from './pages/IdChange';
 import NotificationList from './pages/NotificationList';
 import MyPosts from './pages/MyPosts';
 import MyComments from './pages/MyComments';
@@ -74,6 +75,7 @@ function App() {
                 <Route path="/mypage/notifications" element={<NotificationList />} />
                 <Route path="/mypage/password" element={<PasswordChange />} />
                 <Route path="/mypage/email" element={<EmailChange />} />
+                <Route path="/mypage/id" element={<IdChange />} />
                 <Route path="/mypage/posts" element={<MyPosts />} />
                 <Route path="/mypage/comments" element={<MyComments />} />
                 <Route element={<MyInfoProvider />}>
