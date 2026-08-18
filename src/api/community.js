@@ -11,10 +11,7 @@ export async function getPosts(boardType, page = 0) {
   return response.data;
 }
 
-/* POST /community/boards/{boardType}/posts | 인증 필요
-   이미지가 있으면 multipart/form-data, 없으면 application/json으로 전송
-   multipart일 때는 poll을 JSON 문자열로 실어보냄 (백엔드가 parse_post_request_data에서
-   poll 필드를 json.loads로 파싱해서 nested serializer가 읽을 수 있는 dict로 바꿔줌) */
+/* POST /community/boards/{boardType}/posts | 인증 필요 */
 export async function createPost(
   boardType,
   { title, content, isAnonymous = false, allowNotification = true, images = [], poll } = {},
@@ -41,6 +38,20 @@ export async function createPost(
   return response.data.data;
 }
 
+/* GET /community/posts/mine | 인증 필요, 내가 쓴 글 목록 (페이지네이션) */
+export async function getMyPosts(page = 0) {
+  const response = await apiClient.get('/community/posts/mine', { params: { page } });
+  return response.data;
+}
+
+/* GET /community/comments/mine | 인증 필요, 내가 쓴 댓글 목록 (페이지네이션)
+   응답(CommentSerializer)에 postTitle이 없고 post 필드가 게시글 id만 내려줘서
+   원글 제목은 아직 못 보여줌, 백엔드에 postTitle 추가 요청 필요 */
+export async function getMyComments(page = 0) {
+  const response = await apiClient.get('/community/comments/mine', { params: { page } });
+  return response.data;
+}
+
 /* GET /community/posts/{postId} | 인증 불필요, 조회할 때마다 viewCount 1 증가 */
 export async function getPost(postId) {
   const response = await apiClient.get(`/community/posts/${postId}`);
@@ -52,13 +63,7 @@ export async function deletePost(postId) {
   await apiClient.delete(`/community/posts/${postId}`);
 }
 
-/* PATCH /community/posts/{postId} | 인증 필요, 본인 게시글만 수정 가능
-   poll을 같이 보내면 설문이 교체/신규 생성됨 (이미 투표가 있으면 백엔드가 400으로 거부하므로
-   투표 여부는 호출하는 쪽에서 미리 걸러서 poll을 undefined로 보내야 함)
-   keepImageIds: 유지할 기존 이미지 id 배열, undefined면 기존 이미지 그대로 유지,
-   []면 기존 이미지 전부 삭제. newImages는 유지 이미지 뒤에 새로 추가됨
-   newImages가 있으면 multipart, 없으면 keepImageIds/boardType 등도 JSON으로 보낼 수 있음
-   (백엔드가 PATCH에 MultiPartParser/FormParser/JSONParser를 모두 허용) */
+/* PATCH /community/posts/{postId} | 인증 필요, 본인 게시글만 수정 가능 */
 export async function updatePost(
   postId,
   { title, content, allowNotification, boardType, poll, keepImageIds, newImages = [] } = {},
