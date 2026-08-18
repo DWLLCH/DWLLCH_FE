@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import backBtn from '../assets/backBtn.svg';
 import BottomNav from '../components/BottomNav';
+import Button from '../components/Button';
 import CategoryChip from '../components/CategoryChip';
 import CommunityPostCard from '../components/CommunityPostCard';
 import WriteFabButton from '../components/WriteFabButton';
@@ -134,24 +135,24 @@ function Community() {
             {loadMoreError ? (
               <div className="community-loadmore-error">
                 <p>게시글을 더 불러오지 못했어요</p>
-                <button
-                  type="button"
+                <Button
+                  fullWidth
                   className="community-more-btn"
                   onClick={() => fetchPosts(page + 1)}
                 >
                   다시 시도
-                </button>
+                </Button>
               </div>
             ) : (
               hasNext && (
-                <button
-                  type="button"
+                <Button
+                  fullWidth
                   className="community-more-btn"
                   onClick={() => fetchPosts(page + 1)}
                   disabled={loadingMore}
                 >
                   {loadingMore ? <LoadingSpinner size={16} /> : '더 보기'}
-                </button>
+                </Button>
               )
             )}
           </>

@@ -37,8 +37,12 @@ function MyComments() {
         setHasNext(data.hasNext);
         setPage(targetPage);
       })
-      .catch(() => {
+      .catch((error) => {
         if (requestId !== requestIdRef.current) return;
+        if (error.response?.status === 401) {
+          window.location.href = '/login';
+          return;
+        }
         if (targetPage === 0) setError(true);
         else setLoadMoreError(true);
       })

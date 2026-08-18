@@ -34,6 +34,16 @@ function toPollPayload(poll) {
   };
 }
 
+// JSON.stringify로 비교하면 키 순서가 달라졌을 때 오작동할 수 있어서 필드별로 비교
+function arePollsEqual(a, b) {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  if (a.question !== b.question) return false;
+  if (Boolean(a.allowMultiple) !== Boolean(b.allowMultiple)) return false;
+  if (a.options.length !== b.options.length) return false;
+  return a.options.every((option, index) => option === b.options[index]);
+}
+
 function WritePost() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -143,7 +153,7 @@ function WritePost() {
     };
   }, []);
 
-  const pollChanged = JSON.stringify(poll) !== JSON.stringify(originalPoll);
+  const pollChanged = !arePollsEqual(poll, originalPoll);
 
   const currentExistingImageIds = images
     .filter((image) => image.isExisting)
