@@ -1,8 +1,11 @@
 import apiClient from './client';
 
-/* GET /community/boards/{boardType}/posts | 인증 불필요 */
+/* GET /community/boards/{boardType}/posts | 인증 불필요
+   LATEST(최신)는 특정 게시판 목록이 아니라 전체 게시글 목록이라 백엔드가 별도 엔드포인트
+   (GET /community/posts, latest_post_list)로 분리해둬서 그쪽으로 보냄 */
 export async function getPosts(boardType, page = 0) {
-  const response = await apiClient.get(`/community/boards/${boardType}/posts`, {
+  const url = boardType === 'LATEST' ? '/community/posts' : `/community/boards/${boardType}/posts`;
+  const response = await apiClient.get(url, {
     params: { page },
   });
   return response.data;
