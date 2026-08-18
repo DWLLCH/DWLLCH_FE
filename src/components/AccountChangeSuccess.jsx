@@ -17,7 +17,9 @@ function AccountChangeSuccess({ message, onConfirm }) {
             />
           </svg>
         </span>
-        <p className="account-change-success-message">{message}</p>
+        <p className="account-change-success-message" role="status" aria-live="polite">
+          {message}
+        </p>
       </div>
       <Button fullWidth className="account-change-success-confirm" onClick={onConfirm}>
         확인
