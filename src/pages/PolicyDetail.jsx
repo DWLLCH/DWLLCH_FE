@@ -45,22 +45,37 @@ function PolicyDetail() {
   const [toastMessage, setToastMessage] = useState('');
   const toastTimerRef = useRef(null);
 
+  // StrictMode 개발 모드에서 effect가 두 번 실행돼서 가드 없이 부르면
+  // GET을 두 번 보내는 문제가 있었음 (PostDetail.jsx와 동일한 패턴)
+  const fetchedPolicyIdRef = useRef(null);
+  const policyRequestIdRef = useRef(0);
+
   const fetchPolicy = useCallback(() => {
+    const requestId = ++policyRequestIdRef.current;
     setLoading(true);
     setError(false);
     setNotFound(false);
     getPolicyDetail(id)
-      .then((data) => setPolicy(data))
+      .then((data) => {
+        if (requestId !== policyRequestIdRef.current) return;
+        setPolicy(data);
+      })
       .catch((err) => {
+        if (requestId !== policyRequestIdRef.current) return;
         if (err.response?.status === 404) setNotFound(true);
         else setError(true);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (requestId !== policyRequestIdRef.current) return;
+        setLoading(false);
+      });
   }, [id]);
 
   useEffect(() => {
+    if (fetchedPolicyIdRef.current === id) return;
+    fetchedPolicyIdRef.current = id;
     fetchPolicy();
-  }, [fetchPolicy]);
+  }, [id, fetchPolicy]);
 
   useEffect(
     () => () => {
