@@ -1,31 +1,36 @@
 import { useState } from 'react';
 import '../styles/PollCard.css';
 
-function PollCard({ poll }) {
-  const [voted, setVoted] = useState(Boolean(poll.votes));
+function PollCard({ poll, onVote }) {
   const [selected, setSelected] = useState([]);
-  const [voteCounts, setVoteCounts] = useState(() => poll.votes || poll.options.map(() => 0));
-  const [voterCount, setVoterCount] = useState(
-    () => poll.voterCount ?? (poll.votes || []).reduce((sum, count) => sum + count, 0),
-  );
+  const [isVoting, setIsVoting] = useState(false);
+  const [voteError, setVoteError] = useState('');
 
-  const toggleOption = (index) => {
+  const voted = Boolean(poll.myVotedOptionIds && poll.myVotedOptionIds.length > 0);
+  const voterCount = poll.totalVoters ?? 0;
+
+  const toggleOption = (optionId) => {
     if (poll.allowMultiple) {
       setSelected((prev) =>
-        prev.includes(index) ? prev.filter((item) => item !== index) : [...prev, index],
+        prev.includes(optionId) ? prev.filter((id) => id !== optionId) : [...prev, optionId],
       );
     } else {
-      setSelected([index]);
+      setSelected([optionId]);
     }
   };
 
-  const handleVote = () => {
-    if (selected.length === 0) return;
-    setVoteCounts((prev) =>
-      prev.map((count, index) => (selected.includes(index) ? count + 1 : count)),
-    );
-    setVoterCount((prev) => prev + 1);
-    setVoted(true);
+  const handleVote = async () => {
+    if (selected.length === 0 || isVoting) return;
+    setIsVoting(true);
+    setVoteError('');
+    try {
+      await onVote(selected);
+    } catch (error) {
+      const message = error.response?.data?.message;
+      setVoteError(message || '투표에 실패했어요. 다시 시도해주세요');
+    } finally {
+      setIsVoting(false);
+    }
   };
 
   return (
@@ -33,31 +38,31 @@ function PollCard({ poll }) {
       <p className="poll-card-question">{poll.question}</p>
 
       <div className="poll-card-options">
-        {poll.options.map((option, index) =>
+        {poll.options.map((option) =>
           voted ? (
-            <div className="poll-card-result" key={index}>
+            <div className="poll-card-result" key={option.id}>
               <div
                 className="poll-card-result-bar"
                 style={{
-                  width: `${voterCount === 0 ? 0 : Math.round((voteCounts[index] / voterCount) * 100)}%`,
+                  width: `${voterCount === 0 ? 0 : Math.round((option.voteCount / voterCount) * 100)}%`,
                 }}
               />
               <div className="poll-card-result-content">
-                <span className="poll-card-result-label">{option}</span>
+                <span className="poll-card-result-label">{option.text}</span>
                 <span className="poll-card-result-percent">
-                  {voterCount === 0 ? 0 : Math.round((voteCounts[index] / voterCount) * 100)}%
+                  {voterCount === 0 ? 0 : Math.round((option.voteCount / voterCount) * 100)}%
                 </span>
               </div>
             </div>
           ) : (
             <button
               type="button"
-              key={index}
-              className={`poll-card-option${selected.includes(index) ? ' poll-card-option--selected' : ''}`}
-              onClick={() => toggleOption(index)}
-              aria-pressed={selected.includes(index)}
+              key={option.id}
+              className={`poll-card-option${selected.includes(option.id) ? ' poll-card-option--selected' : ''}`}
+              onClick={() => toggleOption(option.id)}
+              aria-pressed={selected.includes(option.id)}
             >
-              {option}
+              {option.text}
             </button>
           ),
         )}
@@ -70,12 +75,18 @@ function PollCard({ poll }) {
             type="button"
             className="poll-card-submit"
             onClick={handleVote}
-            disabled={selected.length === 0}
+            disabled={selected.length === 0 || isVoting}
           >
-            투표하기
+            {isVoting ? '투표 중' : '투표하기'}
           </button>
         )}
       </div>
+
+      {voteError && (
+        <p className="poll-card-error" role="alert">
+          {voteError}
+        </p>
+      )}
     </div>
   );
 }
