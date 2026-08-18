@@ -8,6 +8,34 @@ export async function getPosts(boardType, page = 0) {
   return response.data;
 }
 
+/* POST /community/boards/{boardType}/posts | 인증 필요 */
+export async function createPost(
+  boardType,
+  { title, content, isAnonymous = false, allowNotification = true, images = [], poll } = {},
+) {
+  if (images.length > 0) {
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('content', content);
+    formData.append('isAnonymous', String(isAnonymous));
+    formData.append('allowNotification', String(allowNotification));
+    images.forEach((file) => formData.append('images', file));
+
+    // Content-Type을 명시하면 axios/브라우저가 boundary를 못 붙이므로 헤더를 지워서
+    // 브라우저가 자동으로 multipart boundary를 채우도록 함
+    const response = await apiClient.post(`/community/boards/${boardType}/posts`, formData, {
+      headers: { 'Content-Type': undefined },
+    });
+    return response.data.data;
+  }
+
+  const payload = { title, content, isAnonymous, allowNotification };
+  if (poll) payload.poll = poll;
+
+  const response = await apiClient.post(`/community/boards/${boardType}/posts`, payload);
+  return response.data.data;
+}
+
 /* GET /community/posts/{postId}/comments | 인증 불필요, 댓글+대댓글을 평탄화된 배열로 반환 */
 export async function getComments(postId) {
   const response = await apiClient.get(`/community/posts/${postId}/comments`);

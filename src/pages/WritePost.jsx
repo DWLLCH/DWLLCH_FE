@@ -7,11 +7,13 @@ import chartIcon from '../assets/chart.svg';
 import CategoryChip from '../components/CategoryChip';
 import Toggle from '../components/Toggle';
 import PollFormSheet from '../components/PollFormSheet';
-import { POSTS, POST_CATEGORIES } from '../constants/community';
-import { CURRENT_USER_NAME } from '../constants/home';
+import { POSTS, POST_CATEGORIES, LABEL_TO_BOARD_TYPE } from '../constants/community';
+import { createPost } from '../api/community';
 import '../styles/WritePost.css';
 
-const MAX_IMAGES = 10;
+const MAX_IMAGES = 5;
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 const GUIDE_ITEMS = [
   '서로를 존중하는 따뜻한 대화를 나눠주세요',
@@ -47,9 +49,11 @@ function WritePost() {
   );
   const [poll, setPoll] = useState(existingPost?.poll || null);
   const [pollSheetOpen, setPollSheetOpen] = useState(false);
+  const [imageError, setImageError] = useState('');
+  const [submitError, setSubmitError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const imagesRef = useRef(images);
   const submittedUrlsRef = useRef(new Set());
-  const isSubmittingRef = useRef(false);
 
   useEffect(() => {
     imagesRef.current = images;
@@ -83,16 +87,45 @@ function WritePost() {
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    if (files.length === 0) return;
+
+    const rejected = [];
+    const accepted = [];
+    files.forEach((file) => {
+      if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+        rejected.push(`${file.name} (JPEG, PNG, WEBP만 가능)`);
+        return;
+      }
+      if (file.size > MAX_IMAGE_SIZE) {
+        rejected.push(`${file.name} (5MB 초과)`);
+        return;
+      }
+      accepted.push(file);
+    });
+
     const allowedCount = Math.max(0, MAX_IMAGES - images.length);
-    const newImages = files.slice(0, allowedCount).map((file, index) => ({
+    const overflowCount = Math.max(0, accepted.length - allowedCount);
+    const filesToAdd = accepted.slice(0, allowedCount);
+
+    const newImages = filesToAdd.map((file, index) => ({
       id: `${Date.now()}-${index}-${Math.random().toString(36).slice(2, 8)}`,
       url: URL.createObjectURL(file),
+      file,
     }));
     setImages((prev) => [...prev, ...newImages]);
-    e.target.value = '';
+
+    if (rejected.length > 0) {
+      setImageError(`업로드할 수 없는 파일이 있어요: ${rejected.join(', ')}`);
+    } else if (overflowCount > 0) {
+      setImageError(`이미지는 최대 ${MAX_IMAGES}장까지 업로드할 수 있어요`);
+    } else {
+      setImageError('');
+    }
   };
 
   const handleRemoveImage = (id) => {
+    setImageError('');
     setImages((prev) => {
       const target = prev.find((image) => image.id === id);
       if (target && !target.isExisting) URL.revokeObjectURL(target.url);
@@ -100,10 +133,8 @@ function WritePost() {
     });
   };
 
-  const handleSubmit = () => {
-    if (!canSubmit || isSubmittingRef.current) return;
-    isSubmittingRef.current = true;
-    images.forEach((image) => submittedUrlsRef.current.add(image.url));
+  const handleSubmit = async () => {
+    if (!canSubmit || isSubmitting) return;
 
     if (isEdit) {
       if (!existingPost?.isMine) return;
@@ -123,24 +154,47 @@ function WritePost() {
       return;
     }
 
-    const newPost = {
-      id: Date.now(),
-      category,
-      title: title.trim(),
-      description: content.trim(),
-      author: anonymous ? '익명' : CURRENT_USER_NAME,
-      time: '방금 전',
-      createdAt: new Date().toISOString(),
-      viewCount: 0,
-      likeCount: 0,
-      images: images.map((image) => image.url),
-      content: content.trim().split(/\n\s*\n/),
-      comments: [],
-      poll,
-      isMine: true,
-    };
-    POSTS.unshift(newPost);
-    navigate('/community');
+    // 백엔드가 아직 multipart 요청 안에서 poll을 파싱하지 못해서 이미지+poll 동시 등록은 막아둠
+    if (images.length > 0 && poll) {
+      setSubmitError('이미지와 투표는 아직 함께 등록할 수 없어요. 하나만 선택해주세요');
+      return;
+    }
+
+    const boardType = LABEL_TO_BOARD_TYPE[category];
+    if (!boardType) {
+      setSubmitError('카테고리를 다시 선택해주세요');
+      return;
+    }
+
+    setSubmitError('');
+    setIsSubmitting(true);
+
+    // PollFormSheet가 options를 문자열 배열로 넘겨주는데, 백엔드 PollCreateSerializer는
+    // options를 [{ text }] 형태로 기대해서 여기서 변환해줌
+    const pollPayload = poll
+      ? {
+          question: poll.question,
+          allowMultiple: Boolean(poll.allowMultiple),
+          options: poll.options.map((text) => ({ text })),
+        }
+      : undefined;
+
+    try {
+      const createdPost = await createPost(boardType, {
+        title: title.trim(),
+        content: content.trim(),
+        isAnonymous: anonymous,
+        allowNotification: notifyEnabled,
+        images: images.map((image) => image.file).filter(Boolean),
+        poll: pollPayload,
+      });
+      images.forEach((image) => submittedUrlsRef.current.add(image.url));
+      navigate(`/community/${createdPost.id}`);
+    } catch (error) {
+      setIsSubmitting(false);
+      const message = error.response?.data?.message;
+      setSubmitError(message || '게시글 등록에 실패했어요. 다시 시도해주세요');
+    }
   };
 
   if (!canEditPost) {
@@ -163,9 +217,9 @@ function WritePost() {
           type="button"
           className={`write-submit${canSubmit ? ' write-submit--active' : ''}`}
           onClick={handleSubmit}
-          disabled={!canSubmit}
+          disabled={!canSubmit || isSubmitting}
         >
-          {isEdit ? '수정' : '등록'}
+          {isSubmitting ? '등록 중' : isEdit ? '수정' : '등록'}
         </button>
       </header>
 
@@ -234,6 +288,8 @@ function WritePost() {
           />
         </div>
 
+        {imageError && <p className="write-error-text">{imageError}</p>}
+
         {poll && (
           <div className="write-poll-card">
             <img src={chartIcon} alt="" />
@@ -278,6 +334,8 @@ function WritePost() {
           </div>
           <Toggle checked={notifyEnabled} onChange={setNotifyEnabled} ariaLabel="알림 설정" />
         </div>
+
+        {submitError && <p className="write-error-text">{submitError}</p>}
 
         <div className="write-guide-box">
           <p className="write-guide-title">커뮤니티 이용 안내</p>
