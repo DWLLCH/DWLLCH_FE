@@ -23,17 +23,21 @@ import {
   unlikeComment,
 } from '../api/community';
 import { getMyProfile } from '../api/mypage';
-import { getAccessToken } from '../api/auth';
+import { getAccessToken, getUserId } from '../api/auth';
 import { formatDateTimeShort } from '../utils/formatters';
 import '../styles/PostDetail.css';
 
 // 댓글 목록(GET)은 post/comment를 parentId 기준으로 평탄화해서 내려주기 때문에
 // 프론트에서 최상위 댓글 + 답글(1depth) 트리로 묶어줘야 함
-function buildCommentTree(rawComments, { username, myCommentIds }) {
+function buildCommentTree(rawComments, { username, myCommentIds, currentUserId }) {
   // 백엔드가 isMine 필드를 내려주기 시작하면 그 값을 그대로 신뢰하고,
-  // 아직 없으면(지금 상태) 세션 추적 + 닉네임 비교로 임시로 추정함
+  // 없으면 authorId(익명 여부와 무관하게 항상 내려옴)를 로그인한 내 id와 비교함
+  // 그마저도 없을 때만 세션 추적 + 닉네임 비교로 임시로 추정함(익명 댓글은 새로고침하면 못 알아봄)
   const isMine = (item) => {
     if (typeof item.isMine === 'boolean') return item.isMine;
+    if (item.authorId != null && currentUserId != null) {
+      return String(item.authorId) === String(currentUserId);
+    }
     return (
       myCommentIds.has(item.id) || (!item.isAnonymous && !!username && item.authorName === username)
     );
@@ -89,13 +93,13 @@ function PostDetail() {
   const canUseRealApi = typeof post?.id === 'number';
 
   const [isLoggedIn] = useState(() => Boolean(getAccessToken()));
+  const [currentUserId] = useState(() => getUserId());
   const [likeState, setLikeState] = useState({ liked: false, count: post?.likeCount ?? 0 });
 
   const [rawComments, setRawComments] = useState([]);
   const [commentsLoading, setCommentsLoading] = useState(canUseRealApi);
   const [commentsError, setCommentsError] = useState(false);
-  // 백엔드 댓글 목록에는 isMine이 없어서, 이번 세션에서 내가 작성한 댓글 id를 직접 추적함
-  // (비로그인 시절부터 있던 익명 댓글까지 완벽하게 구분하려면 백엔드에 isMine 추가가 필요함)
+  // authorId 없는 옛날 응답 대비용 폴백 (지금은 백엔드가 authorId를 내려줘서 거의 안 쓰임)
   const [myCommentIds, setMyCommentIds] = useState(() => new Set());
   const [username, setUsername] = useState('');
 
@@ -364,7 +368,7 @@ function PostDetail() {
     );
   }
 
-  const comments = buildCommentTree(rawComments, { username, myCommentIds });
+  const comments = buildCommentTree(rawComments, { username, myCommentIds, currentUserId });
 
   return (
     <div className="post-detail-page">

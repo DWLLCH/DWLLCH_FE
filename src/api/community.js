@@ -1,5 +1,13 @@
 import apiClient from './client';
 
+/* GET /community/boards/{boardType}/posts | 인증 불필요 */
+export async function getPosts(boardType, page = 0) {
+  const response = await apiClient.get(`/community/boards/${boardType}/posts`, {
+    params: { page },
+  });
+  return response.data;
+}
+
 /* GET /community/posts/{postId}/comments | 인증 불필요, 댓글+대댓글을 평탄화된 배열로 반환 */
 export async function getComments(postId) {
   const response = await apiClient.get(`/community/posts/${postId}/comments`);
