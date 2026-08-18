@@ -49,6 +49,24 @@ export function formatRelativeTime(date) {
   return formatDateDots(parsed);
 }
 
+/* 정책 신청 마감일(applicationEnd, "YYYY-MM-DD")을 D-day 배지 문자열로 변환
+   마감일이 없으면 null, 이미 지났으면 "마감" */
+export function formatDday(applicationEnd) {
+  if (!applicationEnd) return null;
+
+  const end = new Date(applicationEnd);
+  if (Number.isNaN(end.getTime())) return null;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+
+  const diffDays = Math.round((end.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
+  if (diffDays < 0) return '마감';
+  if (diffDays === 0) return 'D-DAY';
+  return `D-${diffDays}`;
+}
+
 export function formatDateKey(date) {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
   const year = date.getFullYear();
