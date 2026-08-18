@@ -11,7 +11,7 @@ import Button from '../components/Button';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorState from '../components/ErrorState';
 import { getPolicies } from '../api/policy';
-import { formatDday } from '../utils/formatters';
+import { formatDday, toPolicyLevel } from '../utils/formatters';
 import { FILTER_GROUPS, SORT_OPTIONS } from '../constants/filterOptions';
 import '../styles/SupportList.css';
 
@@ -137,8 +137,10 @@ function SupportList() {
               {policies.map((policy) => (
                 <PolicyCard
                   key={policy.id}
+                  level={toPolicyLevel(policy.matchLevel)}
                   dday={formatDday(policy.applicationEnd)}
                   title={policy.title}
+                  description={policy.matchReason}
                   onClick={() => navigate(`/support/${policy.id}`)}
                 />
               ))}

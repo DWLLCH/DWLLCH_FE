@@ -95,6 +95,13 @@ export function formatDateRangeDots(start, end) {
   return startText || endText;
 }
 
+// BE 정책 매칭 등급("HIGH"/"MEDIUM"/"LOW")을 constants/supportList.js의 LEVEL_CONFIG 키로 변환
+// 비로그인/프로필 미완성 등으로 매칭 안 된 경우 matchLevel이 null로 오는데 그대로 null 반환
+const MATCH_LEVEL_TO_KEY = { HIGH: 'high', MEDIUM: 'mid', LOW: 'low' };
+export function toPolicyLevel(matchLevel) {
+  return MATCH_LEVEL_TO_KEY[matchLevel] || null;
+}
+
 export function formatDateKey(date) {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
   const year = date.getFullYear();
