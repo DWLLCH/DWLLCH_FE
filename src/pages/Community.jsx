@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import backBtn from '../assets/backBtn.svg';
 import BottomNav from '../components/BottomNav';
@@ -42,22 +42,27 @@ function Community() {
   const [error, setError] = useState(false);
 
   const boardType = LABEL_TO_BOARD_TYPE[activeCategory];
+  const requestIdRef = useRef(0);
 
   const fetchPosts = useCallback(
     (targetPage) => {
+      const requestId = ++requestIdRef.current;
       if (targetPage === 0) setLoading(true);
       else setLoadingMore(true);
       setError(false);
       getPosts(boardType, targetPage)
         .then((data) => {
+          if (requestId !== requestIdRef.current) return;
           setPosts((prev) => (targetPage === 0 ? data.content : [...prev, ...data.content]));
           setHasNext(data.hasNext);
           setPage(targetPage);
         })
         .catch(() => {
+          if (requestId !== requestIdRef.current) return;
           setError(true);
         })
         .finally(() => {
+          if (requestId !== requestIdRef.current) return;
           setLoading(false);
           setLoadingMore(false);
         });
@@ -67,7 +72,6 @@ function Community() {
 
   useEffect(() => {
     fetchPosts(0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boardType]);
 
   return (
