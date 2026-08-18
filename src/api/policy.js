@@ -11,3 +11,10 @@ export async function getPolicies({ category, keyword, page = 0, size = 20 } = {
   const response = await apiClient.get('/policies', { params });
   return response.data;
 }
+
+/* GET /policies/{policyId} | 인증 불필요
+   success/data 래퍼가 있는 일반 API 포맷이라 response.data.data를 반환함 */
+export async function getPolicyDetail(policyId) {
+  const response = await apiClient.get(`/policies/${policyId}`);
+  return response.data.data;
+}

@@ -77,6 +77,24 @@ export function formatDday(applicationEnd) {
   return `D-${diffDays}`;
 }
 
+/* 정책 신청 시작일/종료일("YYYY-MM-DD")을 "YYYY.MM.DD ~ YYYY.MM.DD" 형태로 변환
+   둘 다 없으면 "상시 모집", 하나만 있으면 있는 값만 표시 */
+export function formatDateRangeDots(start, end) {
+  const toDots = (value) => {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || '');
+    if (!match) return null;
+    const [, year, month, day] = match;
+    return `${year}.${month}.${day}`;
+  };
+
+  const startText = toDots(start);
+  const endText = toDots(end);
+
+  if (!startText && !endText) return '상시 모집';
+  if (startText && endText) return `${startText} ~ ${endText}`;
+  return startText || endText;
+}
+
 export function formatDateKey(date) {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
   const year = date.getFullYear();
