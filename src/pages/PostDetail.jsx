@@ -25,6 +25,7 @@ import {
   unlikePost,
   likeComment,
   unlikeComment,
+  votePoll,
 } from '../api/community';
 import { getMyProfile } from '../api/mypage';
 import { getAccessToken, getUserId } from '../api/auth';
@@ -111,9 +112,6 @@ function PostDetail() {
 
   const isMyPost = Boolean(post?.isMine);
 
-  // StrictMode 개발 모드에서 effect가 두 번 실행되는데, 가드 없이 fetchPost를 그대로 부르면
-  // GET을 두 번 보내서 viewCount가 조회할 때마다 2씩 올라가는 문제가 있었음
-  // id별로 한 번만 실제로 fetchPost를 호출하도록 ref로 막아줌
   const fetchedPostIdRef = useRef(null);
 
   const fetchPost = useCallback(() => {
@@ -228,6 +226,16 @@ function PostDetail() {
         ),
       );
       alert('좋아요 처리에 실패했습니다.');
+    });
+  };
+
+  const handleVote = (optionIds) => {
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return Promise.resolve();
+    }
+    return votePoll(post.id, optionIds).then((updatedPoll) => {
+      setPost((prev) => (prev ? { ...prev, poll: updatedPoll } : prev));
     });
   };
 
@@ -397,18 +405,6 @@ function PostDetail() {
     .sort((a, b) => a.order - b.order)
     .map((image) => image.image);
   const contentParagraphs = (post.content || '').split(/\n\s*\n/).filter(Boolean);
-  const pollForCard = post.poll
-    ? {
-        question: post.poll.question,
-        options: post.poll.options.map((option) => option.text),
-        allowMultiple: post.poll.allowMultiple,
-        voterCount: post.poll.totalVoters,
-        // 이미 투표한 선택지가 있으면 결과 화면부터 보여주고, 없으면 선택 화면부터 보여줌
-        ...(post.poll.myVotedOptionIds && post.poll.myVotedOptionIds.length > 0
-          ? { votes: post.poll.options.map((option) => option.voteCount) }
-          : {}),
-      }
-    : null;
 
   return (
     <div className="post-detail-page">
@@ -482,7 +478,7 @@ function PostDetail() {
           ))}
         </div>
 
-        {pollForCard && <PollCard key={post.id} poll={pollForCard} />}
+        {post.poll && <PollCard key={post.id} poll={post.poll} onVote={handleVote} />}
 
         <div className="post-detail-actions">
           <PostActionButton
