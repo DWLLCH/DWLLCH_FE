@@ -153,7 +153,6 @@ function PolicyDetail() {
                 최종 지원 대상 여부는 해당 기관의 심사 결과에 따라 달라질 수 있어요
               </p>
               <p className="detail-hero-title">{policy.title}</p>
-              <p className="detail-hero-desc">{policy.summary}</p>
             </div>
             <img src={birdLogo} alt="" className="detail-hero-bird" />
           </div>
@@ -251,7 +250,7 @@ function PolicyDetail() {
             ))}
           </div>
           {missingCount > 0 && (
-            <p className="detail-doc-note">아직 {missingCount}개의 서류가 필요해요</p>
+            <p className="detail-doc-note">AI 확인 결과 아직 {missingCount}개의 서류가 필요해요</p>
           )}
           <div className="detail-section-buttons">
             <Button
