@@ -206,7 +206,9 @@ function WritePost() {
           allowNotification: notifyEnabled,
           poll: !pollHasVotes && pollChanged ? toPollPayload(poll) : undefined,
         });
-        navigate(`/community/${updated.id}`);
+        // replace: true로 글쓰기 화면을 히스토리에서 빼줘야 상세에서 뒤로가기 눌렀을 때
+        // 글쓰기 화면이 아니라 그 전 화면(목록 등)으로 돌아감
+        navigate(`/community/${updated.id}`, { replace: true });
       } catch (error) {
         setIsSubmitting(false);
         const message = error.response?.data?.message;
@@ -237,7 +239,9 @@ function WritePost() {
       });
       // 실제 이미지는 서버에 업로드됐고 여기 blob 미리보기 URL은 더 필요 없으니
       // submittedUrlsRef에 등록하지 않아서 unmount cleanup이 정상적으로 해제하게 둠
-      navigate(`/community/${createdPost.id}`);
+      // replace: true로 글쓰기 화면을 히스토리에서 빼줘야 상세에서 뒤로가기 눌렀을 때
+      // 글쓰기 화면이 아니라 글 목록으로 돌아감
+      navigate(`/community/${createdPost.id}`, { replace: true });
     } catch (error) {
       setIsSubmitting(false);
       const message = error.response?.data?.message;
