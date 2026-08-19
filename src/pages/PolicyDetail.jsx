@@ -160,10 +160,10 @@ function PolicyDetail() {
           <div className="detail-hero-top">
             <div className="detail-hero-text">
               <PolicyBadges level={level} dday={dday} />
+              <p className="detail-hero-title">{policy.title}</p>
               <p className="detail-disclaimer">
                 최종 지원 대상 여부는 해당 기관의 심사 결과에 따라 달라질 수 있어요
               </p>
-              <p className="detail-hero-title">{policy.title}</p>
             </div>
             <img src={birdLogo} alt="" className="detail-hero-bird" />
           </div>
