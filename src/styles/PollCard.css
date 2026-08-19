@@ -11,8 +11,7 @@
   font-size: 15px;
   font-weight: 600;
   color: #000;
-  overflow-wrap: break-word;
-  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 
 .poll-card-options {
@@ -33,8 +32,7 @@
   color: #202020;
   text-align: left;
   cursor: pointer;
-  overflow-wrap: break-word;
-  word-break: break-all;
+  overflow-wrap: anywhere;
   box-sizing: border-box;
   transition:
     border-color 0.15s ease,
@@ -84,8 +82,7 @@
 }
 
 .poll-card-result-label {
-  overflow-wrap: break-word;
-  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 
 .poll-card-result-percent {
