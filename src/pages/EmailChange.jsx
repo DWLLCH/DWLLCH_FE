@@ -74,7 +74,7 @@ function EmailChange() {
     try {
       const response = await changeEmail({
         newEmail: form.newEmail,
-        currentPassword: form.currentPassword,
+        currentPassword: form.accountPassword,
       });
       if (!isMountedRef.current) return;
       if (!response.success) {
