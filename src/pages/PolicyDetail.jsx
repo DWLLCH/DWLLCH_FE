@@ -35,12 +35,14 @@ import {
   formatDateRangeDots,
   parseDateKey,
   parseRequiredDocuments,
+  splitNumberedText,
   toPolicyLevel,
 } from '../utils/formatters';
 import '../styles/PolicyDetail.css';
 
-// 지원 금액/신청 경로처럼 BE가 별도 필드로 안 주는 항목은 아래 문구로 대체 표시함
+// 신청 경로처럼 BE가 별도 필드로 안 주는 항목은 아래 문구로 대체 표시함
 // (화면 레이아웃은 기존 목업 구조를 최대한 유지하고, 없는 값만 기본 문구로 채움)
+// 지원 금액은 policy.supportAmount가 내려오면 그 값을 쓰고, null/빈 값일 때만 폴백 문구로 대체함
 const FALLBACK_SUPPORT_AMOUNT = '기관 문의';
 const FALLBACK_APPLY_PATH = '기관 홈페이지 → 지원사업 신청';
 
@@ -195,7 +197,14 @@ function PolicyDetail() {
         </div>
 
         <DetailSection number={one} title="이 지원사업은?">
-          <p className="detail-field-content">{policy.content}</p>
+          <p className="detail-field-content">
+            {splitNumberedText(policy.content).map((line, index) => (
+              <span key={`${index}-${line}`}>
+                {index > 0 && <br />}
+                {line}
+              </span>
+            ))}
+          </p>
           <div className="detail-info-grid">
             <div className="detail-info-col">
               <p className="detail-info-col-label">지원 내용</p>
@@ -203,7 +212,9 @@ function PolicyDetail() {
             </div>
             <div className="detail-info-col">
               <p className="detail-info-col-label">지원 금액</p>
-              <p className="detail-info-col-value">{FALLBACK_SUPPORT_AMOUNT}</p>
+              <p className="detail-info-col-value">
+                {policy.supportAmount || FALLBACK_SUPPORT_AMOUNT}
+              </p>
             </div>
             <div className="detail-info-col">
               <p className="detail-info-col-label">신청 기간</p>

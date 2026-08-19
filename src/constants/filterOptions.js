@@ -13,8 +13,7 @@ export const FILTER_GROUPS = [
   },
 ];
 
-/* GET /policies의 protectionType/ageRange/incomeCriteria 파라미터 값 매핑
-   같은 param 내 복수 선택은 AND, param끼리는 OR로 필터링됨 (BE 계약 기준) */
+/* GET /policies의 protectionType/ageRange/incomeCriteria 파라미터 값 매핑 */
 export const FILTER_VALUE_MAP = {
   아동양육시설: { param: 'protectionType', value: 'RESIDENTIAL_CARE' },
   공동생활가정: { param: 'protectionType', value: 'GROUP_HOME' },
@@ -29,8 +28,9 @@ export const FILTER_VALUE_MAP = {
 
 export const SORT_OPTIONS = ['AI 추천순', '최근 업데이트 순', '신청 마감 빠른 순', '인기순'];
 
-/* AI 추천순은 BE 파라미터가 아직 없어서 매핑에서 제외 (선택 시 BE 기본값인 updatedAt으로 조회됨) */
+/* GET /policies의 sort 파라미터 값 매핑 */
 export const SORT_VALUE_MAP = {
+  'AI 추천순': 'matchLevel',
   '최근 업데이트 순': 'updatedAt',
   '신청 마감 빠른 순': 'applicationEnd',
   인기순: 'scrapCount',

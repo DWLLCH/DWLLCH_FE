@@ -95,6 +95,19 @@ export function formatDateRangeDots(start, end) {
   return startText || endText;
 }
 
+/* content 필드가 "1. 항목1 2. 항목2 3. 항목3" 처럼 번호 목록이 한 줄로 붙어서 오는 경우
+   "숫자. " 패턴 앞에서 끊어서 줄 단위 배열로 변환함 (렌더링에서 항목마다 줄바꿈 삽입용)
+   번호 목록이 아니면(패턴이 없거나 1개뿐이면) 원본 텍스트 그대로 배열 하나로 반환함 */
+export function splitNumberedText(text) {
+  if (!text) return [];
+  const trimmed = text.trim();
+  if (!trimmed) return [];
+  // "3. 1"처럼 숫자 뒤에 또 숫자가 오는 날짜 표기("2025. 3. 1.")는 번호 목록으로 오인하지 않도록
+  // "숫자. " 바로 뒤에 숫자가 오지 않는 경우에만(=진짜 목록 항목 시작 위치) 끊음
+  const parts = trimmed.split(/\s*(?=\d+\.\s(?!\d))/).filter(Boolean);
+  return parts.length > 1 ? parts : [trimmed];
+}
+
 // BE 정책 매칭 등급("HIGH"/"MEDIUM"/"LOW")을 constants/supportList.js의 LEVEL_CONFIG 키로 변환
 // 비로그인/프로필 미완성 등으로 매칭 안 된 경우 matchLevel이 null로 오는데 그대로 null 반환
 const MATCH_LEVEL_TO_KEY = { HIGH: 'high', MEDIUM: 'mid', LOW: 'low' };

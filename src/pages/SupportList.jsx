@@ -183,7 +183,6 @@ function SupportList() {
 
             {hasNext && !loadMoreError && (
               <Button
-                variant="gray"
                 fullWidth
                 className="support-load-more"
                 disabled={loadingMore}

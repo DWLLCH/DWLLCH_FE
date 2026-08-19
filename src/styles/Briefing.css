@@ -67,6 +67,12 @@
   padding: 60px 0;
 }
 
+.briefing-empty {
+  padding: 20px 0 0;
+  font-size: 14px;
+  color: #767676;
+}
+
 /* 섹션 */
 .briefing-section {
   margin-bottom: 32px;
