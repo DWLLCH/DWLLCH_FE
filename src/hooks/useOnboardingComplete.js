@@ -3,23 +3,21 @@ import { getMyProfile } from '../api/mypage';
 import { getAccessToken } from '../api/auth';
 
 function useOnboardingComplete() {
-  const [onboardingComplete, setOnboardingComplete] = useState(true);
-  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState(() => (getAccessToken() ? 'checking' : 'complete'));
 
   useEffect(() => {
-    if (!getAccessToken()) {
-      setOnboardingComplete(true);
-      return;
-    }
+    if (status !== 'checking') return;
 
-    setLoading(true);
     getMyProfile()
-      .then((profile) => setOnboardingComplete(Boolean(profile.birthDate)))
-      .catch(() => setOnboardingComplete(true))
-      .finally(() => setLoading(false));
-  }, []);
+      .then((profile) => setStatus(profile.birthDate ? 'complete' : 'incomplete'))
+      .catch(() => setStatus('error'));
+  }, [status]);
 
-  return { onboardingComplete, loading };
+  return {
+    status,
+    loading: status === 'checking',
+    onboardingComplete: status === 'complete',
+  };
 }
 
 export default useOnboardingComplete;

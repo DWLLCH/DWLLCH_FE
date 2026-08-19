@@ -21,7 +21,10 @@ function Bookmark() {
   const { scraps, loading, maxCount } = useBookmarks();
   const [keyword, setKeyword] = useState('');
   const [isLoggedIn] = useState(() => Boolean(getAccessToken()));
-  const { onboardingComplete } = useOnboardingComplete();
+  const { status: onboardingStatus } = useOnboardingComplete();
+  const onboardingChecking = isLoggedIn && onboardingStatus === 'checking';
+  const onboardingBlocked =
+    isLoggedIn && (onboardingStatus === 'incomplete' || onboardingStatus === 'error');
 
   const visibleScraps = useMemo(() => {
     const trimmed = keyword.trim();
@@ -44,53 +47,61 @@ function Bookmark() {
       </header>
 
       <div className="bookmark-body">
-        <div className="bookmark-search-box">
-          <input
-            className="bookmark-search-input"
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            placeholder="북마크 검색"
-            aria-label="북마크 검색"
-          />
-          <img src={searchIcon} alt="" className="bookmark-search-icon" />
-        </div>
-
-        <div className="bookmark-summary">
-          <div className="bookmark-summary-row">
-            <span className="bookmark-summary-icon">
-              <img src={bookmarkFill} alt="" />
-            </span>
-            <p>
-              총 <strong>{scraps.length}개</strong>의 정책을 북마크했어요
-            </p>
-          </div>
-          <div className="bookmark-summary-row bookmark-summary-row--note">
-            <span className="bookmark-summary-icon">
-              <img src={light} alt="" />
-            </span>
-            <p>북마크는 최대 {maxCount}개까지 저장할 수 있어요.</p>
-          </div>
-        </div>
-
-        {loading ? (
+        {onboardingChecking ? (
           <div className="bookmark-empty">
             <LoadingSpinner />
           </div>
-        ) : visibleScraps.length > 0 ? (
-          <ul className="bookmark-list">
-            {visibleScraps.map((scrap) => (
-              <PolicyCard
-                key={scrap.policyId}
-                dday={formatDday(scrap.applicationEnd)}
-                title={scrap.policyTitle}
-                onClick={() => navigate(`/support/${scrap.policyId}`)}
-              />
-            ))}
-          </ul>
         ) : (
-          <div className="bookmark-empty">
-            <p>{scraps.length === 0 ? '아직 북마크한 정책이 없어요' : '검색 결과가 없어요'}</p>
-          </div>
+          <>
+            <div className="bookmark-search-box">
+              <input
+                className="bookmark-search-input"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                placeholder="북마크 검색"
+                aria-label="북마크 검색"
+              />
+              <img src={searchIcon} alt="" className="bookmark-search-icon" />
+            </div>
+
+            <div className="bookmark-summary">
+              <div className="bookmark-summary-row">
+                <span className="bookmark-summary-icon">
+                  <img src={bookmarkFill} alt="" />
+                </span>
+                <p>
+                  총 <strong>{scraps.length}개</strong>의 정책을 북마크했어요
+                </p>
+              </div>
+              <div className="bookmark-summary-row bookmark-summary-row--note">
+                <span className="bookmark-summary-icon">
+                  <img src={light} alt="" />
+                </span>
+                <p>북마크는 최대 {maxCount}개까지 저장할 수 있어요.</p>
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="bookmark-empty">
+                <LoadingSpinner />
+              </div>
+            ) : visibleScraps.length > 0 ? (
+              <ul className="bookmark-list">
+                {visibleScraps.map((scrap) => (
+                  <PolicyCard
+                    key={scrap.policyId}
+                    dday={formatDday(scrap.applicationEnd)}
+                    title={scrap.policyTitle}
+                    onClick={() => navigate(`/support/${scrap.policyId}`)}
+                  />
+                ))}
+              </ul>
+            ) : (
+              <div className="bookmark-empty">
+                <p>{scraps.length === 0 ? '아직 북마크한 정책이 없어요' : '검색 결과가 없어요'}</p>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -98,10 +109,7 @@ function Bookmark() {
       <BottomNav />
 
       <LoginRequiredModal open={!isLoggedIn} onClose={() => navigate('/home')} />
-      <OnboardingRequiredModal
-        open={isLoggedIn && !onboardingComplete}
-        onClose={() => navigate('/home')}
-      />
+      <OnboardingRequiredModal open={onboardingBlocked} onClose={() => navigate('/home')} />
     </div>
   );
 }

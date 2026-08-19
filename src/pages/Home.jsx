@@ -20,7 +20,7 @@ function Home() {
 
   // 로그인 상태에서만 쓰는 실제 닉네임
   const [username, setUsername] = useState('');
-  const [onboardingComplete, setOnboardingComplete] = useState(true);
+  const [onboardingComplete, setOnboardingComplete] = useState(false);
   const [profileLoading, setProfileLoading] = useState(isLoggedIn);
   const [profileError, setProfileError] = useState(false);
 
@@ -57,7 +57,8 @@ function Home() {
       setShowLoginModal(true);
       return;
     }
-    if (!onboardingComplete) {
+    if (profileLoading) return;
+    if (profileError || !onboardingComplete) {
       setShowOnboardingModal(true);
       return;
     }
