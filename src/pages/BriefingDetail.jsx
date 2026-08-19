@@ -13,6 +13,8 @@ import SectionTag from '../components/SectionTag';
 import DetailSection from '../components/DetailSection';
 import BriefingLinkChip from '../components/BriefingLinkChip';
 import ChatbotButton from '../components/ChatbotButton';
+import AiLoading from '../components/AiLoading';
+import { waitForAiBriefing } from '../api/briefing';
 import { BRIEFING_ICONS, getBriefingDetail } from '../constants/briefing';
 import '../styles/BriefingDetail.css';
 
@@ -26,6 +28,18 @@ function BriefingDetail() {
   const hintTimerRef = useRef(null);
   const wasAtBottomRef = useRef(false);
   const [showHint, setShowHint] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoading(true);
+    waitForAiBriefing().then(() => {
+      if (!cancelled) setIsLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [sectionId, cardId]);
 
   const triggerHint = useCallback(() => {
     setShowHint(true);
@@ -34,12 +48,21 @@ function BriefingDetail() {
   }, []);
 
   useEffect(() => {
+    if (isLoading) return undefined;
     const timer = setTimeout(triggerHint, 800);
     return () => {
       clearTimeout(timer);
       if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
     };
-  }, [triggerHint]);
+  }, [triggerHint, isLoading]);
+
+  if (isLoading) {
+    return (
+      <div className="briefing-detail-page">
+        <AiLoading />
+      </div>
+    );
+  }
 
   const handleBodyScroll = () => {
     const el = bodyRef.current;
