@@ -8,10 +8,11 @@ function DocumentCard({
   checked,
   issueMethod,
   preparation,
+  issuer,
   linkLabel,
   linkUrl,
 }) {
-  const hasInfo = Boolean(issueMethod || preparation);
+  const hasInfo = Boolean(issueMethod || preparation || issuer);
 
   return (
     <div className="document-card">
@@ -33,6 +34,12 @@ function DocumentCard({
             <div className="document-card-info-col">
               <p className="document-card-info-label">준비물</p>
               <p className="document-card-info-value">{preparation}</p>
+            </div>
+          )}
+          {issuer && (
+            <div className="document-card-info-col">
+              <p className="document-card-info-label">발급처</p>
+              <p className="document-card-info-value">{issuer}</p>
             </div>
           )}
         </div>

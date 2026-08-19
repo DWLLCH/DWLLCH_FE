@@ -50,9 +50,9 @@ export function formatRelativeTime(date) {
 }
 
 /* 정책 신청 마감일(applicationEnd, "YYYY-MM-DD")을 D-day 배지 문자열로 변환
-   마감일이 없으면 null, 이미 지났으면 "마감" */
+   마감일이 없으면(상시모집) "상시모집", 형식이 잘못됐으면 null, 이미 지났으면 "마감" */
 export function formatDday(applicationEnd) {
-  if (!applicationEnd) return null;
+  if (!applicationEnd) return '상시모집';
 
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(applicationEnd);
   if (!match) return null;
@@ -115,8 +115,8 @@ export function toPolicyLevel(matchLevel) {
   return MATCH_LEVEL_TO_KEY[matchLevel] || null;
 }
 
-/* 정책 requiredDocuments(BE가 [{label, issueMethod, linkUrl}] 객체 배열로 내려줌)를
-   체크리스트 항목 배열로 정규화함 (PolicyDetail.jsx, DocumentGuide.jsx 공용)
+/* 정책 requiredDocuments(BE가 [{label, description, issueMethod, preparation, issuer, linkUrl}]
+   객체 배열로 내려줌)를 체크리스트 항목 배열로 정규화함 (PolicyDetail.jsx, DocumentGuide.jsx 공용)
    checked는 로컬 준비 상태 초기값이라 항상 false로 시작함 */
 export function parseRequiredDocuments(requiredDocuments) {
   if (!Array.isArray(requiredDocuments)) return [];
@@ -125,7 +125,10 @@ export function parseRequiredDocuments(requiredDocuments) {
     .filter((doc) => doc && doc.label)
     .map((doc) => ({
       label: doc.label,
+      description: doc.description || null,
       issueMethod: doc.issueMethod || null,
+      preparation: doc.preparation || null,
+      issuer: doc.issuer || null,
       linkUrl: doc.linkUrl || null,
       checked: false,
     }));
