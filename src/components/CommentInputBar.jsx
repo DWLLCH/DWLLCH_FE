@@ -9,6 +9,7 @@ function CommentInputBar({
   onSubmit,
   anonymous,
   onToggleAnonymous,
+  hideAnonymous = false,
   placeholder = '댓글 작성시 커뮤니티 가이드를 준수해주세요.',
   compact = false,
 }) {
@@ -25,16 +26,18 @@ function CommentInputBar({
       className={`comment-input-bar${compact ? ' comment-input-bar--compact' : ''}`}
       onSubmit={handleSubmit}
     >
-      <div className="comment-input-box">
-        <div className="comment-input-anon">
-          <Checkbox
-            id={anonymousId}
-            checked={anonymous}
-            onChange={onToggleAnonymous}
-            ariaLabel="익명으로 작성"
-          />
-          <label htmlFor={anonymousId}>익명</label>
-        </div>
+      <div className={`comment-input-box${hideAnonymous ? ' comment-input-box--no-anon' : ''}`}>
+        {!hideAnonymous && (
+          <div className="comment-input-anon">
+            <Checkbox
+              id={anonymousId}
+              checked={anonymous}
+              onChange={onToggleAnonymous}
+              ariaLabel="익명으로 작성"
+            />
+            <label htmlFor={anonymousId}>익명</label>
+          </div>
+        )}
         <input
           type="text"
           className="comment-input-field"

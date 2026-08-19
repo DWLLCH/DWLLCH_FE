@@ -9,6 +9,7 @@ import WriteFabButton from '../components/WriteFabButton';
 import ErrorState from '../components/ErrorState';
 import LoadingSpinner from '../components/LoadingSpinner';
 import SkeletonBlock from '../components/SkeletonBlock';
+import useBlock from '../hooks/useBlock';
 import { CATEGORIES, LABEL_TO_BOARD_TYPE } from '../constants/community';
 import { getPosts } from '../api/community';
 import { formatRelativeTime } from '../utils/formatters';
@@ -45,6 +46,7 @@ function Community() {
 
   const boardType = LABEL_TO_BOARD_TYPE[activeCategory];
   const requestIdRef = useRef(0);
+  const { isAuthorBlocked } = useBlock();
 
   const fetchPosts = useCallback(
     (targetPage) => {
@@ -82,6 +84,8 @@ function Community() {
     fetchPosts(0);
   }, [fetchPosts]);
 
+  const visiblePosts = posts.filter((post) => !isAuthorBlocked(post.authorId ?? post.authorName));
+
   return (
     <div className="community-page">
       <header className="community-header">
@@ -112,12 +116,12 @@ function Community() {
           <CommunitySkeletonList />
         ) : error ? (
           <ErrorState message="게시글을 불러오지 못했어요" onRetry={() => fetchPosts(0)} />
-        ) : posts.length === 0 ? (
+        ) : visiblePosts.length === 0 ? (
           <p className="community-empty">아직 등록된 게시글이 없어요</p>
         ) : (
           <>
             <ul className="community-post-list">
-              {posts.map((post) => (
+              {visiblePosts.map((post) => (
                 <CommunityPostCard
                   key={post.id}
                   badge={post.isPinned ? 'notice' : undefined}
