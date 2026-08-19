@@ -139,3 +139,22 @@
   margin: 12px 0 0;
   padding: 0;
 }
+
+.support-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+}
+
+.support-empty {
+  padding: 60px 0;
+  text-align: center;
+  font-size: 14px;
+  color: #999;
+}
+
+.btn.support-load-more {
+  margin-top: 12px;
+  font-weight: 400;
+}

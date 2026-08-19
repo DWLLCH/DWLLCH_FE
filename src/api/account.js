@@ -6,10 +6,10 @@ export async function changePassword({ currentPassword, newPassword }) {
   return response.data;
 }
 
-export function changeEmail(payload) {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve({ success: true }), 300);
-  });
+/* PATCH /auth/email */
+export async function changeEmail({ currentPassword, newEmail }) {
+  const response = await apiClient.patch('/auth/email', { currentPassword, newEmail });
+  return response.data;
 }
 
 export function changeUsername(payload) {

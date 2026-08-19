@@ -49,6 +49,70 @@ export function formatRelativeTime(date) {
   return formatDateDots(parsed);
 }
 
+/* 정책 신청 마감일(applicationEnd, "YYYY-MM-DD")을 D-day 배지 문자열로 변환
+   마감일이 없으면 null, 이미 지났으면 "마감" */
+export function formatDday(applicationEnd) {
+  if (!applicationEnd) return null;
+
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(applicationEnd);
+  if (!match) return null;
+
+  const [, yearStr, monthStr, dayStr] = match;
+  const year = Number(yearStr);
+  const month = Number(monthStr);
+  const day = Number(dayStr);
+
+  const end = new Date(year, month - 1, day);
+  const isValidCalendarDate =
+    end.getFullYear() === year && end.getMonth() === month - 1 && end.getDate() === day;
+  if (!isValidCalendarDate) return null;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+
+  const diffDays = Math.round((end.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
+  if (diffDays < 0) return '마감';
+  if (diffDays === 0) return 'D-DAY';
+  return `D-${diffDays}`;
+}
+
+/* 정책 신청 시작일/종료일("YYYY-MM-DD")을 "YYYY.MM.DD ~ YYYY.MM.DD" 형태로 변환
+   둘 다 없으면 "상시 모집", 하나만 있으면 있는 값만 표시 */
+export function formatDateRangeDots(start, end) {
+  const toDots = (value) => {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || '');
+    if (!match) return null;
+    const [, year, month, day] = match;
+    return `${year}.${month}.${day}`;
+  };
+
+  const startText = toDots(start);
+  const endText = toDots(end);
+
+  if (!startText && !endText) return '상시 모집';
+  if (startText && endText) return `${startText} ~ ${endText}`;
+  return startText || endText;
+}
+
+// BE 정책 매칭 등급("HIGH"/"MEDIUM"/"LOW")을 constants/supportList.js의 LEVEL_CONFIG 키로 변환
+// 비로그인/프로필 미완성 등으로 매칭 안 된 경우 matchLevel이 null로 오는데 그대로 null 반환
+const MATCH_LEVEL_TO_KEY = { HIGH: 'high', MEDIUM: 'mid', LOW: 'low' };
+export function toPolicyLevel(matchLevel) {
+  return MATCH_LEVEL_TO_KEY[matchLevel] || null;
+}
+
+/* 정책 requiredDocuments("신분증 사본, 보호종료확인서" 같은 콤마 구분 텍스트)를
+   체크리스트 항목 배열로 변환함 (PolicyDetail.jsx, DocumentGuide.jsx 공용)
+   BE가 서류별 발급방법/링크 등 구조화된 정보는 아직 안 줘서 label만 채워짐 */
+export function parseRequiredDocuments(requiredDocuments) {
+  return (requiredDocuments || '')
+    .split(',')
+    .map((label) => label.trim())
+    .filter(Boolean)
+    .map((label) => ({ label, checked: false }));
+}
+
 export function formatDateKey(date) {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
   const year = date.getFullYear();

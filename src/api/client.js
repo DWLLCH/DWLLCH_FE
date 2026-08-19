@@ -19,6 +19,17 @@ const ACCESS_TOKEN_KEY = 'dwllch_accessToken';
 const REFRESH_TOKEN_KEY = 'dwllch_refreshToken';
 const USER_ID_KEY = 'dwllch_userId';
 
+// 로그인 없이도 볼 수 있는(AllowAny) 화면들 — 만료된 토큰을 들고 있으면
+// DRF가 permission_classes(AllowAny)보다 JWTAuthentication을 먼저 검사해서
+// 비로그인도 접근 가능해야 할 화면인데도 401이 나는 문제가 있어 별도로 처리함
+const PUBLIC_PATH_PATTERNS = [/^\/policies$/, /^\/policies\/\d+$/, /^\/home\/guest$/];
+
+function isPublicPath(url) {
+  if (!url) return false;
+  const path = url.split('?')[0];
+  return PUBLIC_PATH_PATTERNS.some((pattern) => pattern.test(path));
+}
+
 apiClient.interceptors.request.use((config) => {
   const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
   if (accessToken) {
@@ -40,8 +51,20 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    // 공개 화면인데 만료된 토큰 때문에 401 난 경우, 토큰만 떼고 비로그인 요청으로 재시도함
+    const retryAsGuest = () => {
+      originalRequest._retry = true;
+      delete originalRequest.headers.Authorization;
+      return apiClient(originalRequest);
+    };
+
     const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
     if (!refreshToken) {
+      if (isPublicPath(originalRequest.url)) {
+        // 재요청 시 request 인터셉터가 localStorage의 만료된 토큰을 다시 붙이지 않도록 먼저 지움
+        localStorage.removeItem(ACCESS_TOKEN_KEY);
+        return retryAsGuest();
+      }
       return Promise.reject(error);
     }
 
@@ -55,6 +78,9 @@ apiClient.interceptors.response.use(
       localStorage.removeItem(ACCESS_TOKEN_KEY);
       localStorage.removeItem(REFRESH_TOKEN_KEY);
       localStorage.removeItem(USER_ID_KEY);
+
+      if (isPublicPath(originalRequest.url)) return retryAsGuest();
+
       window.location.href = '/login';
       return Promise.reject(reissueError);
     }

@@ -44,9 +44,7 @@ export async function getMyPosts(page = 0) {
   return response.data;
 }
 
-/* GET /community/comments/mine | 인증 필요, 내가 쓴 댓글 목록 (페이지네이션)
-   응답(CommentSerializer)에 postTitle이 없고 post 필드가 게시글 id만 내려줘서
-   원글 제목은 아직 못 보여줌, 백엔드에 postTitle 추가 요청 필요 */
+/* GET /community/comments/mine | 인증 필요, 내가 쓴 댓글 목록 (페이지네이션) */
 export async function getMyComments(page = 0) {
   const response = await apiClient.get('/community/comments/mine', { params: { page } });
   return response.data;

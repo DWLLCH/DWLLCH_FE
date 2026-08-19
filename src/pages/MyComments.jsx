@@ -89,11 +89,10 @@ function MyComments() {
                 <MyCommentCard
                   key={comment.id}
                   commentText={comment.content}
-                  // 백엔드 응답에 postTitle이 아직 없어서 원글 제목은 못 보여줌 (MyCommentCard가 대신 처리)
                   postTitle={comment.postTitle}
                   time={formatRelativeTime(comment.createdAt)}
                   onClick={() =>
-                    navigate(`/community/${comment.post}`, {
+                    navigate(`/community/${comment.postId}`, {
                       state: { commentId: comment.id },
                     })
                   }
