@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import backBtn from '../assets/backBtn.svg';
 import FilterChip from '../components/FilterChip';
@@ -12,10 +12,29 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorState from '../components/ErrorState';
 import { getPolicies } from '../api/policy';
 import { formatDday, toPolicyLevel } from '../utils/formatters';
-import { FILTER_GROUPS, SORT_OPTIONS, SORT_VALUE_MAP } from '../constants/filterOptions';
+import {
+  FILTER_GROUPS,
+  FILTER_VALUE_MAP,
+  SORT_OPTIONS,
+  SORT_VALUE_MAP,
+} from '../constants/filterOptions';
 import '../styles/SupportList.css';
 
 const PAGE_SIZE = 20;
+
+// 선택된 필터 라벨(appliedFilters)을 GET /policies 쿼리 파라미터로 변환
+// 같은 그룹(param) 내 복수 선택은 콤마로 이어서 AND 조건으로 전달함
+function buildFilterParams(appliedFilters) {
+  const params = {};
+  appliedFilters.forEach((label) => {
+    const entry = FILTER_VALUE_MAP[label];
+    if (!entry) return;
+    params[entry.param] = params[entry.param]
+      ? `${params[entry.param]},${entry.value}`
+      : entry.value;
+  });
+  return params;
+}
 
 function SupportList() {
   const navigate = useNavigate();
@@ -25,6 +44,7 @@ function SupportList() {
   const [sortOpen, setSortOpen] = useState(false);
   const [selectedSort, setSelectedSort] = useState(SORT_OPTIONS[0]);
   const sortValue = SORT_VALUE_MAP[selectedSort];
+  const filterParams = useMemo(() => buildFilterParams(appliedFilters), [appliedFilters]);
 
   const [policies, setPolicies] = useState([]);
   const [page, setPage] = useState(0);
@@ -39,7 +59,7 @@ function SupportList() {
   // 나중 요청 결과를 덮어쓰지 않도록 매 호출마다 증가시켜 최신 요청만 반영함
   const requestIdRef = useRef(0);
 
-  const loadPolicies = useCallback(async (targetPage, sort) => {
+  const loadPolicies = useCallback(async (targetPage, sort, filters) => {
     const isFirstPage = targetPage === 0;
     const requestId = (requestIdRef.current += 1);
 
@@ -55,7 +75,7 @@ function SupportList() {
     }
 
     try {
-      const data = await getPolicies({ page: targetPage, size: PAGE_SIZE, sort });
+      const data = await getPolicies({ page: targetPage, size: PAGE_SIZE, sort, ...filters });
       if (requestIdRef.current !== requestId) return; // 그 사이 더 최신 요청이 시작됐으면 무시
       setPolicies((prev) => (isFirstPage ? data.content : [...prev, ...data.content]));
       setPage(data.page);
@@ -73,8 +93,8 @@ function SupportList() {
   }, []);
 
   useEffect(() => {
-    loadPolicies(0, sortValue);
-  }, [loadPolicies, sortValue]);
+    loadPolicies(0, sortValue, filterParams);
+  }, [loadPolicies, sortValue, filterParams]);
 
   const openFilterSheet = () => {
     setDraftFilters(appliedFilters);
@@ -139,7 +159,7 @@ function SupportList() {
         )}
 
         {!loading && error && (
-          <ErrorState message={error} onRetry={() => loadPolicies(0, sortValue)} />
+          <ErrorState message={error} onRetry={() => loadPolicies(0, sortValue, filterParams)} />
         )}
 
         {!loading && !error && policies.length === 0 && (
@@ -167,7 +187,7 @@ function SupportList() {
                 fullWidth
                 className="support-load-more"
                 disabled={loadingMore}
-                onClick={() => loadPolicies(page + 1, sortValue)}
+                onClick={() => loadPolicies(page + 1, sortValue, filterParams)}
               >
                 {loadingMore ? '불러오는 중' : '더보기'}
               </Button>
@@ -177,7 +197,7 @@ function SupportList() {
               <ErrorState
                 message={loadMoreError}
                 retryLabel="다시 시도"
-                onRetry={() => loadPolicies(page + 1, sortValue)}
+                onRetry={() => loadPolicies(page + 1, sortValue, filterParams)}
               />
             )}
           </>

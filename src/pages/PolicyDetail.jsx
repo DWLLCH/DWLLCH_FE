@@ -23,6 +23,7 @@ import five from '../assets/five.svg';
 import PolicyBadges from '../components/PolicyBadges';
 import DetailSection from '../components/DetailSection';
 import DetailLabel from '../components/DetailLabel';
+import StatusChip from '../components/StatusChip';
 import Checkbox from '../components/Checkbox';
 import Button from '../components/Button';
 import ChatbotButton from '../components/ChatbotButton';
@@ -214,9 +215,16 @@ function PolicyDetail() {
         <DetailSection number={two} title="내가 신청할 수 있나요?">
           <DetailLabel>지원 자격</DetailLabel>
           <div className="detail-eligibility-list">
-            <div className="detail-eligibility-item">
-              <span className="detail-eligibility-text">{policy.eligibility}</span>
-            </div>
+            {policy.eligibility.map((item) => (
+              <div className="detail-eligibility-item" key={item.label}>
+                <span className="detail-eligibility-text">{item.label}</span>
+                {item.met && (
+                  <div className="detail-eligibility-status">
+                    <StatusChip status={item.met === 'MET' ? 'met' : 'needCheck'} size="sm" />
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
           <div className="detail-section-buttons">
             <Button variant="blue" fullWidth onClick={() => navigate('/my-info')}>

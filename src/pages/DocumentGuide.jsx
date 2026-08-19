@@ -124,6 +124,9 @@ function DocumentGuide() {
                   number={index + 1}
                   title={doc.label}
                   checked={checkedDocs[index]}
+                  issueMethod={doc.issueMethod}
+                  linkUrl={doc.linkUrl}
+                  linkLabel="발급 사이트 바로가기"
                 />
               ))}
             </div>

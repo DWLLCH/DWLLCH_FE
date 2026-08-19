@@ -102,15 +102,20 @@ export function toPolicyLevel(matchLevel) {
   return MATCH_LEVEL_TO_KEY[matchLevel] || null;
 }
 
-/* 정책 requiredDocuments("신분증 사본, 보호종료확인서" 같은 콤마 구분 텍스트)를
-   체크리스트 항목 배열로 변환함 (PolicyDetail.jsx, DocumentGuide.jsx 공용)
-   BE가 서류별 발급방법/링크 등 구조화된 정보는 아직 안 줘서 label만 채워짐 */
+/* 정책 requiredDocuments(BE가 [{label, issueMethod, linkUrl}] 객체 배열로 내려줌)를
+   체크리스트 항목 배열로 정규화함 (PolicyDetail.jsx, DocumentGuide.jsx 공용)
+   checked는 로컬 준비 상태 초기값이라 항상 false로 시작함 */
 export function parseRequiredDocuments(requiredDocuments) {
-  return (requiredDocuments || '')
-    .split(',')
-    .map((label) => label.trim())
-    .filter(Boolean)
-    .map((label) => ({ label, checked: false }));
+  if (!Array.isArray(requiredDocuments)) return [];
+
+  return requiredDocuments
+    .filter((doc) => doc && doc.label)
+    .map((doc) => ({
+      label: doc.label,
+      issueMethod: doc.issueMethod || null,
+      linkUrl: doc.linkUrl || null,
+      checked: false,
+    }));
 }
 
 export function formatDateKey(date) {
