@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import backBtn from '../assets/backBtn.svg';
 import FilterChip from '../components/FilterChip';
@@ -35,8 +35,14 @@ function SupportList() {
   const [error, setError] = useState(null);
   const [loadMoreError, setLoadMoreError] = useState(null);
 
+  // 정렬이 빠르게 바뀌는 등으로 요청이 겹칠 때, 먼저 시작했지만 늦게 도착한 응답이
+  // 나중 요청 결과를 덮어쓰지 않도록 매 호출마다 증가시켜 최신 요청만 반영함
+  const requestIdRef = useRef(0);
+
   const loadPolicies = useCallback(async (targetPage, sort) => {
     const isFirstPage = targetPage === 0;
+    const requestId = (requestIdRef.current += 1);
+
     if (isFirstPage) {
       setLoading(true);
       setError(null);
@@ -47,14 +53,17 @@ function SupportList() {
 
     try {
       const data = await getPolicies({ page: targetPage, size: PAGE_SIZE, sort });
+      if (requestIdRef.current !== requestId) return; // 그 사이 더 최신 요청이 시작됐으면 무시
       setPolicies((prev) => (isFirstPage ? data.content : [...prev, ...data.content]));
       setPage(data.page);
       setHasNext(data.hasNext);
       setTotalElements(data.totalElements);
     } catch (err) {
+      if (requestIdRef.current !== requestId) return;
       if (isFirstPage) setError('정책 목록을 불러오지 못했어요');
       else setLoadMoreError('추가 목록을 불러오지 못했어요');
     } finally {
+      if (requestIdRef.current !== requestId) return;
       if (isFirstPage) setLoading(false);
       else setLoadingMore(false);
     }

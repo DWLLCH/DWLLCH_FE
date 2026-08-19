@@ -1,6 +1,6 @@
 import { createContext, useCallback, useEffect, useRef, useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { getAccessToken } from '../api/auth';
+import { getAccessToken, getUserId } from '../api/auth';
 import { getPolicyScraps, scrapPolicy, unscrapPolicy } from '../api/policy';
 
 export const BookmarkContext = createContext(null);
@@ -13,30 +13,44 @@ function BookmarkProvider({ children }) {
 
   // 매 렌더마다 새로 확인함 (로그인/로그아웃으로 토큰이 바뀌어도 즉시 반영되도록)
   const isLoggedIn = Boolean(getAccessToken());
+  // 로그인 여부뿐 아니라 계정이 바뀌는 경우까지 감지하기 위한 세션 식별자
+  const userId = isLoggedIn ? getUserId() : null;
 
-  // 로그인 상태가 바뀔 때만 다시 불러오도록 하는 가드 (useFetchOnce와 동일한 패턴)
+  // 세션이 바뀔 때만 다시 불러오도록 하는 가드 (useFetchOnce와 동일한 패턴)
   const fetchedForRef = useRef(null);
+  // fetchScraps 응답이 늦게 와도 그 사이 세션이 바뀌었으면 무시하기 위한 최신 세션 참조
+  const sessionRef = useRef(userId);
+  // 정책별로 스크랩 등록/해제 요청이 겹치지 않도록 진행 중인 policyId를 추적
+  const pendingRef = useRef(new Set());
 
   const fetchScraps = useCallback(() => {
+    const requestedFor = sessionRef.current;
     setLoading(true);
     getPolicyScraps({ page: 0, size: 50 })
-      .then((data) => setScraps(data.content))
+      .then((data) => {
+        if (sessionRef.current !== requestedFor) return; // 세션이 바뀐 뒤 도착한 응답은 무시
+        setScraps(data.content);
+      })
       .catch(() => {
         // 스크랩 목록 조회 실패는 조용히 무시함 (다음 재조회 때 다시 시도)
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (sessionRef.current === requestedFor) setLoading(false);
+      });
   }, []);
 
   useEffect(() => {
-    if (fetchedForRef.current === isLoggedIn) return;
-    fetchedForRef.current = isLoggedIn;
+    sessionRef.current = userId;
 
-    if (isLoggedIn) {
+    if (fetchedForRef.current === userId) return;
+    fetchedForRef.current = userId;
+
+    if (userId) {
       fetchScraps();
     } else {
       setScraps([]);
     }
-  }, [isLoggedIn, fetchScraps]);
+  }, [userId, fetchScraps]);
 
   const bookmarkedIds = scraps.map((scrap) => scrap.policyId);
 
@@ -44,6 +58,7 @@ function BookmarkProvider({ children }) {
 
   const toggleBookmark = (policyId) => {
     if (!isLoggedIn) return 'login-required';
+    if (pendingRef.current.has(policyId)) return undefined; // 이전 요청이 끝날 때까지 대기
 
     const alreadyBookmarked = isBookmarked(policyId);
 
@@ -51,14 +66,18 @@ function BookmarkProvider({ children }) {
       return 'limit-reached';
     }
 
+    pendingRef.current.add(policyId);
+
     if (alreadyBookmarked) {
       const removed = scraps.find((scrap) => scrap.policyId === policyId);
       setScraps((prev) => prev.filter((scrap) => scrap.policyId !== policyId));
-      unscrapPolicy(policyId).catch(() => {
-        if (removed) setScraps((prev) => [removed, ...prev]);
-        // eslint-disable-next-line no-alert
-        alert('북마크 해제에 실패했어요');
-      });
+      unscrapPolicy(policyId)
+        .catch(() => {
+          if (removed) setScraps((prev) => [removed, ...prev]);
+          // eslint-disable-next-line no-alert
+          alert('북마크 해제에 실패했어요');
+        })
+        .finally(() => pendingRef.current.delete(policyId));
       return 'removed';
     }
 
@@ -72,7 +91,8 @@ function BookmarkProvider({ children }) {
         setScraps((prev) => prev.filter((item) => item.policyId !== policyId));
         // eslint-disable-next-line no-alert
         alert('북마크 등록에 실패했어요');
-      });
+      })
+      .finally(() => pendingRef.current.delete(policyId));
     return 'added';
   };
 

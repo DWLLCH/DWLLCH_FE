@@ -96,6 +96,7 @@ function PolicyDetail() {
 
   const handleToggleBookmark = () => {
     const result = toggleBookmark(policy.id);
+    if (!result) return; // 이전 요청이 진행 중이면 무시
     if (result === 'login-required') {
       setShowLoginModal(true);
       return;
