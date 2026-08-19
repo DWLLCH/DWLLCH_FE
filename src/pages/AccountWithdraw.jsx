@@ -11,8 +11,6 @@ import { clearTokens } from '../api/auth';
 import '../styles/AccountChange.css';
 import '../styles/AccountWithdraw.css';
 
-const SIMULATE_WITHDRAW_SUCCESS = true;
-
 const STEP_TITLE = {
   info: '회원 탈퇴 안내',
   confirm: '회원 탈퇴 확인',
@@ -40,11 +38,6 @@ function AccountWithdraw() {
   const handleWithdraw = async () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
-    if (SIMULATE_WITHDRAW_SUCCESS) {
-      setStep('complete');
-      setIsSubmitting(false);
-      return;
-    }
     try {
       await withdrawAccount();
       setStep('complete');
