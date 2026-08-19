@@ -81,7 +81,7 @@ function App() {
                       </Route>
                       <Route path="/bookmark" element={<Bookmark />} />
                       <Route path="/ai-briefing" element={<Briefing />} />
-                      <Route path="/ai-briefing/:sectionId/:cardId" element={<BriefingDetail />} />
+                      <Route path="/ai-briefing/:briefingId" element={<BriefingDetail />} />
                       <Route path="/mypage" element={<MyPage />} />
                       <Route path="/mypage/notifications" element={<NotificationList />} />
                       <Route path="/mypage/password" element={<PasswordChange />} />
