@@ -202,6 +202,40 @@
   word-break: keep-all;
 }
 
+/* 번호 섹션 본문 마크다운 렌더링 */
+.briefing-detail-markdown p,
+.briefing-detail-markdown ul,
+.briefing-detail-markdown ol {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
+.briefing-detail-markdown ul,
+.briefing-detail-markdown ol {
+  padding-left: 18px;
+}
+
+.briefing-detail-markdown li {
+  margin-bottom: 4px;
+}
+
+.briefing-detail-markdown strong {
+  color: #202020;
+  font-weight: 700;
+}
+
+.briefing-detail-markdown a {
+  color: #3bb273;
+  text-decoration: underline;
+}
+
+.briefing-detail-markdown > *:last-child {
+  margin-bottom: 0;
+}
+
 .briefing-detail-links {
   display: flex;
   flex-direction: column;

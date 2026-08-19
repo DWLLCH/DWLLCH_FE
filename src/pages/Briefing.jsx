@@ -87,7 +87,7 @@ function Briefing() {
                         color={visual.color}
                         icon={visual.icon}
                         title={briefing.title}
-                        onClick={() => navigate(`/ai-briefing/${section.id}/${briefing.id}`)}
+                        onClick={() => navigate(`/ai-briefing/${briefing.id}`)}
                       />
                     );
                   })}

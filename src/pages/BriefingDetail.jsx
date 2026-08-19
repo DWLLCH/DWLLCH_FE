@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import backBtn from '../assets/backBtn.svg';
 import one from '../assets/one.svg';
 import two from '../assets/two.svg';
@@ -11,40 +13,55 @@ import star1 from '../assets/star1.svg';
 import star2 from '../assets/star2.svg';
 import SectionTag from '../components/SectionTag';
 import DetailSection from '../components/DetailSection';
-import BriefingLinkChip from '../components/BriefingLinkChip';
 import ChatbotButton from '../components/ChatbotButton';
 import AiLoading from '../components/AiLoading';
-import { waitForAiBriefing } from '../api/briefing';
-import { BRIEFING_ICONS, getBriefingDetail } from '../constants/briefing';
+import ErrorState from '../components/ErrorState';
+import { getBriefingDetail } from '../api/briefing';
+import {
+  BRIEFING_ICONS,
+  BRIEFING_SECTION_META,
+  getSectionDefaultIcon,
+  parseBriefingContent,
+} from '../constants/briefing';
 import '../styles/BriefingDetail.css';
 
 const NUMBER_ICONS = [one, two, three, four, five];
 
 function BriefingDetail() {
   const navigate = useNavigate();
-  const { sectionId, cardId } = useParams();
-  const detail = getBriefingDetail(sectionId, cardId);
+  const { briefingId } = useParams();
   const bodyRef = useRef(null);
   const hintTimerRef = useRef(null);
   const wasAtBottomRef = useRef(false);
   const [showHint, setShowHint] = useState(false);
+
+  const [detail, setDetail] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+  const [error, setError] = useState(null);
+
+  // 로딩 화면(AiLoading)은 이제 고정 대기 시간이 아니라 실제 상세 조회 fetch가 끝날 때까지 유지됨
+  const loadDetail = useCallback(() => {
+    setIsLoading(true);
+    setError(null);
+    setNotFound(false);
+    getBriefingDetail(briefingId)
+      .then((data) => setDetail(data))
+      .catch((err) => {
+        if (err.response?.status === 404) setNotFound(true);
+        else setError('브리핑을 불러오지 못했어요');
+      })
+      .finally(() => setIsLoading(false));
+  }, [briefingId]);
 
   useEffect(() => {
-    let cancelled = false;
     setShowHint(false);
     if (hintTimerRef.current) {
       clearTimeout(hintTimerRef.current);
       hintTimerRef.current = null;
     }
-    setIsLoading(true);
-    waitForAiBriefing().then(() => {
-      if (!cancelled) setIsLoading(false);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [sectionId, cardId]);
+    loadDetail();
+  }, [loadDetail]);
 
   const triggerHint = useCallback(() => {
     setShowHint(true);
@@ -53,13 +70,13 @@ function BriefingDetail() {
   }, []);
 
   useEffect(() => {
-    if (isLoading) return undefined;
+    if (isLoading || !detail) return undefined;
     const timer = setTimeout(triggerHint, 800);
     return () => {
       clearTimeout(timer);
       if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
     };
-  }, [triggerHint, isLoading]);
+  }, [triggerHint, isLoading, detail]);
 
   if (isLoading) {
     return (
@@ -79,7 +96,7 @@ function BriefingDetail() {
     wasAtBottomRef.current = atBottom;
   };
 
-  if (!detail) {
+  if (notFound) {
     return (
       <div className="briefing-detail-page">
         <header className="briefing-detail-header">
@@ -100,7 +117,29 @@ function BriefingDetail() {
     );
   }
 
-  const { section, card, description, summary, sections, chatbotHint } = detail;
+  if (error || !detail) {
+    return (
+      <div className="briefing-detail-page">
+        <header className="briefing-detail-header">
+          <button
+            type="button"
+            className="briefing-detail-back"
+            onClick={() => navigate(-1)}
+            aria-label="뒤로가기"
+          >
+            <img src={backBtn} alt="" />
+          </button>
+          <h1>AI 브리핑</h1>
+        </header>
+        <div className="briefing-detail-notfound">
+          <ErrorState message={error ?? '브리핑을 불러오지 못했어요'} onRetry={loadDetail} />
+        </div>
+      </div>
+    );
+  }
+
+  const sectionMeta = BRIEFING_SECTION_META.find((meta) => meta.category === detail.category);
+  const contentSections = parseBriefingContent(detail.content);
 
   return (
     <div className="briefing-detail-page">
@@ -120,21 +159,14 @@ function BriefingDetail() {
         <div className="briefing-detail-hero">
           <div className="briefing-detail-hero-top">
             <div className="briefing-detail-hero-text">
-              <SectionTag>{section.title}</SectionTag>
-              <p className="briefing-detail-title">{card.title}</p>
-              <p className="briefing-detail-desc">
-                {description.map((line, index) => (
-                  <span key={line}>
-                    {index > 0 && <br />}
-                    {line}
-                  </span>
-                ))}
-              </p>
+              <SectionTag>{sectionMeta?.title ?? detail.category}</SectionTag>
+              <p className="briefing-detail-title">{detail.title}</p>
+              <p className="briefing-detail-desc">{detail.cardSummary}</p>
             </div>
 
             <div className="briefing-detail-hero-icon">
               <img
-                src={BRIEFING_ICONS[card.icon]}
+                src={BRIEFING_ICONS[getSectionDefaultIcon(sectionMeta?.id)]}
                 alt=""
                 className="briefing-detail-hero-icon-img"
               />
@@ -149,7 +181,7 @@ function BriefingDetail() {
               핵심 요약
             </p>
             <ul className="briefing-detail-summary-list">
-              {summary.map((item) => (
+              {(detail.keySummary ?? []).map((item) => (
                 <li key={item}>
                   <span className="briefing-detail-check" aria-hidden="true" />
                   {item}
@@ -159,44 +191,26 @@ function BriefingDetail() {
           </div>
         </div>
 
-        {sections.map((sub, index) => (
+        {contentSections.map((sub, index) => (
           <DetailSection
-            key={sub.title}
+            key={sub.title || index}
             number={NUMBER_ICONS[Math.min(index, NUMBER_ICONS.length - 1)]}
-            title={sub.title}
+            title={sub.title || detail.title}
           >
-            {sub.description && <p className="briefing-detail-section-desc">{sub.description}</p>}
-
-            {sub.links && (
-              <div className="briefing-detail-links">
-                {sub.links.map((label) => (
-                  <BriefingLinkChip key={label} label={label} onClick={() => {}} />
-                ))}
-              </div>
-            )}
-
-            {sub.table && (
-              <div className="briefing-detail-table">
-                <table>
-                  <thead>
-                    <tr>
-                      {sub.table.headers.map((header) => (
-                        <th key={header}>{header}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sub.table.rows.map((row, rowIndex) => (
-                      <tr key={row[0] ?? rowIndex}>
-                        {row.map((cell, cellIndex) => (
-                          <td key={cellIndex}>{cell}</td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <div className="briefing-detail-markdown">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  table: ({ ...props }) => (
+                    <div className="briefing-detail-table">
+                      <table {...props} />
+                    </div>
+                  ),
+                }}
+              >
+                {sub.body}
+              </ReactMarkdown>
+            </div>
           </DetailSection>
         ))}
       </div>
@@ -204,7 +218,7 @@ function BriefingDetail() {
       <div
         className={`briefing-detail-chatbot-hint${showHint ? ' briefing-detail-chatbot-hint--visible' : ''}`}
       >
-        {chatbotHint}
+        더 궁금한 점이 있다면?
       </div>
       <ChatbotButton onClick={() => navigate('/chatbot')} />
     </div>
