@@ -6,6 +6,11 @@ import axios from 'axios';
  *  실제 코드는 path("", include("users.urls")) 로 접두사 없이 바로 연결되어 있음)
  * 그래서 baseURL은 접두사 없이 http://localhost:8000 으로 두고,
  * 각 API 호출에서 "/auth/login" 처럼 명세서에 나온 경로를 그대로 사용합니다.
+ *
+ * 프로덕션(.env.production)에서는 baseURL이 "/api"라는 상대 경로입니다.
+ * 배포 페이지는 https인데 BE(EB 기본 도메인)는 아직 http라서 브라우저가 직접 호출하면
+ * mixed content로 막히기 때문에, vercel.json의 rewrites로 "/api/*" 요청을 Vercel 엣지에서
+ * BE http 주소로 프록시하도록 처리했습니다 (브라우저는 계속 https만 봄)
  */
 const apiClient = axios.create({
   baseURL: process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000',
