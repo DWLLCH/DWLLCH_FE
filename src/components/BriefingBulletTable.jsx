@@ -1,13 +1,13 @@
 import { parseBulletRows } from '../constants/briefing';
 
-// "라벨(글자수가 이 값보다 많이) + 공백 없는 한 단어"면 119px 제한을 풀고 현재처럼 줄바꿈 없이 보여줌
+// "라벨이 공백 없는 한 단어 + 이 값보다 길면" 119px 제한을 풀고 현재처럼 줄바꿈 없이 보여줌
 const LONG_WORD_THRESHOLD = 8;
 
 function isLongSingleWord(label) {
   return Boolean(label) && !/\s/.test(label) && label.length > LONG_WORD_THRESHOLD;
 }
 
-// 라벨에 괄호가 있으면 괄호 앞에서 줄바꿈함 (예: "일부결제금액이월약정(리볼빙)" → 두 줄)
+// 라벨에 괄호가 있으면 괄호 앞에서 줄바꿈함 (예: "일부결제금액이월약정(리볼빙)" → "일부결제금액이월약정" 줄바꿈 "(리볼빙)")
 function renderLabel(label) {
   const parenIndex = label.indexOf('(');
   if (parenIndex === -1) return label;
@@ -23,7 +23,8 @@ function renderLabel(label) {
   );
 }
 
-// 설명(text)에 " - "가 있으면 그 앞뒤로 나눠서 표를 3열(라벨 | 앞부분 | 뒷부분)로 만들기 위한 헬퍼
+// 라벨(대괄호 안 내용)에 " - "가 있으면 그 앞뒤로 나눔
+// (예: 라벨 "50% - 고정비 및 저축/투자" → ["50%", "고정비 및 저축/투자"])
 function splitDash(text) {
   const idx = text.indexOf(' - ');
   if (idx === -1) return null;
@@ -33,7 +34,8 @@ function splitDash(text) {
 // content의 "• [라벨]: 설명" 불릿 본문을 표로 그림, thead 없이 tbody만 구성함
 // - 라벨이 하나라도 있으면 라벨 있는 줄만 표로 그리고, 라벨 없는 줄은 표 밖으로 빼서 일반 텍스트로 보여줌
 // - 라벨이 하나도 없으면(전체가 라벨 없는 불릿) 표 전체를 1열로 그림
-// - 설명에 " - "가 있으면 그 줄만 2칸으로 더 나눠서 표가 3열이 됨(라벨 없는 줄은 colSpan으로 맞춤)
+// - 라벨에 " - "가 있으면 그 줄만 라벨을 2칸(라벨 | 중간 설명)으로 더 나눠서 표가 3열이 됨
+//   (라벨에 " - "가 없는 다른 줄은 설명 칸을 colSpan으로 맞춤)
 function BriefingBulletTable({ body }) {
   const rows = parseBulletRows(body);
   if (rows.length === 0) return null;
@@ -43,7 +45,7 @@ function BriefingBulletTable({ body }) {
   const hasLabel = labeledRows.length > 0;
   const tableRows = hasLabel ? labeledRows : rows;
   const strayRows = hasLabel ? plainRows : [];
-  const hasDashSplit = tableRows.some((row) => splitDash(row.text));
+  const hasDashSplit = tableRows.some((row) => splitDash(row.label));
 
   return (
     <>
@@ -51,26 +53,22 @@ function BriefingBulletTable({ body }) {
         <table>
           <tbody>
             {tableRows.map((row, index) => {
-              const dashParts = hasDashSplit ? splitDash(row.text) : null;
+              const dashParts = splitDash(row.label);
+              const labelText = dashParts ? dashParts[0] : row.label;
+
               return (
                 <tr key={`${index}-${row.label}`}>
                   {hasLabel && (
                     <td
                       className={`briefing-detail-table-label${
-                        isLongSingleWord(row.label) ? ' briefing-detail-table-label--wide' : ''
+                        isLongSingleWord(labelText) ? ' briefing-detail-table-label--wide' : ''
                       }`}
                     >
-                      {renderLabel(row.label)}
+                      {renderLabel(labelText)}
                     </td>
                   )}
-                  {dashParts ? (
-                    <>
-                      <td>{dashParts[0]}</td>
-                      <td>{dashParts[1]}</td>
-                    </>
-                  ) : (
-                    <td colSpan={hasDashSplit ? 2 : undefined}>{row.text}</td>
-                  )}
+                  {dashParts && <td>{dashParts[1]}</td>}
+                  <td colSpan={hasDashSplit && !dashParts ? 2 : undefined}>{row.text}</td>
                 </tr>
               );
             })}

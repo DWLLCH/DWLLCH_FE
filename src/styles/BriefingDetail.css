@@ -202,6 +202,12 @@
   word-break: keep-all;
 }
 
+/* 라벨 있다가 갑자기 없어진 불릿(표 밖으로 뺀 설명)이 표 바로 아래 붙는 경우, 표와 너무 가깝지 않도록
+   이 경우에만 하단 여백 대신 상단 여백을 줌 */
+.briefing-detail-table + .briefing-detail-section-desc {
+  margin: 12px 0 0;
+}
+
 .briefing-detail-links {
   display: flex;
   flex-direction: column;
@@ -315,21 +321,30 @@
   border-radius: 0 8px 0 0;
 }
 
-/* 라벨 열은 텍스트 길이에 맞춰 폭이 정해지되 최대 119px까지만, 넘으면 줄바꿈함 */
+/* 라벨 열은 텍스트 길이에 맞춰 폭이 정해지되 최대 119px까지만, 넘으면 줄바꿈함
+   overflow-wrap이 없으면 공백 없는 긴 한글 단어가 word-break: keep-all 때문에 안 끊기고
+   배경색(#ecf8f1) 박스 밖으로 텍스트가 삐져나가서 반드시 같이 지정해야 함 */
 .briefing-detail-table-label {
   width: 1px;
+  min-width: 70px;
   max-width: 119px;
   padding-right: 16px;
   font-weight: 700;
   color: #202020;
   background-color: #ecf8f1;
   word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 /* 라벨이 공백 없는 한 단어라 119px을 넘기면 줄바꿈 대신 기존처럼 폭 제한 없이 한 줄로 보여줌 */
 .briefing-detail-table-label--wide {
   max-width: none;
   white-space: nowrap;
+}
+
+/* 모달 안 표는 라벨 열 최소 폭을 100px로 맞춤 */
+.briefing-detail-modal-content .briefing-detail-table-label {
+  min-width: 100px;
 }
 
 /* 챗봇 안내 */
