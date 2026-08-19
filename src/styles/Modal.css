@@ -41,6 +41,15 @@
   margin-top: 20px;
 }
 
+.modal-actions--stacked {
+  flex-direction: column;
+}
+
+.modal-actions--stacked .modal-btn {
+  flex: none;
+  width: 100%;
+}
+
 .modal-btn {
   flex: 1;
   height: 44px;

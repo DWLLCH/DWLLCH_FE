@@ -6,8 +6,10 @@ import alarm from '../assets/alarm.svg';
 import BottomNav from '../components/BottomNav';
 import SettingsRow from '../components/SettingsRow';
 import LoginRequiredModal from '../components/LoginRequiredModal';
+import Modal from '../components/Modal';
 import useBookmarks from '../hooks/useBookmarks';
 import useNotifications from '../hooks/useNotifications';
+import useAvatar from '../hooks/useAvatar';
 import { getMyProfile } from '../api/mypage';
 import { getAccessToken } from '../api/auth';
 import { APPLICATION_STATS, APP_VERSION } from '../constants/mypage';
@@ -18,18 +20,12 @@ function MyPage() {
   const [isLoggedIn] = useState(() => Boolean(getAccessToken()));
   const { bookmarkedIds } = useBookmarks();
   const { hasUnread } = useNotifications();
-  const [avatarUrl, setAvatarUrl] = useState(null);
+  const { avatarUrl, setAvatarUrl } = useAvatar();
   const [profile, setProfile] = useState({ username: '', email: '' });
   const [profileError, setProfileError] = useState(false);
+  const [photoModalOpen, setPhotoModalOpen] = useState(false);
   const fileInputRef = useRef(null);
   const isMountedRef = useRef(true);
-
-  useEffect(
-    () => () => {
-      if (avatarUrl) URL.revokeObjectURL(avatarUrl);
-    },
-    [avatarUrl],
-  );
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -63,6 +59,16 @@ function MyPage() {
     e.target.value = '';
   };
 
+  const handlePickAlbum = () => {
+    setPhotoModalOpen(false);
+    fileInputRef.current.click();
+  };
+
+  const handleResetDefault = () => {
+    setPhotoModalOpen(false);
+    setAvatarUrl(null);
+  };
+
   return (
     <div className="mypage">
       <div className="mypage-scroll">
@@ -89,7 +95,7 @@ function MyPage() {
               type="button"
               className="mypage-avatar-edit"
               aria-label="프로필 사진 변경"
-              onClick={() => fileInputRef.current.click()}
+              onClick={() => setPhotoModalOpen(true)}
             >
               <img src={pencil} alt="" />
             </button>
@@ -178,6 +184,26 @@ function MyPage() {
       </div>
 
       <BottomNav />
+
+      <Modal
+        open={photoModalOpen}
+        onClose={() => setPhotoModalOpen(false)}
+        title="프로필 사진 변경"
+        description="프로필 사진을 변경하시겠습니까?"
+      >
+        <div className="modal-actions modal-actions--stacked">
+          <button type="button" className="modal-btn modal-btn--confirm" onClick={handlePickAlbum}>
+            앨범에서 선택
+          </button>
+          <button
+            type="button"
+            className="modal-btn modal-btn--cancel"
+            onClick={handleResetDefault}
+          >
+            기본 이미지로 변경
+          </button>
+        </div>
+      </Modal>
 
       <LoginRequiredModal open={!isLoggedIn} onClose={() => navigate('/home')} />
     </div>

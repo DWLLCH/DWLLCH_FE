@@ -10,6 +10,7 @@ function Modal({
   cancelLabel,
   onConfirm,
   danger = false,
+  children,
 }) {
   const triggerRef = useRef(null);
   const modalRef = useRef(null);
@@ -81,20 +82,22 @@ function Modal({
       >
         {title && <p className="modal-title">{title}</p>}
         {description && <p className="modal-description">{description}</p>}
-        <div className="modal-actions">
-          {cancelLabel && (
-            <button type="button" className="modal-btn modal-btn--cancel" onClick={onClose}>
-              {cancelLabel}
+        {children || (
+          <div className="modal-actions">
+            {cancelLabel && (
+              <button type="button" className="modal-btn modal-btn--cancel" onClick={onClose}>
+                {cancelLabel}
+              </button>
+            )}
+            <button
+              type="button"
+              className={`modal-btn modal-btn--confirm${danger ? ' modal-btn--danger' : ''}`}
+              onClick={handleConfirm}
+            >
+              {confirmLabel}
             </button>
-          )}
-          <button
-            type="button"
-            className={`modal-btn modal-btn--confirm${danger ? ' modal-btn--danger' : ''}`}
-            onClick={handleConfirm}
-          >
-            {confirmLabel}
-          </button>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
