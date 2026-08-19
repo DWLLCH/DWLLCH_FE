@@ -46,6 +46,9 @@ function SupportList() {
     if (isFirstPage) {
       setLoading(true);
       setError(null);
+      // 이전 더보기 요청이 진행 중이었다면 새 첫 페이지 요청으로 무효화되므로 같이 초기화함
+      setLoadingMore(false);
+      setLoadMoreError(null);
     } else {
       setLoadingMore(true);
       setLoadMoreError(null);
