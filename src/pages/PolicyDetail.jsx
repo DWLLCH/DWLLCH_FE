@@ -9,6 +9,7 @@ import ErrorState from '../components/ErrorState';
 import LoadingSpinner from '../components/LoadingSpinner';
 import BottomSheet from '../components/BottomSheet';
 import DatePicker from '../components/DatePicker';
+import LoginRequiredModal from '../components/LoginRequiredModal';
 import backBtn from '../assets/backBtn.svg';
 import bookmark from '../assets/bookmark.svg';
 import bookmarkEmpty from '../assets/bookmark_empty.svg';
@@ -33,6 +34,7 @@ import {
   formatDateRangeDots,
   parseDateKey,
   parseRequiredDocuments,
+  toPolicyLevel,
 } from '../utils/formatters';
 import '../styles/PolicyDetail.css';
 
@@ -60,6 +62,7 @@ function PolicyDetail() {
   const [toastVariant, setToastVariant] = useState('default');
   const [applySheetOpen, setApplySheetOpen] = useState(false);
   const [draftApplyDate, setDraftApplyDate] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const toastTimerRef = useRef(null);
 
   useEffect(
@@ -114,6 +117,11 @@ function PolicyDetail() {
 
   const handleToggleBookmark = () => {
     const result = toggleBookmark(policy.id);
+    if (!result) return; // 이전 요청이 진행 중이면 무시
+    if (result === 'login-required') {
+      setShowLoginModal(true);
+      return;
+    }
     if (result === 'limit-reached') {
       setToastVariant('warning');
       setToastMessage(`북마크는 최대 ${maxCount}개까지 저장할 수 있어요`);
@@ -140,8 +148,8 @@ function PolicyDetail() {
   };
 
   const missingCount = checkedDocs.filter((checked) => !checked).length;
-  // AI 예상 적합도(level)는 아직 BE 응답에 없어서 항상 undefined → PolicyBadges가 배지 없이 안전하게 처리함
-  const levelConfig = LEVEL_CONFIG[policy.level];
+  const level = toPolicyLevel(policy.matchLevel);
+  const levelConfig = LEVEL_CONFIG[level];
   const dday = formatDday(policy.applicationEnd);
   const applyPeriodText = formatDateRangeDots(policy.applicationStart, policy.applicationEnd);
   const hasConsultInfo = Boolean(policy.consultLink || policy.consultPhone);
@@ -175,11 +183,11 @@ function PolicyDetail() {
         <div className="detail-hero">
           <div className="detail-hero-top">
             <div className="detail-hero-text">
-              <PolicyBadges level={policy.level} dday={dday} />
+              <PolicyBadges level={level} dday={dday} />
+              <p className="detail-hero-title">{policy.title}</p>
               <p className="detail-disclaimer">
                 최종 지원 대상 여부는 해당 기관의 심사 결과에 따라 달라질 수 있어요
               </p>
-              <p className="detail-hero-title">{policy.title}</p>
             </div>
             <img src={birdLogo} alt="" className="detail-hero-bird" />
           </div>
@@ -338,6 +346,8 @@ function PolicyDetail() {
           </p>
         </div>
       </BottomSheet>
+
+      <LoginRequiredModal open={showLoginModal} onClose={() => setShowLoginModal(false)} />
     </div>
   );
 }
