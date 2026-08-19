@@ -101,7 +101,10 @@ export function formatDateRangeDots(start, end) {
 export function splitNumberedText(text) {
   if (!text) return [];
   const trimmed = text.trim();
-  const parts = trimmed.split(/\s*(?=\d+\.\s)/).filter(Boolean);
+  if (!trimmed) return [];
+  // "3. 1"처럼 숫자 뒤에 또 숫자가 오는 날짜 표기("2025. 3. 1.")는 번호 목록으로 오인하지 않도록
+  // "숫자. " 바로 뒤에 숫자가 오지 않는 경우에만(=진짜 목록 항목 시작 위치) 끊음
+  const parts = trimmed.split(/\s*(?=\d+\.\s(?!\d))/).filter(Boolean);
   return parts.length > 1 ? parts : [trimmed];
 }
 

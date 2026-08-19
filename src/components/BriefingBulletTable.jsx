@@ -59,13 +59,14 @@ function BriefingBulletTable({ body }) {
               return (
                 <tr key={`${index}-${row.label}`}>
                   {hasLabel && (
-                    <td
+                    <th
+                      scope="row"
                       className={`briefing-detail-table-label${
                         isLongSingleWord(labelText) ? ' briefing-detail-table-label--wide' : ''
                       }`}
                     >
                       {renderLabel(labelText)}
-                    </td>
+                    </th>
                   )}
                   {dashParts && <td>{dashParts[1]}</td>}
                   <td colSpan={hasDashSplit && !dashParts ? 2 : undefined}>{row.text}</td>

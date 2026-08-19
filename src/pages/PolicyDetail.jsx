@@ -199,7 +199,7 @@ function PolicyDetail() {
         <DetailSection number={one} title="이 지원사업은?">
           <p className="detail-field-content">
             {splitNumberedText(policy.content).map((line, index) => (
-              <span key={line}>
+              <span key={`${index}-${line}`}>
                 {index > 0 && <br />}
                 {line}
               </span>

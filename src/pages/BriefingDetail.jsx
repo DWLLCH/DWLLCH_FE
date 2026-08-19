@@ -35,6 +35,7 @@ function BriefingDetail() {
   const bodyRef = useRef(null);
   const hintTimerRef = useRef(null);
   const wasAtBottomRef = useRef(false);
+  const requestIdRef = useRef(0);
   const [showHint, setShowHint] = useState(false);
 
   const [detail, setDetail] = useState(null);
@@ -48,27 +49,47 @@ function BriefingDetail() {
   const [activeSubItem, setActiveSubItem] = useState(null);
 
   // 로딩 화면(AiLoading)은 이제 고정 대기 시간이 아니라 실제 상세 조회 fetch가 끝날 때까지 유지됨
+  // requestId로 이전 요청(재시도 연타, briefingId 변경 등) 응답이 늦게 도착해도 최신 요청 결과만 반영함
   const loadDetail = useCallback(() => {
+    const requestId = requestIdRef.current + 1;
+    requestIdRef.current = requestId;
+
     setIsLoading(true);
     setError(null);
     setNotFound(false);
     getBriefingDetail(briefingId)
-      .then((data) => setDetail(data))
+      .then((data) => {
+        if (requestIdRef.current !== requestId) return;
+        setDetail(data);
+      })
       .catch((err) => {
+        if (requestIdRef.current !== requestId) return;
         if (err.response?.status === 404) setNotFound(true);
         else setError('브리핑을 불러오지 못했어요');
       })
-      .finally(() => setIsLoading(false));
+      .finally(() => {
+        if (requestIdRef.current !== requestId) return;
+        setIsLoading(false);
+      });
   }, [briefingId]);
 
   useEffect(() => {
     setShowHint(false);
+    setActiveSubItem(null);
     if (hintTimerRef.current) {
       clearTimeout(hintTimerRef.current);
       hintTimerRef.current = null;
     }
     loadDetail();
   }, [loadDetail]);
+
+  useEffect(
+    () => () => {
+      // 언마운트 후 도착하는 응답은 무시 (진행 중이던 요청의 requestId를 더 이상 유효하지 않게 만듦)
+      requestIdRef.current += 1;
+    },
+    [],
+  );
 
   const triggerHint = useCallback(() => {
     setShowHint(true);

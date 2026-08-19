@@ -208,13 +208,8 @@
   margin: 12px 0 0;
 }
 
-.briefing-detail-links {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
 /* ### 하위 항목 칩 목록 */
+.briefing-detail-links,
 .briefing-detail-chip-list {
   display: flex;
   flex-direction: column;
@@ -288,7 +283,8 @@
   border-radius: 0 8px 0 0;
 }
 
-.briefing-detail-table td {
+.briefing-detail-table td,
+.briefing-detail-table th {
   padding: 10px;
   text-align: left;
   line-height: 1.5;
@@ -312,8 +308,10 @@
   border-radius: 0 0 8px 0;
 }
 
-/* thead 없이 tbody만 있는 불릿 표(BriefingBulletTable) 전용 — 첫 행 상단도 둥글게 처리 */
-.briefing-detail-table--bullets tbody tr:first-child td:first-child {
+/* thead 없이 tbody만 있는 불릿 표(BriefingBulletTable) 전용 — 첫 행 상단도 둥글게 처리
+   라벨이 있는 행은 첫 칸이 th(scope="row")라서 th:first-child도 같이 잡아줘야 함 */
+.briefing-detail-table--bullets tbody tr:first-child td:first-child,
+.briefing-detail-table--bullets tbody tr:first-child th:first-child {
   border-radius: 8px 0 0 0;
 }
 
@@ -323,8 +321,11 @@
 
 /* 라벨 열은 텍스트 길이에 맞춰 폭이 정해지되 최대 119px까지만, 넘으면 줄바꿈함
    overflow-wrap이 없으면 공백 없는 긴 한글 단어가 word-break: keep-all 때문에 안 끊기고
-   배경색(#ecf8f1) 박스 밖으로 텍스트가 삐져나가서 반드시 같이 지정해야 함 */
-.briefing-detail-table-label {
+   배경색(#ecf8f1) 박스 밖으로 텍스트가 삐져나가서 반드시 같이 지정해야 함
+   td.label, th.label로 셀렉터를 걸어서(태그+클래스) .briefing-detail-table td/th 규칙보다
+   명시도를 높임 (라벨 셀이 th로 바뀌면서 padding-right 등이 th 규칙에 덮어써지는 것 방지) */
+.briefing-detail-table td.briefing-detail-table-label,
+.briefing-detail-table th.briefing-detail-table-label {
   width: 1px;
   min-width: 70px;
   max-width: 119px;
@@ -345,6 +346,14 @@
 /* 모달 안 표는 라벨 열 최소 폭을 100px로 맞춤 */
 .briefing-detail-modal-content .briefing-detail-table-label {
   min-width: 100px;
+}
+
+/* 모달은 폭이 좁고(최대 300px) 가로 스크롤도 막아뒀어서, 공백 없는 긴 라벨에 쓰는
+   --wide(줄바꿈 없이 한 줄) 처리를 그대로 두면 라벨이 모달 밖으로 삐져나감
+   모달 안에서는 --wide를 무효화하고 기본 라벨처럼 줄바꿈되게 함 */
+.briefing-detail-modal-content .briefing-detail-table-label--wide {
+  max-width: 119px;
+  white-space: normal;
 }
 
 /* 챗봇 안내 */
