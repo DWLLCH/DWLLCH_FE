@@ -13,9 +13,11 @@ export async function getPolicies({ category, keyword, sort, page = 0, size = 20
 }
 
 /* GET /policies/{policyId} | 인증 불필요
+   로그인 + 프로필 완성 상태면 matchLevel/matchReason 계산에 Gemini 호출이 들어가서
+   BE 응답이 느릴 수 있어 timeout을 넉넉하게 잡음 (getPolicies와 동일한 이유)
    success/data 래퍼가 있는 일반 API 포맷이라 response.data.data를 반환함 */
 export async function getPolicyDetail(policyId) {
-  const response = await apiClient.get(`/policies/${policyId}`);
+  const response = await apiClient.get(`/policies/${policyId}`, { timeout: 35000 });
   return response.data.data;
 }
 
