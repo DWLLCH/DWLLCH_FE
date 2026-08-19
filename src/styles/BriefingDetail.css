@@ -236,6 +236,15 @@
   margin-top: 16px;
 }
 
+/* 모달 폭(최대 300px)이 표 기본 min-width(320px)보다 좁아서 가로 스크롤이 생기던 것을 막음 */
+.briefing-detail-modal-content .briefing-detail-table {
+  overflow-x: visible;
+}
+
+.briefing-detail-modal-content .briefing-detail-table table {
+  min-width: 0;
+}
+
 .briefing-detail-table {
   overflow-x: auto;
   margin-top: 4px;
@@ -281,7 +290,7 @@
   border-bottom: 1px solid #f2f2f2;
 }
 
-.briefing-detail-table tbody tr:nth-child(even) td {
+.briefing-detail-table tbody tr:nth-child(even) td:not(.briefing-detail-table-label) {
   background-color: #fafafa;
 }
 
@@ -306,12 +315,20 @@
   border-radius: 0 8px 0 0;
 }
 
-/* 라벨 열은 텍스트 길이에 맞춰 폭이 정해지도록 줄바꿈을 막고, 설명 열이 남은 폭을 가져가게 함 */
+/* 라벨 열은 텍스트 길이에 맞춰 폭이 정해지되 최대 119px까지만, 넘으면 줄바꿈함 */
 .briefing-detail-table-label {
   width: 1px;
+  max-width: 119px;
   padding-right: 16px;
   font-weight: 700;
   color: #202020;
+  background-color: #ecf8f1;
+  word-break: keep-all;
+}
+
+/* 라벨이 공백 없는 한 단어라 119px을 넘기면 줄바꿈 대신 기존처럼 폭 제한 없이 한 줄로 보여줌 */
+.briefing-detail-table-label--wide {
+  max-width: none;
   white-space: nowrap;
 }
 
