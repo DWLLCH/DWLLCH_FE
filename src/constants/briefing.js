@@ -105,29 +105,60 @@ export function getSectionDefaultIcon(sectionId) {
   return rotation[0].icon;
 }
 
-// content는 "# 제목" 같은 마크다운 헤딩(1~3레벨) 기준으로 번호 섹션을 나눠서 내려주는 단일 텍스트라
-// 헤딩 라인을 기준으로 잘라서 기존 번호 아이콘 DetailSection 디자인에 맞게 { title, body } 배열로 변환함
+// content는 "#"/"##"(상위 번호 섹션)와 "###"(상위 섹션에 속한 하위 링크 항목) 2단계
+// 마크다운 헤딩 구조로 내려오는 단일 텍스트임
+// 상위 섹션 { title, body, subItems } 배열로 변환하고, ### 하위 항목은 subItems에 { title, body }로 묶어 넣음
+// 상위 섹션 title 앞에 붙은 "1. " 같은 번호는 떼어냄 (DetailSection의 번호 아이콘이 이미 표시하므로 중복 방지)
 // 헤딩이 하나도 없으면 전체를 제목 없는 섹션 하나로 반환함
+function stripLeadingNumber(text) {
+  return text.replace(/^\d+\.\s*/, '').trim();
+}
+
 export function parseBriefingContent(content) {
   if (!content) return [];
 
   const lines = content.split('\n');
   const sections = [];
-  let current = null;
+  let currentSection = null;
+  let currentSubItem = null;
+
+  const closeSubItem = () => {
+    if (currentSubItem && currentSection) {
+      currentSection.subItems.push({ ...currentSubItem, body: currentSubItem.body.trim() });
+    }
+    currentSubItem = null;
+  };
+
+  const closeSection = () => {
+    closeSubItem();
+    if (currentSection) sections.push({ ...currentSection, body: currentSection.body.trim() });
+    currentSection = null;
+  };
 
   lines.forEach((line) => {
-    const headingMatch = line.match(/^#{1,3}\s+(.*)$/);
-    if (headingMatch) {
-      if (current) sections.push(current);
-      current = { title: headingMatch[1].trim(), body: '' };
+    const level3Match = line.match(/^###\s+(.*)$/);
+    const level2Match = !level3Match && line.match(/^##\s+(.*)$/);
+    const level1Match = !level3Match && !level2Match && line.match(/^#\s+(.*)$/);
+
+    if (level2Match || level1Match) {
+      closeSection();
+      currentSection = {
+        title: stripLeadingNumber((level2Match || level1Match)[1]),
+        body: '',
+        subItems: [],
+      };
+    } else if (level3Match) {
+      closeSubItem();
+      if (!currentSection) currentSection = { title: '', body: '', subItems: [] };
+      currentSubItem = { title: level3Match[1].trim(), body: '' };
+    } else if (currentSubItem) {
+      currentSubItem.body += `${line}\n`;
     } else {
-      if (!current) current = { title: '', body: '' };
-      current.body += `${line}\n`;
+      if (!currentSection) currentSection = { title: '', body: '', subItems: [] };
+      currentSection.body += `${line}\n`;
     }
   });
-  if (current) sections.push(current);
+  closeSection();
 
-  return sections
-    .map((section) => ({ ...section, body: section.body.trim() }))
-    .filter((section) => section.title || section.body);
+  return sections.filter((section) => section.title || section.body || section.subItems.length > 0);
 }

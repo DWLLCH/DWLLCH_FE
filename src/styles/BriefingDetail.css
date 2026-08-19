@@ -242,6 +242,29 @@
   gap: 8px;
 }
 
+/* ### 하위 항목 칩 목록 */
+.briefing-detail-chip-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 하위 항목 상세 모달 */
+.briefing-detail-modal-content {
+  margin-top: 12px;
+  text-align: left;
+}
+
+.briefing-detail-modal-content .briefing-detail-markdown {
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.briefing-detail-modal-content .modal-btn {
+  width: 100%;
+  margin-top: 16px;
+}
+
 .briefing-detail-table {
   overflow-x: auto;
   margin-top: 4px;

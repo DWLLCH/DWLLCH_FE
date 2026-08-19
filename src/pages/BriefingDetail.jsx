@@ -13,6 +13,8 @@ import star1 from '../assets/star1.svg';
 import star2 from '../assets/star2.svg';
 import SectionTag from '../components/SectionTag';
 import DetailSection from '../components/DetailSection';
+import BriefingLinkChip from '../components/BriefingLinkChip';
+import Modal from '../components/Modal';
 import ChatbotButton from '../components/ChatbotButton';
 import AiLoading from '../components/AiLoading';
 import ErrorState from '../components/ErrorState';
@@ -39,6 +41,9 @@ function BriefingDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState(null);
+  // ### 하위 항목(briefing-link-chip) 클릭 시 본문을 보여줄 모달 상태
+  // 최종 리스트/네비게이션 UI가 아직 미확정이라 우선 모달로 임시 처리함
+  const [activeSubItem, setActiveSubItem] = useState(null);
 
   // 로딩 화면(AiLoading)은 이제 고정 대기 시간이 아니라 실제 상세 조회 fetch가 끝날 때까지 유지됨
   const loadDetail = useCallback(() => {
@@ -197,20 +202,34 @@ function BriefingDetail() {
             number={NUMBER_ICONS[Math.min(index, NUMBER_ICONS.length - 1)]}
             title={sub.title || detail.title}
           >
-            <div className="briefing-detail-markdown">
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                components={{
-                  table: ({ ...props }) => (
-                    <div className="briefing-detail-table">
-                      <table {...props} />
-                    </div>
-                  ),
-                }}
-              >
-                {sub.body}
-              </ReactMarkdown>
-            </div>
+            {sub.body && (
+              <div className="briefing-detail-markdown">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    table: ({ ...props }) => (
+                      <div className="briefing-detail-table">
+                        <table {...props} />
+                      </div>
+                    ),
+                  }}
+                >
+                  {sub.body}
+                </ReactMarkdown>
+              </div>
+            )}
+
+            {sub.subItems.length > 0 && (
+              <div className="briefing-detail-chip-list">
+                {sub.subItems.map((item) => (
+                  <BriefingLinkChip
+                    key={item.title}
+                    label={item.title}
+                    onClick={() => setActiveSubItem(item)}
+                  />
+                ))}
+              </div>
+            )}
           </DetailSection>
         ))}
       </div>
@@ -221,6 +240,25 @@ function BriefingDetail() {
         더 궁금한 점이 있다면?
       </div>
       <ChatbotButton onClick={() => navigate('/chatbot')} />
+
+      <Modal
+        open={Boolean(activeSubItem)}
+        onClose={() => setActiveSubItem(null)}
+        title={activeSubItem?.title}
+      >
+        <div className="briefing-detail-modal-content">
+          <div className="briefing-detail-markdown">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{activeSubItem?.body ?? ''}</ReactMarkdown>
+          </div>
+          <button
+            type="button"
+            className="modal-btn modal-btn--confirm"
+            onClick={() => setActiveSubItem(null)}
+          >
+            닫기
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }
