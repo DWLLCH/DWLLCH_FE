@@ -32,6 +32,11 @@ function BriefingDetail() {
 
   useEffect(() => {
     let cancelled = false;
+    setShowHint(false);
+    if (hintTimerRef.current) {
+      clearTimeout(hintTimerRef.current);
+      hintTimerRef.current = null;
+    }
     setIsLoading(true);
     waitForAiBriefing().then(() => {
       if (!cancelled) setIsLoading(false);
