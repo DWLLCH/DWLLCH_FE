@@ -3,7 +3,7 @@ import '../styles/Toast.css';
 
 const EXIT_DURATION = 300;
 
-function Toast({ message, visible }) {
+function Toast({ message, visible, variant = 'default' }) {
   const [shouldRender, setShouldRender] = useState(visible);
   const [closing, setClosing] = useState(false);
   const [displayMessage, setDisplayMessage] = useState(message);
@@ -29,7 +29,10 @@ function Toast({ message, visible }) {
   if (!shouldRender) return null;
 
   return (
-    <div className={`toast${closing ? ' toast--closing' : ''}`} role="status">
+    <div
+      className={`toast${variant === 'warning' ? ' toast--warning' : ''}${closing ? ' toast--closing' : ''}`}
+      role="status"
+    >
       {visible ? message : displayMessage}
     </div>
   );

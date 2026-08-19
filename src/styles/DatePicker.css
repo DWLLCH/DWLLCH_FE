@@ -3,6 +3,19 @@
   display: inline-block;
 }
 
+.date-picker--inline {
+  display: block;
+  width: 100%;
+}
+
+.date-picker--inline .date-picker-box {
+  width: 100%;
+}
+
+.date-picker--inline .calendar--inline {
+  margin-top: 12px;
+}
+
 .date-picker-box {
   display: flex;
   align-items: center;

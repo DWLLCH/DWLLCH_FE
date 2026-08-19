@@ -12,10 +12,11 @@ function DatePicker({
   disabled = false,
   minDate = null,
   maxDate = null,
+  inlineCalendar = false,
 }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
-  const isOpen = open && !disabled;
+  const isOpen = (inlineCalendar || open) && !disabled;
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -33,11 +34,11 @@ function DatePicker({
 
   const handleSelect = (date) => {
     onChange(date);
-    setOpen(false);
+    if (!inlineCalendar) setOpen(false);
   };
 
   return (
-    <div className="date-picker" ref={wrapRef}>
+    <div className={`date-picker${inlineCalendar ? ' date-picker--inline' : ''}`} ref={wrapRef}>
       <button
         type="button"
         className={`date-picker-box${isOpen ? ' date-picker-box--open' : ''}${disabled ? ' date-picker-box--disabled' : ''}`}
@@ -50,7 +51,13 @@ function DatePicker({
         <img src={isOpen ? arrowUp : arrowBottom} alt="" className="date-picker-icon" />
       </button>
       {isOpen && (
-        <Calendar value={value} onSelect={handleSelect} minDate={minDate} maxDate={maxDate} />
+        <Calendar
+          value={value}
+          onSelect={handleSelect}
+          minDate={minDate}
+          maxDate={maxDate}
+          inline={inlineCalendar}
+        />
       )}
     </div>
   );
