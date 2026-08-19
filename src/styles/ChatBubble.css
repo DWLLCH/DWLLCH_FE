@@ -6,6 +6,7 @@
   font-size: 15px;
   line-height: 1.6;
   overflow-wrap: break-word;
+  word-break: keep-all;
 }
 
 .chat-bubble--tail::before {
