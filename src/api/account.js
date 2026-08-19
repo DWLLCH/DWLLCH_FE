@@ -11,3 +11,9 @@ export async function changeEmail({ currentPassword, newEmail }) {
   const response = await apiClient.patch('/auth/email', { currentPassword, newEmail });
   return response.data;
 }
+
+export function changeUsername(payload) {
+  return new Promise((resolve) => {
+    setTimeout(() => resolve({ success: true }), 300);
+  });
+}

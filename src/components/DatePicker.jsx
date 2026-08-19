@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import arrowBottom from '../assets/arrow_bottom.svg';
+import arrowUp from '../assets/arrow_up.svg';
 import Calendar from './Calendar';
 import { formatDateDots } from '../utils/formatters';
 import '../styles/DatePicker.css';
@@ -46,11 +47,7 @@ function DatePicker({
         <span className={`date-picker-value${value ? '' : ' date-picker-value--placeholder'}`}>
           {value ? formatDateDots(value) : placeholder}
         </span>
-        <img
-          src={arrowBottom}
-          alt=""
-          className={`date-picker-icon${isOpen ? ' date-picker-icon--open' : ''}`}
-        />
+        <img src={isOpen ? arrowUp : arrowBottom} alt="" className="date-picker-icon" />
       </button>
       {isOpen && (
         <Calendar value={value} onSelect={handleSelect} minDate={minDate} maxDate={maxDate} />

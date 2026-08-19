@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import arrowBottom from '../assets/arrow_bottom.svg';
+import arrowUp from '../assets/arrow_up.svg';
 import radioChecked from '../assets/click_fill.svg';
 import radioUnchecked from '../assets/click_none.svg';
 import '../styles/Dropdown.css';
@@ -36,11 +37,7 @@ function Dropdown({ placeholder, value, options, onChange, disabled = false, cla
         <span className={`dropdown-value${value ? '' : ' dropdown-value--placeholder'}`}>
           {value || placeholder}
         </span>
-        <img
-          src={arrowBottom}
-          alt=""
-          className={`dropdown-arrow${open ? ' dropdown-arrow--open' : ''}`}
-        />
+        <img src={open ? arrowUp : arrowBottom} alt="" className="dropdown-arrow" />
       </button>
       {open && (
         <ul className="dropdown-panel" role="listbox">

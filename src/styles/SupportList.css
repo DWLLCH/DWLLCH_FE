@@ -117,6 +117,8 @@
 }
 
 .btn.filter-apply-btn {
+  flex: 1;
+  width: auto;
   font-weight: 400;
 }
 
