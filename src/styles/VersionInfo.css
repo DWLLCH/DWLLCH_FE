@@ -1,0 +1,58 @@
+.version-info-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 0 40px;
+}
+
+.version-info-logo {
+  width: 120px;
+  height: 86px;
+  object-fit: contain;
+}
+
+.version-info-name {
+  margin: 12px 0 0;
+  font-size: 25px;
+  font-weight: 600;
+  color: #597ce4;
+}
+
+.version-info-desc {
+  margin: 12px 0 0;
+  font-size: 15px;
+  line-height: 1.4;
+  color: #666;
+  text-align: center;
+}
+
+/* 오픈소스 라이선스 모달 */
+.version-info-license-list {
+  margin: 16px 0 20px;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.version-info-license-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.version-info-license-list li:last-child {
+  border-bottom: none;
+}
+
+.version-info-license-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #202020;
+}
+
+.version-info-license-type {
+  font-size: 13px;
+  color: #999;
+}

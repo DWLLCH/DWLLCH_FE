@@ -1,7 +1,7 @@
 import Button from './Button';
 import '../styles/AccountChange.css';
 
-function AccountChangeSuccess({ message, onConfirm }) {
+function AccountChangeSuccess({ message, description, onConfirm }) {
   return (
     <div className="account-change-success">
       <div className="account-change-success-content">
@@ -20,6 +20,7 @@ function AccountChangeSuccess({ message, onConfirm }) {
         <p className="account-change-success-message" role="status" aria-live="polite">
           {message}
         </p>
+        {description && <p className="account-change-success-desc">{description}</p>}
       </div>
       <Button fullWidth className="account-change-success-confirm" onClick={onConfirm}>
         확인

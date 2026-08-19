@@ -42,6 +42,11 @@ import MyPage from './pages/MyPage';
 import PasswordChange from './pages/PasswordChange';
 import EmailChange from './pages/EmailChange';
 import IdChange from './pages/IdChange';
+import AccountWithdraw from './pages/AccountWithdraw';
+import Inquiry from './pages/Inquiry';
+import InquiryDetail from './pages/InquiryDetail';
+import TermsList from './pages/TermsList';
+import VersionInfo from './pages/VersionInfo';
 import NotificationList from './pages/NotificationList';
 import MyPosts from './pages/MyPosts';
 import MyComments from './pages/MyComments';
@@ -82,6 +87,11 @@ function App() {
                       <Route path="/mypage/password" element={<PasswordChange />} />
                       <Route path="/mypage/email" element={<EmailChange />} />
                       <Route path="/mypage/id" element={<IdChange />} />
+                      <Route path="/mypage/withdraw" element={<AccountWithdraw />} />
+                      <Route path="/mypage/inquiry" element={<Inquiry />} />
+                      <Route path="/mypage/inquiry/:type" element={<InquiryDetail />} />
+                      <Route path="/mypage/terms" element={<TermsList />} />
+                      <Route path="/mypage/version" element={<VersionInfo />} />
                       <Route path="/mypage/posts" element={<MyPosts />} />
                       <Route path="/mypage/comments" element={<MyComments />} />
                       <Route element={<MyInfoProvider />}>

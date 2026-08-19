@@ -1,0 +1,62 @@
+.inquiry-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 16px 40px;
+  scrollbar-width: none;
+}
+
+.inquiry-body::-webkit-scrollbar {
+  display: none;
+}
+
+.inquiry-section-title {
+  margin: 0 0 20px 4px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #000;
+}
+
+.inquiry-history-block .inquiry-section-title {
+  margin-bottom: 4px;
+}
+
+.inquiry-section-desc {
+  margin: 0 0 12px 4px;
+  font-size: 13px;
+  color: #999;
+}
+
+.inquiry-card {
+  overflow: hidden;
+  border: 1px solid #d9d9d9;
+  border-radius: 10px;
+  background-color: #fff;
+}
+
+.inquiry-card .settings-row {
+  height: 46px;
+}
+
+/* 문의 내역 */
+.inquiry-history-block {
+  margin-top: 40px;
+}
+
+/* 상세/내역 placeholder */
+.inquiry-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+  gap: 8px;
+}
+
+.inquiry-empty p {
+  margin: 0;
+  font-size: 15px;
+  color: #999;
+  text-align: center;
+  word-break: keep-all;
+}
