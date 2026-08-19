@@ -50,9 +50,9 @@ export function formatRelativeTime(date) {
 }
 
 /* 정책 신청 마감일(applicationEnd, "YYYY-MM-DD")을 D-day 배지 문자열로 변환
-   마감일이 없으면 null, 이미 지났으면 "마감" */
+   마감일이 없으면(상시모집) "상시모집", 형식이 잘못됐으면 null, 이미 지났으면 "마감" */
 export function formatDday(applicationEnd) {
-  if (!applicationEnd) return null;
+  if (!applicationEnd) return '상시모집';
 
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(applicationEnd);
   if (!match) return null;
