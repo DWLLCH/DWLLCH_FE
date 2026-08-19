@@ -49,18 +49,35 @@
   margin-top: 8px;
 }
 
+.chat-bubble-image-link {
+  display: block;
+  cursor: pointer;
+}
+
+.chat-bubble-image-link:hover .chat-bubble-image {
+  opacity: 0.85;
+}
+
 .chat-bubble-image {
   display: block;
   width: 100%;
   max-width: 200px;
   border-radius: 14px;
   object-fit: cover;
+  transition: opacity 0.15s ease;
 }
 
 .chat-bubble-file {
   display: flex;
   align-items: center;
   gap: 10px;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.chat-bubble-file:hover {
+  opacity: 0.85;
 }
 
 .chat-bubble-file-icon-wrap {

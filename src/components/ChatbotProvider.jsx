@@ -100,7 +100,7 @@ function ChatbotProvider({ children }) {
       const drafts = files.slice(0, MAX_ATTACH_COUNT).map((file) => {
         const url = URL.createObjectURL(file);
         objectUrlsRef.current.push(url);
-        return { sender: 'user', type: 'image', imageUrl: url };
+        return { sender: 'user', type: 'image', imageUrl: url, fileName: file.name };
       });
       appendMessages(drafts);
       respondWithDelay(() => getAttachmentReply());
@@ -111,9 +111,11 @@ function ChatbotProvider({ children }) {
   const attachFiles = useCallback(
     (files) => {
       if (!files || files.length === 0) return;
-      const drafts = files
-        .slice(0, MAX_ATTACH_COUNT)
-        .map((file) => ({ sender: 'user', type: 'file', fileName: file.name }));
+      const drafts = files.slice(0, MAX_ATTACH_COUNT).map((file) => {
+        const url = URL.createObjectURL(file);
+        objectUrlsRef.current.push(url);
+        return { sender: 'user', type: 'file', fileName: file.name, fileUrl: url };
+      });
       appendMessages(drafts);
       respondWithDelay(() => getAttachmentReply());
     },
