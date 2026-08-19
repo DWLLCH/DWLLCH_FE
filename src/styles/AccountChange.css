@@ -182,6 +182,14 @@
   word-break: keep-all;
 }
 
+.account-change-success-desc {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: #999;
+  text-align: center;
+  word-break: keep-all;
+}
+
 .account-change-success-confirm {
   position: absolute;
   left: 32px;

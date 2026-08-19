@@ -147,7 +147,8 @@
   z-index: 1;
   display: flex;
   align-items: center;
-  margin: -40px 20px 0;
+  width: 300px;
+  margin: -40px auto 0;
   padding: 18px 0;
   border-radius: 14px;
   background-color: #fff;
@@ -174,12 +175,14 @@
   font-size: 14px;
   font-weight: 600;
   color: #202020;
+  text-align: center;
 }
 
 .mypage-stat-value {
   font-size: 18px;
   font-weight: 600;
   color: #666;
+  text-align: center;
 }
 
 .mypage-stat-divider {

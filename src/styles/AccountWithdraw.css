@@ -1,0 +1,85 @@
+.withdraw-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 96px 24px 40px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.withdraw-body::-webkit-scrollbar {
+  display: none;
+}
+
+/* 아이콘 */
+.withdraw-icon-circle {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  margin-bottom: 24px;
+  border-radius: 50%;
+  background-color: #fdecec;
+}
+
+.withdraw-icon-circle img {
+  width: 38px;
+  height: 42px;
+}
+
+.withdraw-icon-warning {
+  width: 96px;
+  height: 96px;
+  margin-bottom: 24px;
+}
+
+/* 텍스트 */
+.withdraw-heading {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+  color: #000;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.withdraw-heading--danger {
+  margin-top: 6px;
+  font-weight: 700;
+  color: #e34343;
+}
+
+.withdraw-desc {
+  margin: 12px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #666;
+  text-align: center;
+  word-break: keep-all;
+}
+
+/* 안내 목록 */
+.withdraw-notice {
+  width: fit-content;
+  max-width: 100%;
+  margin: 20px auto 0;
+  padding-left: 20px;
+  text-align: left;
+  list-style: disc;
+}
+
+.withdraw-notice li {
+  font-size: 15px;
+  color: #666;
+  line-height: 1.8;
+  word-break: keep-all;
+}
+
+.withdraw-actions {
+  width: 100%;
+  margin-top: auto;
+  padding-top: 32px;
+}

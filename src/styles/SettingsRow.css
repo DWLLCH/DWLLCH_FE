@@ -26,6 +26,10 @@ button.settings-row {
   color: #202020;
 }
 
+.settings-row-label--danger {
+  color: #e34343;
+}
+
 .settings-row-right {
   display: flex;
   align-items: center;

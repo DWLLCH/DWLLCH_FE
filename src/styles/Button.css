@@ -75,3 +75,19 @@
 .btn-gray:focus-visible {
   outline-color: #999;
 }
+
+.btn-danger {
+  background-color: #e34343;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: #cf3535;
+}
+
+.btn-danger:active:not(:disabled) {
+  background-color: #b92c2c;
+}
+
+.btn-danger:focus-visible {
+  outline-color: #b92c2c;
+}

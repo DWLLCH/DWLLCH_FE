@@ -17,3 +17,9 @@ export function changeUsername(payload) {
     setTimeout(() => resolve({ success: true }), 300);
   });
 }
+
+/* DELETE /auth/withdraw | 로그인 필요 (엔드포인트는 추정치, 연동 시 확인 필요) */
+export async function withdrawAccount() {
+  const response = await apiClient.delete('/auth/withdraw');
+  return response.data;
+}
