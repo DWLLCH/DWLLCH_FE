@@ -35,6 +35,7 @@ import {
   formatDateRangeDots,
   parseDateKey,
   parseRequiredDocuments,
+  splitNumberedText,
   toPolicyLevel,
 } from '../utils/formatters';
 import '../styles/PolicyDetail.css';
@@ -195,7 +196,14 @@ function PolicyDetail() {
         </div>
 
         <DetailSection number={one} title="이 지원사업은?">
-          <p className="detail-field-content">{policy.content}</p>
+          <p className="detail-field-content">
+            {splitNumberedText(policy.content).map((line, index) => (
+              <span key={line}>
+                {index > 0 && <br />}
+                {line}
+              </span>
+            ))}
+          </p>
           <div className="detail-info-grid">
             <div className="detail-info-col">
               <p className="detail-info-col-label">지원 내용</p>
