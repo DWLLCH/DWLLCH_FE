@@ -105,7 +105,11 @@ function MyInfoView() {
             <h2 className="myinfo-card-title">생활·소득</h2>
             <div className="myinfo-row">
               <span className="myinfo-row-label">현재 생활</span>
-              <span className="myinfo-row-value">{lifestyle.join(', ')}</span>
+              <ul className="myinfo-row-list">
+                {lifestyle.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
             </div>
             <div className="myinfo-row">
               <span className="myinfo-row-label">현재 소득 형태</span>
@@ -117,11 +121,19 @@ function MyInfoView() {
             <h2 className="myinfo-card-title">지원 현황</h2>
             <div className="myinfo-row">
               <span className="myinfo-row-label">현재 받고 있는 지원</span>
-              <span className="myinfo-row-value">{currentSupports.join(', ')}</span>
+              <ul className="myinfo-row-list">
+                {currentSupports.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
             </div>
             <div className="myinfo-row">
               <span className="myinfo-row-label">지금 가장 필요한 도움</span>
-              <span className="myinfo-row-value">{supportNeeds.join(', ')}</span>
+              <ul className="myinfo-row-list">
+                {supportNeeds.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
             </div>
           </section>
 

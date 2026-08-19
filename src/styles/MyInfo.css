@@ -21,7 +21,7 @@
 .myinfo-header h1 {
   margin: 0 0 6px;
   font-size: 19px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .myinfo-back {
@@ -102,6 +102,35 @@
   font-weight: 600;
   color: #202020;
   word-break: keep-all;
+}
+
+.myinfo-row-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.myinfo-row-list li {
+  position: relative;
+  padding-left: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #202020;
+  word-break: keep-all;
+}
+
+.myinfo-row-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: #6cd59b;
 }
 
 /* 수정 화면 섹션 */

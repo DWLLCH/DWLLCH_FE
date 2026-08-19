@@ -9,11 +9,8 @@ function HomeCard({ theme, title, descLines, ctaLabel = '지금 확인하러 가
         <div className="home-card-text">
           <p className="home-card-title">{title}</p>
           <p className="home-card-desc">
-            {descLines.map((line, index) => (
-              <span key={line}>
-                {line}
-                {index < descLines.length - 1 && <br />}
-              </span>
+            {descLines.map((line) => (
+              <span key={line}>{line}</span>
             ))}
           </p>
         </div>
