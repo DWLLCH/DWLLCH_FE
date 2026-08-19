@@ -123,8 +123,11 @@ function DocumentGuide() {
                   key={doc.label}
                   number={index + 1}
                   title={doc.label}
+                  description={doc.description}
                   checked={checkedDocs[index]}
                   issueMethod={doc.issueMethod}
+                  preparation={doc.preparation}
+                  issuer={doc.issuer}
                   linkUrl={doc.linkUrl}
                   linkLabel="발급 사이트 바로가기"
                 />

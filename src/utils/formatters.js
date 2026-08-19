@@ -115,8 +115,8 @@ export function toPolicyLevel(matchLevel) {
   return MATCH_LEVEL_TO_KEY[matchLevel] || null;
 }
 
-/* 정책 requiredDocuments(BE가 [{label, issueMethod, linkUrl}] 객체 배열로 내려줌)를
-   체크리스트 항목 배열로 정규화함 (PolicyDetail.jsx, DocumentGuide.jsx 공용)
+/* 정책 requiredDocuments(BE가 [{label, description, issueMethod, preparation, issuer, linkUrl}]
+   객체 배열로 내려줌)를 체크리스트 항목 배열로 정규화함 (PolicyDetail.jsx, DocumentGuide.jsx 공용)
    checked는 로컬 준비 상태 초기값이라 항상 false로 시작함 */
 export function parseRequiredDocuments(requiredDocuments) {
   if (!Array.isArray(requiredDocuments)) return [];
@@ -125,7 +125,10 @@ export function parseRequiredDocuments(requiredDocuments) {
     .filter((doc) => doc && doc.label)
     .map((doc) => ({
       label: doc.label,
+      description: doc.description || null,
       issueMethod: doc.issueMethod || null,
+      preparation: doc.preparation || null,
+      issuer: doc.issuer || null,
       linkUrl: doc.linkUrl || null,
       checked: false,
     }));
