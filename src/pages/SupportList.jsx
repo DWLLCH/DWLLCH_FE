@@ -12,7 +12,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorState from '../components/ErrorState';
 import { getPolicies } from '../api/policy';
 import { formatDday, toPolicyLevel } from '../utils/formatters';
-import { FILTER_GROUPS, SORT_OPTIONS } from '../constants/filterOptions';
+import { FILTER_GROUPS, SORT_OPTIONS, SORT_VALUE_MAP } from '../constants/filterOptions';
 import '../styles/SupportList.css';
 
 const PAGE_SIZE = 20;
@@ -24,6 +24,7 @@ function SupportList() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
   const [selectedSort, setSelectedSort] = useState(SORT_OPTIONS[0]);
+  const sortValue = SORT_VALUE_MAP[selectedSort];
 
   const [policies, setPolicies] = useState([]);
   const [page, setPage] = useState(0);
@@ -34,7 +35,7 @@ function SupportList() {
   const [error, setError] = useState(null);
   const [loadMoreError, setLoadMoreError] = useState(null);
 
-  const loadPolicies = useCallback(async (targetPage) => {
+  const loadPolicies = useCallback(async (targetPage, sort) => {
     const isFirstPage = targetPage === 0;
     if (isFirstPage) {
       setLoading(true);
@@ -45,7 +46,7 @@ function SupportList() {
     }
 
     try {
-      const data = await getPolicies({ page: targetPage, size: PAGE_SIZE });
+      const data = await getPolicies({ page: targetPage, size: PAGE_SIZE, sort });
       setPolicies((prev) => (isFirstPage ? data.content : [...prev, ...data.content]));
       setPage(data.page);
       setHasNext(data.hasNext);
@@ -60,8 +61,8 @@ function SupportList() {
   }, []);
 
   useEffect(() => {
-    loadPolicies(0);
-  }, [loadPolicies]);
+    loadPolicies(0, sortValue);
+  }, [loadPolicies, sortValue]);
 
   const openFilterSheet = () => {
     setDraftFilters(appliedFilters);
@@ -125,7 +126,9 @@ function SupportList() {
           </div>
         )}
 
-        {!loading && error && <ErrorState message={error} onRetry={() => loadPolicies(0)} />}
+        {!loading && error && (
+          <ErrorState message={error} onRetry={() => loadPolicies(0, sortValue)} />
+        )}
 
         {!loading && !error && policies.length === 0 && (
           <p className="support-empty">아직 등록된 정책이 없어요</p>
@@ -152,7 +155,7 @@ function SupportList() {
                 fullWidth
                 className="support-load-more"
                 disabled={loadingMore}
-                onClick={() => loadPolicies(page + 1)}
+                onClick={() => loadPolicies(page + 1, sortValue)}
               >
                 {loadingMore ? '불러오는 중' : '더보기'}
               </Button>
@@ -162,7 +165,7 @@ function SupportList() {
               <ErrorState
                 message={loadMoreError}
                 retryLabel="다시 시도"
-                onRetry={() => loadPolicies(page + 1)}
+                onRetry={() => loadPolicies(page + 1, sortValue)}
               />
             )}
           </>

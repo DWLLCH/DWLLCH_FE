@@ -1,10 +1,12 @@
 import apiClient from './client';
 
-/* GET /policies | 인증 불필요, 로그인 상태면 matchLevel/matchReason으로 AI 예상 적합도도 같이 내려줌 */
-export async function getPolicies({ category, keyword, page = 0, size = 20 } = {}) {
+/* GET /policies | 인증 불필요, 로그인 상태면 matchLevel/matchReason으로 AI 예상 적합도도 같이 내려줌
+   sort: updatedAt(기본값) | applicationEnd */
+export async function getPolicies({ category, keyword, sort, page = 0, size = 20 } = {}) {
   const params = { page, size };
   if (category) params.category = category;
   if (keyword) params.keyword = keyword;
+  if (sort) params.sort = sort;
 
   const response = await apiClient.get('/policies', { params, timeout: 35000 });
   return response.data;
