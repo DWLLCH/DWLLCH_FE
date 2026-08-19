@@ -15,10 +15,11 @@ export const FILTER_GROUPS = [
 
 export const SORT_OPTIONS = ['AI 추천순', '최근 업데이트 순', '신청 마감 빠른 순', '인기순'];
 
-/* AI 추천순 / 인기순은 BE 파라미터가 아직 없어서 매핑에서 제외 (선택 시 BE 기본값인 updatedAt으로 조회됨) */
+/* AI 추천순은 BE 파라미터가 아직 없어서 매핑에서 제외 (선택 시 BE 기본값인 updatedAt으로 조회됨) */
 export const SORT_VALUE_MAP = {
   '최근 업데이트 순': 'updatedAt',
   '신청 마감 빠른 순': 'applicationEnd',
+  인기순: 'scrapCount',
 };
 
 export const AI_SORT_INFO = {
