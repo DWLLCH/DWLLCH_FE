@@ -1,7 +1,8 @@
 import { BRIEFING_ICONS, BRIEFING_BOX_IMAGES } from '../constants/briefing';
 import '../styles/BriefingCard.css';
 
-function BriefingCard({ color = 'blue', icon, title, onClick }) {
+// color/icon 기본값은 BE Briefing 모델 기본값(blue/document)과 맞춤
+function BriefingCard({ color = 'blue', icon = 'document', title, onClick }) {
   return (
     <div className="briefing-card">
       <img src={BRIEFING_BOX_IMAGES[color]} alt="" className="briefing-card-box" />

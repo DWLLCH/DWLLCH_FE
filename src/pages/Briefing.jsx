@@ -12,7 +12,7 @@ import ErrorState from '../components/ErrorState';
 import useOnboardingComplete from '../hooks/useOnboardingComplete';
 import { getAccessToken } from '../api/auth';
 import { getBriefings } from '../api/briefing';
-import { BRIEFING_SECTION_META, getCardVisual } from '../constants/briefing';
+import { BRIEFING_SECTION_META } from '../constants/briefing';
 import '../styles/Briefing.css';
 
 function Briefing() {
@@ -79,18 +79,15 @@ function Briefing() {
               <p className="briefing-section-desc">{section.description}</p>
               {section.cards.length > 0 ? (
                 <div className="briefing-card-row">
-                  {section.cards.map((briefing, index) => {
-                    const visual = getCardVisual(section.id, index);
-                    return (
-                      <BriefingCard
-                        key={briefing.id}
-                        color={visual.color}
-                        icon={visual.icon}
-                        title={briefing.title}
-                        onClick={() => navigate(`/ai-briefing/${briefing.id}`)}
-                      />
-                    );
-                  })}
+                  {section.cards.map((briefing) => (
+                    <BriefingCard
+                      key={briefing.id}
+                      color={briefing.color}
+                      icon={briefing.icon}
+                      title={briefing.title}
+                      onClick={() => navigate(`/ai-briefing/${briefing.id}`)}
+                    />
+                  ))}
                 </div>
               ) : (
                 <p className="briefing-empty">아직 준비된 브리핑이 없어요</p>

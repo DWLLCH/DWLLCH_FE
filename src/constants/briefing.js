@@ -66,7 +66,9 @@ export const BRIEFING_SECTION_META = [
   },
 ];
 
-// 카드 색상/아이콘은 BE 응답에 없어서 섹션별로 기존 목데이터에 쓰던 조합을 그대로 순환 배정함
+// GET /briefings(목록) 응답에는 이제 color/icon이 실제로 내려와서 목록 카드는 briefing.color/icon을 그대로 씀
+// GET /briefings/{id}(상세) 응답에는 아직 color/icon이 없어서, 상세 히어로 아이콘(getSectionDefaultIcon)만
+// 이 순환 배열을 임시로 계속 씀 (BE가 상세 응답에도 추가해주면 이 로직은 제거 가능)
 const CARD_VISUAL_ROTATION = {
   finance: [
     { color: 'green', icon: 'money' },
@@ -93,11 +95,6 @@ const CARD_VISUAL_ROTATION = {
     { color: 'red', icon: 'letter' },
   ],
 };
-
-export function getCardVisual(sectionId, index) {
-  const rotation = CARD_VISUAL_ROTATION[sectionId] || CARD_VISUAL_ROTATION.finance;
-  return rotation[index % rotation.length];
-}
 
 // 상세 히어로 아이콘도 BE 응답에 없어서 섹션 대표 아이콘(순환 배열의 첫 번째)으로 임시 표시함
 export function getSectionDefaultIcon(sectionId) {
