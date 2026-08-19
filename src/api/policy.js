@@ -1,12 +1,25 @@
 import apiClient from './client';
 
 /* GET /policies | 인증 불필요, 로그인 상태면 matchLevel/matchReason으로 AI 예상 적합도도 같이 내려줌
-   sort: updatedAt(기본값) | applicationEnd */
-export async function getPolicies({ category, keyword, sort, page = 0, size = 20 } = {}) {
+   sort: updatedAt(기본값) | applicationEnd | scrapCount
+   protectionType/ageRange/incomeCriteria는 콤마로 복수 값 전달 (같은 파라미터 내는 AND, 파라미터끼리는 OR) */
+export async function getPolicies({
+  category,
+  keyword,
+  sort,
+  protectionType,
+  ageRange,
+  incomeCriteria,
+  page = 0,
+  size = 20,
+} = {}) {
   const params = { page, size };
   if (category) params.category = category;
   if (keyword) params.keyword = keyword;
   if (sort) params.sort = sort;
+  if (protectionType) params.protectionType = protectionType;
+  if (ageRange) params.ageRange = ageRange;
+  if (incomeCriteria) params.incomeCriteria = incomeCriteria;
 
   const response = await apiClient.get('/policies', { params, timeout: 35000 });
   return response.data;
