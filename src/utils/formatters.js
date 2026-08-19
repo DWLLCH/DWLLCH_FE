@@ -125,6 +125,17 @@ export function parseDateKey(dateKey) {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateKey || '');
   if (!match) return null;
   const [, yearStr, monthStr, dayStr] = match;
-  const date = new Date(Number(yearStr), Number(monthStr) - 1, Number(dayStr));
-  return Number.isNaN(date.getTime()) ? null : date;
+  const year = Number(yearStr);
+  const month = Number(monthStr) - 1;
+  const day = Number(dayStr);
+  const date = new Date(year, month, day);
+  if (
+    Number.isNaN(date.getTime()) ||
+    date.getFullYear() !== year ||
+    date.getMonth() !== month ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+  return date;
 }

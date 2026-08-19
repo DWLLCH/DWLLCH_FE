@@ -16,7 +16,7 @@ function DatePicker({
 }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
-  const isOpen = open && !disabled;
+  const isOpen = (inlineCalendar || open) && !disabled;
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -34,7 +34,7 @@ function DatePicker({
 
   const handleSelect = (date) => {
     onChange(date);
-    setOpen(false);
+    if (!inlineCalendar) setOpen(false);
   };
 
   return (

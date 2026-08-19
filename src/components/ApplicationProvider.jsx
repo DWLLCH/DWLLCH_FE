@@ -1,13 +1,18 @@
-import { createContext, useEffect, useState } from 'react';
+import { createContext, useEffect, useRef, useState } from 'react';
 import { Outlet } from 'react-router-dom';
+import { getUserId } from '../api/auth';
 
 export const ApplicationContext = createContext(null);
 
-const STORAGE_KEY = 'applied-policy-dates';
+const STORAGE_PREFIX = 'applied-policy-dates';
 
-function readStoredApplications() {
+function getStorageKey(userId) {
+  return `${STORAGE_PREFIX}:${userId || 'guest'}`;
+}
+
+function readStoredApplications(storageKey) {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(storageKey);
     const parsed = stored ? JSON.parse(stored) : {};
     return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
   } catch {
@@ -15,20 +20,29 @@ function readStoredApplications() {
   }
 }
 
-function writeStoredApplications(applications) {
+function writeStoredApplications(storageKey, applications) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(applications));
+    localStorage.setItem(storageKey, JSON.stringify(applications));
   } catch {
     // ignore
   }
 }
 
 function ApplicationProvider({ children }) {
-  const [applications, setApplications] = useState(readStoredApplications);
+  const userId = getUserId();
+  const storageKey = getStorageKey(userId);
+  const storageKeyRef = useRef(storageKey);
+  const [applications, setApplications] = useState(() => readStoredApplications(storageKey));
 
   useEffect(() => {
-    writeStoredApplications(applications);
-  }, [applications]);
+    if (storageKeyRef.current === storageKey) return;
+    storageKeyRef.current = storageKey;
+    setApplications(readStoredApplications(storageKey));
+  }, [storageKey]);
+
+  useEffect(() => {
+    writeStoredApplications(storageKey, applications);
+  }, [storageKey, applications]);
 
   const getAppliedDate = (policyId) => applications[policyId] || null;
 
