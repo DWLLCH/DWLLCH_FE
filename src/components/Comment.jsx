@@ -59,7 +59,10 @@ function Reply({ reply, commentId, onEditReply, onDeleteReply, onToggleLike }) {
 
   return (
     <div className="comment-reply">
-      <p className="comment-reply-author">{reply.author}</p>
+      <p className={`comment-reply-author${reply.isAuthor ? ' comment-reply-author--owner' : ''}`}>
+        {reply.author}
+        {reply.isAuthor && '(글쓴이)'}
+      </p>
       {isEditing ? (
         <CommentEditBox
           initialText={reply.text}
@@ -99,6 +102,7 @@ function Comment({
   id,
   comment,
   highlighted,
+  lockRealName = false,
   onAddReply,
   onEditComment,
   onDeleteComment,
@@ -112,9 +116,10 @@ function Comment({
   const [isEditing, setIsEditing] = useState(false);
 
   const replies = comment.replies || [];
+  const effectiveReplyAnonymous = lockRealName ? false : replyAnonymous;
 
   const handleSubmitReply = () => {
-    onAddReply(comment.id, replyText, replyAnonymous);
+    onAddReply(comment.id, replyText, effectiveReplyAnonymous);
     setReplyText('');
     setExpanded(true);
   };
@@ -127,7 +132,10 @@ function Comment({
   return (
     <li id={id} className={`comment${highlighted ? ' comment--highlighted' : ''}`}>
       <div className="comment-header">
-        <span className="comment-author">{comment.author}</span>
+        <span className={`comment-author${comment.isAuthor ? ' comment-author--owner' : ''}`}>
+          {comment.author}
+          {comment.isAuthor && '(글쓴이)'}
+        </span>
         <span className="comment-time">{formatDateTimeShort(comment.createdAt)}</span>
       </div>
       {isEditing ? (
@@ -192,8 +200,11 @@ function Comment({
               value={replyText}
               onChange={setReplyText}
               onSubmit={handleSubmitReply}
-              anonymous={replyAnonymous}
-              onToggleAnonymous={() => setReplyAnonymous((prev) => !prev)}
+              anonymous={effectiveReplyAnonymous}
+              onToggleAnonymous={
+                lockRealName ? undefined : () => setReplyAnonymous((prev) => !prev)
+              }
+              hideAnonymous={lockRealName}
               placeholder="답글을 남겨주세요."
             />
           )}

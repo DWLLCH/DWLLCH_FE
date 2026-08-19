@@ -153,3 +153,10 @@ export async function likeComment(commentId) {
 export async function unlikeComment(commentId) {
   await apiClient.delete(`/community/comments/${commentId}/like`);
 }
+
+/* POST /community/posts/{postId}/report | 인증 필요, reason은 constants/community.js REPORT_REASONS의 value
+   신고 누적 후 게시물 전체 숨김 처리는 백엔드 담당 (연동 전이라 엔드포인트는 실제 명세에 맞춰 조정 필요) */
+export async function reportPost(postId, reason) {
+  const response = await apiClient.post(`/community/posts/${postId}/report`, { reason });
+  return response.data.data;
+}
