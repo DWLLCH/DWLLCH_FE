@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import backBtn from '../assets/backBtn.svg';
 import TextField from '../components/TextField';
 import Button from '../components/Button';
-import Toast from '../components/Toast';
+import Modal from '../components/Modal';
+import AccountChangeSuccess from '../components/AccountChangeSuccess';
 import { getNewPasswordRules } from '../utils/validators';
 import { changePassword } from '../api/account';
 import '../styles/AccountChange.css';
@@ -15,17 +16,16 @@ function PasswordChange() {
     newPasswordConfirm: '',
     currentPassword: '',
   });
-  const [toastMessage, setToastMessage] = useState('');
+  const [isComplete, setIsComplete] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
-  const navigateTimerRef = useRef(null);
+  const [currentPasswordError, setCurrentPasswordError] = useState('');
   const isMountedRef = useRef(true);
 
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
-      if (navigateTimerRef.current) clearTimeout(navigateTimerRef.current);
     };
   }, []);
 
@@ -38,6 +38,7 @@ function PasswordChange() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === 'currentPassword') setCurrentPasswordError('');
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -46,23 +47,23 @@ function PasswordChange() {
     if (!isFormValid || isSubmitting) return;
     setIsSubmitting(true);
     setSubmitError('');
+    setCurrentPasswordError('');
     try {
-      const response = await changePassword({
+      await changePassword({
         newPassword: form.newPassword,
         currentPassword: form.currentPassword,
       });
       if (!isMountedRef.current) return;
-      if (!response.success) {
-        setIsSubmitting(false);
-        setSubmitError('비밀번호 변경에 실패했어요. 다시 시도해주세요');
-        return;
-      }
-      setToastMessage('비밀번호가 변경됐어요');
-      navigateTimerRef.current = setTimeout(() => navigate('/mypage', { replace: true }), 1200);
-    } catch {
+      setIsComplete(true);
+    } catch (error) {
       if (!isMountedRef.current) return;
       setIsSubmitting(false);
-      setSubmitError('비밀번호 변경에 실패했어요. 다시 시도해주세요');
+      const code = error.response?.data?.code;
+      if (code === 'AUTH_400_CURRENT_PASSWORD_MISMATCH') {
+        setCurrentPasswordError('현재 비밀번호가 일치하지 않아요');
+      } else {
+        setSubmitError('비밀번호 변경에 실패했어요. 다시 시도해주세요');
+      }
     }
   };
 
@@ -80,76 +81,95 @@ function PasswordChange() {
         <h1>비밀번호 변경</h1>
       </header>
 
-      <Toast message={toastMessage} visible={Boolean(toastMessage)} />
+      {isComplete ? (
+        <AccountChangeSuccess
+          message="비밀번호 변경이 완료되었습니다."
+          onConfirm={() => navigate('/mypage', { replace: true })}
+        />
+      ) : (
+        <form className="account-change-body" onSubmit={handleSubmit}>
+          <section className="account-change-section">
+            <div className="account-change-heading">
+              <p className="account-change-label">새 비밀번호</p>
+              <p className="account-change-helper">영문, 숫자, 특수문자를 모두 조합한 8~20자</p>
+            </div>
+            <TextField
+              id="newPassword"
+              name="newPassword"
+              type="password"
+              placeholder="새 비밀번호"
+              value={form.newPassword}
+              onChange={handleChange}
+              autoComplete="new-password"
+            />
+            {form.newPassword && !isNewPasswordValid && (
+              <p className="account-change-message account-change-message--error">
+                비밀번호 조건을 확인해주세요
+              </p>
+            )}
+            <TextField
+              id="newPasswordConfirm"
+              name="newPasswordConfirm"
+              type="password"
+              placeholder="새 비밀번호 확인"
+              value={form.newPasswordConfirm}
+              onChange={handleChange}
+              autoComplete="new-password"
+            />
+            {form.newPasswordConfirm && (
+              <p
+                className={`account-change-message${isConfirmValid ? ' account-change-message--success' : ' account-change-message--error'}`}
+              >
+                {isConfirmValid ? '비밀번호가 일치해요' : '비밀번호가 일치하지 않아요'}
+              </p>
+            )}
+          </section>
 
-      <form className="account-change-body" onSubmit={handleSubmit}>
-        <section className="account-change-section">
-          <div className="account-change-heading">
-            <p className="account-change-label">새 비밀번호</p>
-            <p className="account-change-helper">영문, 숫자, 특수문자를 모두 조합한 8~20자</p>
+          <section className="account-change-section">
+            <p className="account-change-label">현재 비밀번호</p>
+            <TextField
+              id="currentPassword"
+              name="currentPassword"
+              type="password"
+              placeholder="현재 비밀번호"
+              value={form.currentPassword}
+              onChange={handleChange}
+              autoComplete="current-password"
+            />
+            {currentPasswordError && (
+              <p className="account-change-message account-change-message--error">
+                {currentPasswordError}
+              </p>
+            )}
+          </section>
+
+          <div className="account-change-notice">
+            <p className="account-change-notice-title">잠깐! 타인에 의한 계정 사용이 의심되나요?</p>
+            <p className="account-change-notice-desc">
+              개인정보 보호를 위해 비밀번호를 변경해 주세요.
+              <br />
+              변경 시 모든 디바이스에서 로그아웃 처리돼요.
+            </p>
           </div>
-          <TextField
-            id="newPassword"
-            name="newPassword"
-            type="password"
-            placeholder="새 비밀번호"
-            value={form.newPassword}
-            onChange={handleChange}
-            autoComplete="new-password"
-          />
-          {form.newPassword && !isNewPasswordValid && (
-            <p className="account-change-message account-change-message--error">
-              비밀번호 조건을 확인해주세요
-            </p>
-          )}
-          <TextField
-            id="newPasswordConfirm"
-            name="newPasswordConfirm"
-            type="password"
-            placeholder="새 비밀번호 확인"
-            value={form.newPasswordConfirm}
-            onChange={handleChange}
-            autoComplete="new-password"
-          />
-          {form.newPasswordConfirm && (
-            <p
-              className={`account-change-message${isConfirmValid ? ' account-change-message--success' : ' account-change-message--error'}`}
-            >
-              {isConfirmValid ? '비밀번호가 일치해요' : '비밀번호가 일치하지 않아요'}
-            </p>
-          )}
-        </section>
 
-        <section className="account-change-section">
-          <p className="account-change-label">현재 비밀번호</p>
-          <TextField
-            id="currentPassword"
-            name="currentPassword"
-            type="password"
-            placeholder="현재 비밀번호"
-            value={form.currentPassword}
-            onChange={handleChange}
-            autoComplete="current-password"
-          />
-        </section>
+          <Button type="submit" fullWidth disabled={!isFormValid || isSubmitting}>
+            비밀번호 변경
+          </Button>
+        </form>
+      )}
 
-        <div className="account-change-notice">
-          <p className="account-change-notice-title">잠깐! 타인에 의한 계정 사용이 의심되나요?</p>
-          <p className="account-change-notice-desc">
-            개인정보 보호를 위해 비밀번호를 변경해 주세요.
+      <Modal
+        open={Boolean(submitError)}
+        onClose={() => setSubmitError('')}
+        title="비밀번호 변경에 실패했어요"
+        description={
+          <>
+            일시적인 오류일 수 있어요.
             <br />
-            변경 시 모든 디바이스에서 로그아웃 처리돼요.
-          </p>
-        </div>
-
-        {submitError && (
-          <p className="account-change-message account-change-message--error">{submitError}</p>
-        )}
-
-        <Button type="submit" fullWidth disabled={!isFormValid || isSubmitting}>
-          비밀번호 변경
-        </Button>
-      </form>
+            잠시 후 다시 시도해주세요.
+          </>
+        }
+      />
     </div>
   );
 }

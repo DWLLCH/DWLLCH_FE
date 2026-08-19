@@ -16,7 +16,8 @@
 }
 
 .signup-header h1 {
-  font-size: 25px;
+  margin-bottom: 6px;
+  font-size: 19px;
   font-weight: 500;
 }
 
@@ -166,4 +167,11 @@
 
 .signup-body .btn-full {
   margin-top: 20px;
+}
+
+.signup-submit-error {
+  margin: 16px 0 0;
+  font-size: 13px;
+  color: #ff5b5b;
+  text-align: center;
 }

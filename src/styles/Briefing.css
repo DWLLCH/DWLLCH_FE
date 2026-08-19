@@ -24,8 +24,8 @@
 }
 
 .briefing-header h1 {
-  margin: 0;
-  font-size: 25px;
+  margin: 0 0 6px;
+  font-size: 19px;
   font-weight: 500;
   color: #000;
 }
@@ -58,6 +58,19 @@
 
 .briefing-body::-webkit-scrollbar {
   display: none;
+}
+
+.briefing-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+}
+
+.briefing-empty {
+  padding: 20px 0 0;
+  font-size: 14px;
+  color: #767676;
 }
 
 /* 섹션 */

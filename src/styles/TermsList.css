@@ -1,0 +1,29 @@
+.terms-list-group + .terms-list-group {
+  border-top: 1px solid #f0f0f0;
+}
+
+.terms-list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 46px;
+  padding: 0 20px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 15px;
+  color: #202020;
+  text-align: left;
+  cursor: pointer;
+}
+
+.terms-list-arrow {
+  width: 8px;
+  height: 14px;
+}
+
+.terms-list-group .terms-content {
+  margin: 0 16px 16px;
+  width: auto;
+}

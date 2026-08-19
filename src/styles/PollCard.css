@@ -11,6 +11,7 @@
   font-size: 15px;
   font-weight: 600;
   color: #000;
+  overflow-wrap: anywhere;
 }
 
 .poll-card-options {
@@ -21,8 +22,8 @@
 
 .poll-card-option {
   width: 100%;
-  height: 44px;
-  padding: 0 16px;
+  min-height: 44px;
+  padding: 12px 16px;
   border: 1px solid #d9d9d9;
   border-radius: 10px;
   background-color: #fff;
@@ -31,6 +32,8 @@
   color: #202020;
   text-align: left;
   cursor: pointer;
+  overflow-wrap: anywhere;
+  box-sizing: border-box;
   transition:
     border-color 0.15s ease,
     background-color 0.15s ease;
@@ -50,7 +53,7 @@
 
 .poll-card-result {
   position: relative;
-  height: 40px;
+  min-height: 40px;
   border-radius: 10px;
   background-color: #f2f2f2;
   overflow: hidden;
@@ -70,13 +73,20 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 100%;
-  padding: 0 14px;
+  gap: 10px;
+  min-height: 40px;
+  padding: 10px 14px;
   font-size: 14px;
   color: #202020;
+  box-sizing: border-box;
+}
+
+.poll-card-result-label {
+  overflow-wrap: anywhere;
 }
 
 .poll-card-result-percent {
+  flex-shrink: 0;
   font-weight: 600;
   color: #4fae7c;
 }
@@ -113,4 +123,13 @@
 .poll-card-submit:disabled {
   background-color: #d9d9d9;
   cursor: not-allowed;
+}
+
+.poll-card-error {
+  margin: 10px 0 0;
+  font-size: 12px;
+  /* #ff5b5b는 흰 배경에서 대비가 3:1 정도라 12px 텍스트 기준(4.5:1)을 못 채워서
+     같은 톤으로 유지하면서 대비 ~5.6:1이 나오는 색으로 낮춤 */
+  color: #c62828;
+  word-break: keep-all;
 }

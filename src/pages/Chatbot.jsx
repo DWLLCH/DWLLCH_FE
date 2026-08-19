@@ -89,6 +89,7 @@ function Chatbot() {
                     type={message.type}
                     imageUrl={message.imageUrl}
                     fileName={message.fileName}
+                    fileUrl={message.fileUrl}
                     quickReplies={message.quickReplies}
                     tail={group.sender === 'bot' && index === 0}
                     onSelectQuickReply={(option) => selectQuickReply(message.id, option)}

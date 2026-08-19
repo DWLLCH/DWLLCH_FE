@@ -122,13 +122,33 @@
   color: #fff;
 }
 
+.mypage-profile-error {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.mypage-retry-btn {
+  border: none;
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
 /* 활동 요약 */
 .mypage-stats {
   position: relative;
   z-index: 1;
   display: flex;
   align-items: center;
-  margin: -40px 20px 0;
+  width: 300px;
+  margin: -40px auto 0;
   padding: 18px 0;
   border-radius: 14px;
   background-color: #fff;
@@ -155,12 +175,14 @@
   font-size: 14px;
   font-weight: 600;
   color: #202020;
+  text-align: center;
 }
 
 .mypage-stat-value {
   font-size: 18px;
   font-weight: 600;
   color: #666;
+  text-align: center;
 }
 
 .mypage-stat-divider {

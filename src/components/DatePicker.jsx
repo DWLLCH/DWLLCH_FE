@@ -1,12 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
 import arrowBottom from '../assets/arrow_bottom.svg';
+import arrowUp from '../assets/arrow_up.svg';
 import Calendar from './Calendar';
 import { formatDateDots } from '../utils/formatters';
 import '../styles/DatePicker.css';
 
-function DatePicker({ value, onChange, placeholder = 'YYYY.MM.DD' }) {
+function DatePicker({
+  value,
+  onChange,
+  placeholder = 'YYYY.MM.DD',
+  disabled = false,
+  minDate = null,
+  maxDate = null,
+  inlineCalendar = false,
+}) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
+  const isOpen = (inlineCalendar || open) && !disabled;
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -18,28 +28,37 @@ function DatePicker({ value, onChange, placeholder = 'YYYY.MM.DD' }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (disabled) setOpen(false);
+  }, [disabled]);
+
   const handleSelect = (date) => {
     onChange(date);
-    setOpen(false);
+    if (!inlineCalendar) setOpen(false);
   };
 
   return (
-    <div className="date-picker" ref={wrapRef}>
+    <div className={`date-picker${inlineCalendar ? ' date-picker--inline' : ''}`} ref={wrapRef}>
       <button
         type="button"
-        className={`date-picker-box${open ? ' date-picker-box--open' : ''}`}
-        onClick={() => setOpen((prev) => !prev)}
+        className={`date-picker-box${isOpen ? ' date-picker-box--open' : ''}${disabled ? ' date-picker-box--disabled' : ''}`}
+        onClick={() => !disabled && setOpen((prev) => !prev)}
+        disabled={disabled}
       >
         <span className={`date-picker-value${value ? '' : ' date-picker-value--placeholder'}`}>
           {value ? formatDateDots(value) : placeholder}
         </span>
-        <img
-          src={arrowBottom}
-          alt=""
-          className={`date-picker-icon${open ? ' date-picker-icon--open' : ''}`}
-        />
+        <img src={isOpen ? arrowUp : arrowBottom} alt="" className="date-picker-icon" />
       </button>
-      {open && <Calendar value={value} onSelect={handleSelect} />}
+      {isOpen && (
+        <Calendar
+          value={value}
+          onSelect={handleSelect}
+          minDate={minDate}
+          maxDate={maxDate}
+          inline={inlineCalendar}
+        />
+      )}
     </div>
   );
 }

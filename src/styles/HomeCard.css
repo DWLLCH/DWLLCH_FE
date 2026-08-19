@@ -44,6 +44,12 @@
   font-weight: 500;
   line-height: 20px;
   color: #666;
+  word-break: keep-all;
+}
+
+.home-card-desc span {
+  display: block;
+  text-wrap: balance;
 }
 
 .home-card-cta {

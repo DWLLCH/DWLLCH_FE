@@ -37,3 +37,16 @@
 .category-chip--selected:hover {
   background-color: #5cc98c;
 }
+
+.category-chip:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.category-chip:disabled:hover {
+  background-color: #fff;
+}
+
+.category-chip--selected:disabled:hover {
+  background-color: #6cd59b;
+}

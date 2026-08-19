@@ -1,48 +1,121 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
 import ChatbotButton from '../components/ChatbotButton';
 import HomeCard from '../components/HomeCard';
 import Calendar from '../components/Calendar';
+import LoginRequiredModal from '../components/LoginRequiredModal';
+import OnboardingRequiredModal from '../components/OnboardingRequiredModal';
 import wavingHand from '../assets/waving_hand.svg';
-import { CURRENT_USER_NAME, RECRUITMENTS } from '../constants/home';
+import { getMyProfile } from '../api/mypage';
+import { getAccessToken } from '../api/auth';
+import { RECRUITMENTS } from '../constants/home';
 import { formatDateKey } from '../utils/formatters';
 import '../styles/Home.css';
 
 function Home() {
   const navigate = useNavigate();
+  const [isLoggedIn] = useState(() => Boolean(getAccessToken()));
   const [selectedDate, setSelectedDate] = useState(new Date());
+
+  // 로그인 상태에서만 쓰는 실제 닉네임
+  const [username, setUsername] = useState('');
+  const [onboardingComplete, setOnboardingComplete] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(isLoggedIn);
+  const [profileError, setProfileError] = useState(false);
+
+  // TODO: 마이페이지와 마찬가지로 공통 에러 모달이 머지되면 LoginRequiredModal을 그걸로 교체할 것
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showOnboardingModal, setShowOnboardingModal] = useState(false);
 
   const selectedKey = formatDateKey(selectedDate);
   const dailyRecruitments = RECRUITMENTS.filter((item) => item.date === selectedKey);
+
+  const fetchProfile = useCallback(() => {
+    if (!isLoggedIn) return;
+    setProfileLoading(true);
+    setProfileError(false);
+    getMyProfile()
+      .then((data) => {
+        setUsername(data.username || '');
+        setOnboardingComplete(Boolean(data.birthDate));
+      })
+      .catch(() => {
+        setProfileError(true);
+      })
+      .finally(() => {
+        setProfileLoading(false);
+      });
+  }, [isLoggedIn]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+  const handleGatedNavigate = (path) => {
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
+    if (profileLoading) return;
+    if (profileError || !onboardingComplete) {
+      setShowOnboardingModal(true);
+      return;
+    }
+    navigate(path);
+  };
 
   return (
     <div className="home">
       <div className="home-scroll">
         <div className="home-greeting">
-          <p>
-            안녕하세요, {CURRENT_USER_NAME}님 <img src={wavingHand} alt="" />
-          </p>
+          {isLoggedIn ? (
+            profileError ? (
+              <div className="home-banner-error">
+                <p>사용자 정보를 불러오지 못했어요</p>
+                <button type="button" className="home-retry-btn" onClick={fetchProfile}>
+                  다시 시도
+                </button>
+              </div>
+            ) : (
+              !profileLoading && (
+                <p className="home-greeting-text">
+                  안녕하세요, {username}님 <img src={wavingHand} alt="" />
+                </p>
+              )
+            )
+          ) : (
+            <>
+              <p className="home-greeting-text">
+                안녕하세요! <img src={wavingHand} alt="" />
+              </p>
+              <p className="home-greeting-sub">로그인하고 나에게 맞는 지원정보를 찾아보세요.</p>
+            </>
+          )}
         </div>
 
         <HomeCard
           theme="green"
           title="제도 한눈에 보기"
-          descLines={[
-            `${CURRENT_USER_NAME}님의 현재 상황을 바탕으로`,
-            '지금 확인할 지원제도를 찾아드려요',
-          ]}
-          onClick={() => navigate('/support/list')}
+          descLines={
+            isLoggedIn && username
+              ? [`${username}님의 현재 상황을 바탕으로`, '지금 확인할 지원제도를 찾아드려요']
+              : ['나에게 필요한 지원제도를', '한눈에 확인해보세요.']
+          }
+          ctaLabel={isLoggedIn ? '지금 확인하러 가기' : '로그인 후 이용 가능'}
+          onClick={() => handleGatedNavigate('/support/list')}
         />
 
         <HomeCard
           theme="blue"
           title="AI 맞춤형 지원 제도"
-          descLines={[
-            `AI가 ${CURRENT_USER_NAME}님이 받을 수 있는`,
-            '지원제도를 꼼꼼하게 찾아봤어요',
-          ]}
-          onClick={() => navigate('/theme')}
+          descLines={
+            isLoggedIn && username
+              ? [`AI가 ${username}님이 받을 수 있는`, '지원제도를 꼼꼼하게 찾아드려요']
+              : ['내 상황에 맞는 지원지도를', 'AI가 찾아드려요.']
+          }
+          ctaLabel={isLoggedIn ? '지금 확인하러 가기' : '로그인 후 이용 가능'}
+          onClick={() => handleGatedNavigate('/theme')}
         />
 
         <div className="home-calendar-card">
@@ -75,6 +148,12 @@ function Home() {
 
       <ChatbotButton onClick={() => navigate('/chatbot')} />
       <BottomNav />
+
+      <LoginRequiredModal open={showLoginModal} onClose={() => setShowLoginModal(false)} />
+      <OnboardingRequiredModal
+        open={showOnboardingModal}
+        onClose={() => setShowOnboardingModal(false)}
+      />
     </div>
   );
 }

@@ -4,8 +4,21 @@ export const CATEGORIES = ['최신', '꿀팁', '고민', '자유'];
 
 export const POST_CATEGORIES = ['꿀팁', '고민', '자유'];
 
+// 프론트 탭/카테고리 한글 라벨 <-> 백엔드 boardType 코드
+// latest_post_list 라우팅 백엔드에 확인 요청함 (수정후 각주 삭제)
+export const BOARD_TYPE_TO_LABEL = { LATEST: '최신', TIP: '꿀팁', WORRY: '고민', FREE: '자유' };
+export const LABEL_TO_BOARD_TYPE = { 최신: 'LATEST', 꿀팁: 'TIP', 고민: 'WORRY', 자유: 'FREE' };
+
+export const REPORT_REASONS = [
+  { value: 'SPAM', label: '스팸, 광고' },
+  { value: 'SEXUAL', label: '음란성, 선정성 글' },
+  { value: 'HATE', label: '혐오, 반응 조장 발언' },
+  { value: 'PRIVACY', label: '개인정보 노출' },
+  { value: 'FAKE_NEWS', label: '의도적인 거짓 정보 확산' },
+];
+
 export const NOTICE_POST = {
-  id: 'notice-1',
+  id: 8,
   badge: 'notice',
   title: '커뮤니티 이용 안내 및 수칙',
   description:

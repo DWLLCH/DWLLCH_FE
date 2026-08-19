@@ -1,35 +1,81 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import birdLogo from '../assets/bird_logo.svg';
 import pencil from '../assets/pencil.svg';
 import alarm from '../assets/alarm.svg';
 import BottomNav from '../components/BottomNav';
 import SettingsRow from '../components/SettingsRow';
+import LoginRequiredModal from '../components/LoginRequiredModal';
+import Modal from '../components/Modal';
 import useBookmarks from '../hooks/useBookmarks';
 import useNotifications from '../hooks/useNotifications';
-import { CURRENT_USER_NAME } from '../constants/home';
-import { APPLICATION_STATS, USER_EMAIL, APP_VERSION } from '../constants/mypage';
+import useAvatar from '../hooks/useAvatar';
+import useApplication from '../hooks/useApplication';
+import { getMyProfile } from '../api/mypage';
+import { getAccessToken, clearTokens } from '../api/auth';
+import { APP_VERSION } from '../constants/mypage';
 import '../styles/MyPage.css';
 
 function MyPage() {
   const navigate = useNavigate();
+  const [isLoggedIn] = useState(() => Boolean(getAccessToken()));
   const { bookmarkedIds } = useBookmarks();
   const { hasUnread } = useNotifications();
-  const [avatarUrl, setAvatarUrl] = useState(null);
+  const { avatarUrl, setAvatarUrl } = useAvatar();
+  const { appliedCount } = useApplication();
+  const [profile, setProfile] = useState({ username: '', email: '' });
+  const [profileError, setProfileError] = useState(false);
+  const [photoModalOpen, setPhotoModalOpen] = useState(false);
+  const [logoutModalOpen, setLogoutModalOpen] = useState(false);
   const fileInputRef = useRef(null);
+  const isMountedRef = useRef(true);
 
-  useEffect(
-    () => () => {
-      if (avatarUrl) URL.revokeObjectURL(avatarUrl);
-    },
-    [avatarUrl],
-  );
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  const fetchProfile = useCallback(() => {
+    if (!isLoggedIn) return;
+    setProfileError(false);
+    getMyProfile()
+      .then((data) => {
+        if (!isMountedRef.current) return;
+        setProfile({ username: data.username, email: data.email });
+      })
+      .catch(() => {
+        if (!isMountedRef.current) return;
+        setProfileError(true);
+      });
+  }, [isLoggedIn]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     setAvatarUrl(URL.createObjectURL(file));
     e.target.value = '';
+  };
+
+  const handlePickAlbum = () => {
+    setPhotoModalOpen(false);
+    fileInputRef.current.click();
+  };
+
+  const handleResetDefault = () => {
+    setPhotoModalOpen(false);
+    setAvatarUrl(null);
+  };
+
+  const handleLogout = () => {
+    clearTokens();
+    setLogoutModalOpen(false);
+    navigate('/login', { replace: true });
   };
 
   return (
@@ -58,7 +104,7 @@ function MyPage() {
               type="button"
               className="mypage-avatar-edit"
               aria-label="프로필 사진 변경"
-              onClick={() => fileInputRef.current.click()}
+              onClick={() => setPhotoModalOpen(true)}
             >
               <img src={pencil} alt="" />
             </button>
@@ -71,18 +117,24 @@ function MyPage() {
             />
           </div>
 
-          <p className="mypage-name">{CURRENT_USER_NAME}</p>
+          {!isLoggedIn ? (
+            <p className="mypage-name">로그인이 필요해요</p>
+          ) : profileError ? (
+            <div className="mypage-profile-error">
+              <p className="mypage-name">정보를 불러오지 못했어요</p>
+              <button type="button" className="mypage-retry-btn" onClick={fetchProfile}>
+                다시 시도
+              </button>
+            </div>
+          ) : (
+            <p className="mypage-name">{profile.username}</p>
+          )}
         </div>
 
         <div className="mypage-stats">
           <div className="mypage-stat">
-            <span className="mypage-stat-label">신청 완료</span>
-            <span className="mypage-stat-value">{APPLICATION_STATS.completed}회</span>
-          </div>
-          <span className="mypage-stat-divider" />
-          <div className="mypage-stat">
-            <span className="mypage-stat-label">신청 대기</span>
-            <span className="mypage-stat-value">{APPLICATION_STATS.pending}회</span>
+            <span className="mypage-stat-label">신청</span>
+            <span className="mypage-stat-value">{appliedCount}건</span>
           </div>
           <span className="mypage-stat-divider" />
           <button
@@ -96,15 +148,20 @@ function MyPage() {
         </div>
 
         <section className="mypage-section">
-          <h2 className="mypage-section-title">프로필</h2>
+          <h2 className="mypage-section-title">계정</h2>
           <div className="mypage-card">
-            <SettingsRow label="아이디" value={USER_EMAIL} />
+            <SettingsRow
+              label="이메일"
+              value={profile.email}
+              chevron
+              onClick={() => navigate('/mypage/email')}
+            />
             <SettingsRow
               label="비밀번호 변경"
               chevron
               onClick={() => navigate('/mypage/password')}
             />
-            <SettingsRow label="이메일 변경" chevron onClick={() => navigate('/mypage/email')} />
+            <SettingsRow label="아이디 변경" chevron onClick={() => navigate('/mypage/id')} />
           </div>
         </section>
 
@@ -120,17 +177,67 @@ function MyPage() {
           </div>
         </section>
 
+        <section className="mypage-section">
+          <h2 className="mypage-section-title">계정 관리</h2>
+          <div className="mypage-card">
+            <SettingsRow label="로그아웃" chevron onClick={() => setLogoutModalOpen(true)} />
+            <SettingsRow
+              label="회원 탈퇴"
+              chevron
+              danger
+              onClick={() => navigate('/mypage/withdraw')}
+            />
+          </div>
+        </section>
+
         <section className="mypage-section mypage-section--last">
           <h2 className="mypage-section-title">기타</h2>
           <div className="mypage-card">
-            <SettingsRow label="문의하기" chevron />
-            <SettingsRow label="약관 및 정책" chevron />
-            <SettingsRow label="버전 정보" value={APP_VERSION} />
+            <SettingsRow label="문의하기" chevron onClick={() => navigate('/mypage/inquiry')} />
+            <SettingsRow label="약관 및 정책" chevron onClick={() => navigate('/mypage/terms')} />
+            <SettingsRow
+              label="버전 정보"
+              value={APP_VERSION}
+              chevron
+              onClick={() => navigate('/mypage/version')}
+            />
           </div>
         </section>
       </div>
 
       <BottomNav />
+
+      <Modal
+        open={photoModalOpen}
+        onClose={() => setPhotoModalOpen(false)}
+        title="프로필 사진 변경"
+        description="프로필 사진을 변경하시겠습니까?"
+      >
+        <div className="modal-actions modal-actions--stacked">
+          <button type="button" className="modal-btn modal-btn--confirm" onClick={handlePickAlbum}>
+            앨범에서 선택
+          </button>
+          <button
+            type="button"
+            className="modal-btn modal-btn--cancel"
+            onClick={handleResetDefault}
+          >
+            기본 이미지로 변경
+          </button>
+        </div>
+      </Modal>
+
+      <Modal
+        open={logoutModalOpen}
+        onClose={() => setLogoutModalOpen(false)}
+        title="로그아웃 하시겠어요?"
+        confirmLabel="로그아웃"
+        cancelLabel="취소"
+        danger
+        onConfirm={handleLogout}
+      />
+
+      <LoginRequiredModal open={!isLoggedIn} onClose={() => navigate('/home')} />
     </div>
   );
 }

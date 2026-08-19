@@ -13,7 +13,28 @@ export const FILTER_GROUPS = [
   },
 ];
 
-export const SORT_OPTIONS = ['AI 추천순', '최근 업데이트 순', '신청 마감 빠른 순', '찜 많은 순'];
+/* GET /policies의 protectionType/ageRange/incomeCriteria 파라미터 값 매핑 */
+export const FILTER_VALUE_MAP = {
+  아동양육시설: { param: 'protectionType', value: 'RESIDENTIAL_CARE' },
+  공동생활가정: { param: 'protectionType', value: 'GROUP_HOME' },
+  가정위탁: { param: 'protectionType', value: 'FOSTER_CARE' },
+  '만 18세 미만': { param: 'ageRange', value: 'UNDER_18' },
+  '만 18세 ~ 만 24세': { param: 'ageRange', value: 'AGE_18_24' },
+  '만 25세 ~ 만 34세': { param: 'ageRange', value: 'AGE_25_34' },
+  기초생활수급자: { param: 'incomeCriteria', value: 'BASIC_LIVELIHOOD' },
+  '기준 중위소득': { param: 'incomeCriteria', value: 'MEDIAN_INCOME' },
+  차상위계층: { param: 'incomeCriteria', value: 'NEAR_POOR' },
+};
+
+export const SORT_OPTIONS = ['AI 추천순', '최근 업데이트 순', '신청 마감 빠른 순', '인기순'];
+
+/* GET /policies의 sort 파라미터 값 매핑 */
+export const SORT_VALUE_MAP = {
+  'AI 추천순': 'matchLevel',
+  '최근 업데이트 순': 'updatedAt',
+  '신청 마감 빠른 순': 'applicationEnd',
+  인기순: 'scrapCount',
+};
 
 export const AI_SORT_INFO = {
   title: 'AI 추천순이란?',

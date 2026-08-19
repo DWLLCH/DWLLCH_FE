@@ -6,19 +6,23 @@ function PolicyBadges({ level, dday }) {
 
   return (
     <div className="policy-badges">
-      <span
-        className="policy-badge-fit"
-        style={{ backgroundColor: config.bg, color: config.color }}
-      >
-        <img src={config.icon} alt="" />
-        AI 예상 적합도 {config.label}
-      </span>
-      <span
-        className="policy-badge-dday"
-        style={{ backgroundColor: config.bg, color: config.color }}
-      >
-        {dday}
-      </span>
+      {config && (
+        <span
+          className="policy-badge-fit"
+          style={{ backgroundColor: config.bg, color: config.color }}
+        >
+          <img src={config.icon} alt="" />
+          AI 예상 적합도 {config.label}
+        </span>
+      )}
+      {dday && (
+        <span
+          className="policy-badge-dday"
+          style={config ? { backgroundColor: config.bg, color: config.color } : undefined}
+        >
+          {dday}
+        </span>
+      )}
     </div>
   );
 }

@@ -19,8 +19,8 @@
 }
 
 .post-detail-header h1 {
-  margin: 0;
-  font-size: 25px;
+  margin: 0 0 6px;
+  font-size: 19px;
   font-weight: 500;
 }
 
@@ -43,9 +43,72 @@
   width: 17px;
 }
 
+/* 더보기 앵커 팝오버 */
+.post-detail-more-wrap {
+  position: absolute;
+  right: 20px;
+  bottom: 8px;
+}
+
+.post-detail-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.post-detail-more img {
+  width: 18px;
+}
+
+.post-detail-more-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 10;
+  width: 140px;
+  padding: 6px 0;
+  background-color: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.post-detail-more-option {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 15px;
+  color: #202020;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+}
+
+.post-detail-more-option:hover {
+  background-color: #f7faf8;
+}
+
+.post-detail-more-option:focus-visible {
+  background-color: #f7faf8;
+}
+
+.post-detail-more-option--danger {
+  color: #ff5b5b;
+}
+
 .post-detail-body {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 20px 24px 32px;
   scrollbar-width: none;
 }
@@ -55,6 +118,12 @@
 }
 
 /* 카테고리 */
+.post-detail-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .post-detail-category {
   display: inline-flex;
   flex-shrink: 0;
@@ -78,12 +147,45 @@
   font-size: 14px;
 }
 
+/* 내 글 수정·삭제 */
+.post-detail-owner-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.post-detail-owner-btn {
+  padding: 5px 9px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  font-family: inherit;
+  font-size: 13px;
+  color: #666;
+  cursor: pointer;
+  outline: none;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.post-detail-owner-btn:hover {
+  background-color: #f2fbf6;
+  color: #4fae7c;
+}
+
+.post-detail-owner-btn:focus-visible {
+  outline: 2px solid #4fae7c;
+  outline-offset: 2px;
+}
+
 .post-detail-title {
   margin: 16px 0 0;
   font-size: 17px;
   font-weight: 600;
   color: #000;
   word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 .post-detail-meta {
@@ -132,6 +234,7 @@
   line-height: 1.5;
   color: #000;
   word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 .post-detail-content p {
@@ -185,6 +288,17 @@
   margin: 12px 0 0;
   padding: 0;
   list-style: none;
+}
+
+.post-detail-comment-retry {
+  border: none;
+  background: #ecf8f1;
+  color: #4fae7c;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
 }
 
 /* 게시글 없음 */

@@ -54,7 +54,7 @@ function SignUpComplete() {
         <Button fullWidth variant="blue" onClick={() => navigate('/onboarding/1')}>
           자립 프로필 만들기
         </Button>
-        <Button fullWidth variant="gray">
+        <Button fullWidth variant="gray" onClick={() => navigate('/home')}>
           나중에 할게요
         </Button>
       </div>

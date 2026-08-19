@@ -26,6 +26,10 @@
   color: #000;
 }
 
+.comment-author--owner {
+  color: #6cd59b;
+}
+
 .comment-time {
   font-size: 12px;
   color: #999;
@@ -37,6 +41,7 @@
   color: #202020;
   line-height: 1.5;
   word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 .comment-text--deleted {
@@ -129,18 +134,36 @@
 
 .comment-reply-arrow {
   width: 9px;
-  transition: transform 0.15s ease;
 }
 
-.comment-reply-arrow--open {
-  transform: rotate(180deg);
+.comment-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 13px;
+  margin-left: auto;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1;
+  color: #999;
+  cursor: pointer;
+  outline: none;
+}
+
+.comment-edit-btn:hover {
+  color: #4fae7c;
+}
+
+.comment-edit-btn:focus-visible {
+  outline: 2px solid #4fae7c;
+  outline-offset: 2px;
 }
 
 .comment-delete-btn {
   display: inline-flex;
   align-items: center;
   height: 13px;
-  margin-left: auto;
   border: none;
   background: none;
   font-family: inherit;
@@ -158,6 +181,59 @@
 .comment-delete-btn:focus-visible {
   outline: 2px solid #4fae7c;
   outline-offset: 2px;
+}
+
+.comment-edit-box {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.comment-edit-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+}
+
+.comment-edit-input:focus {
+  border-color: #4fae7c;
+}
+
+.comment-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.comment-edit-save,
+.comment-edit-cancel {
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+}
+
+.comment-edit-save:focus-visible,
+.comment-edit-cancel:focus-visible {
+  outline: 2px solid #4fae7c;
+  outline-offset: 2px;
+}
+
+.comment-edit-save {
+  color: #4fae7c;
+}
+
+.comment-edit-cancel {
+  color: #999;
 }
 
 .comment-reply-section {
@@ -178,6 +254,10 @@
   margin: 0;
   font-size: 13px;
   font-weight: 600;
+  color: #000;
+}
+
+.comment-reply-author--owner {
   color: #6cd59b;
 }
 
@@ -187,6 +267,7 @@
   color: #202020;
   line-height: 1.5;
   word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 .comment-reply-footer {

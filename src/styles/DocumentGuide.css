@@ -19,8 +19,8 @@
 }
 
 .doc-guide-header h1 {
-  margin: 0;
-  font-size: 25px;
+  margin: 0 0 6px;
+  font-size: 19px;
   font-weight: 500;
 }
 
@@ -52,6 +52,23 @@
 
 .doc-guide-body::-webkit-scrollbar {
   display: none;
+}
+
+.doc-guide-notfound {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  font-size: 14px;
+  color: #999;
+}
+
+.doc-guide-empty {
+  margin-top: 24px;
+  padding: 24px 0;
+  text-align: center;
+  font-size: 14px;
+  color: #999;
 }
 
 /* 안내 배너 */

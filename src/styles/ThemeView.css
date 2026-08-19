@@ -19,8 +19,8 @@
 }
 
 .theme-header h1 {
-  margin: 0;
-  font-size: 25px;
+  margin: 0 0 6px;
+  font-size: 19px;
   font-weight: 500;
 }
 
@@ -55,4 +55,23 @@
 
 .theme-body::-webkit-scrollbar {
   display: none;
+}
+
+.theme-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+}
+
+.theme-incomplete {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px 16px;
+  border-radius: 12px;
+  background-color: #f5f7fb;
+  text-align: center;
+  font-size: 14px;
+  color: #666;
 }

@@ -7,14 +7,23 @@ import Dropdown from '../components/Dropdown';
 import DatePicker from '../components/DatePicker';
 import OptionChip from '../components/OptionChip';
 import useMyInfo from '../hooks/useMyInfo';
+import { updateMyProfile } from '../api/mypage';
 import { SIDO_LIST, SIGUNGU_MAP } from '../constants/regions';
 import { formatBirthDate, formatDateKey } from '../utils/formatters';
-import { isValidBirthDate } from '../utils/validators';
+import {
+  fromProtectionTypeLabel,
+  fromHousingTypeLabel,
+  fromHousingSituationLabel,
+  fromLivingStatusLabels,
+  fromIncomeTypeLabel,
+  fromSupportReceivedLabels,
+  fromNeededHelpLabels,
+} from '../constants/profileLabels';
 import '../styles/MyInfo.css';
 
 const PROTECTION_TYPES = ['아동양육시설', '공동생활가정', '가정위탁', '기타', '잘 모르겠어요'];
 
-const END_STATUSES = ['아직 보호 중이에요', '보호 종료 예정이에요', '보호 종료했어요'];
+const END_STATUSES = ['아직 보호 중이에요', '보호 종료했어요'];
 
 const HOUSING_TYPES = [
   '월세 (보증금과 월 임대료를 내고 있어요)',
@@ -85,10 +94,19 @@ function normalize(data) {
   });
 }
 
+function sameItems(a, b) {
+  if (a.length !== b.length) return false;
+  const sortedA = [...a].sort();
+  const sortedB = [...b].sort();
+  return sortedA.every((item, index) => item === sortedB[index]);
+}
+
 function MyInfoEdit() {
   const navigate = useNavigate();
-  const { data, updateData } = useMyInfo();
+  const { data, refetch } = useMyInfo();
   const [draft, setDraft] = useState(data);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
 
   const patch = (fields) => setDraft((prev) => ({ ...prev, ...fields }));
 
@@ -141,18 +159,75 @@ function MyInfoEdit() {
   };
 
   const sigunguOptions = draft.sido ? SIGUNGU_MAP[draft.sido] || [] : [];
-  const isBirthDateValid = isValidBirthDate(draft.birthDate);
   const hasValidResidence =
     SIDO_LIST.includes(draft.sido) && Boolean(SIGUNGU_MAP[draft.sido]?.includes(draft.sigungu));
-  const hasRequiredEndDate = draft.endStatus === '아직 보호 중이에요' || Boolean(draft.endDate);
+  const endDateLabel = draft.endStatus === '보호 종료했어요' ? '보호 종료일' : '보호 종료 예정일';
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const endDateMinDate = draft.endStatus === '아직 보호 중이에요' ? today : null;
+  const endDateMaxDate = draft.endStatus === '보호 종료했어요' ? today : null;
+  const endDateRangeError = !draft.endDate
+    ? null
+    : draft.endStatus === '아직 보호 중이에요' && draft.endDate < today
+      ? '현재 일자보다 이전 날짜는 선택할 수 없어요'
+      : draft.endStatus === '보호 종료했어요' && draft.endDate > today
+        ? '현재 일자보다 이후 날짜는 선택할 수 없어요'
+        : null;
+  const hasRequiredEndDate = Boolean(draft.endDate) && !endDateRangeError;
   const isDirty = normalize(draft) !== normalize(data);
-  const canSubmit = isDirty && isBirthDateValid && hasValidResidence && hasRequiredEndDate;
+  const canSubmit = isDirty && hasValidResidence && hasRequiredEndDate && !isSubmitting;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!canSubmit) return;
-    updateData(draft);
-    navigate('/my-info');
+
+    setSubmitError(null);
+    setIsSubmitting(true);
+
+    // 생년월일은 read_only라 payload에 넣지 않습니다.
+    // 나머지 필드도 실제로 바뀐 것만 보냅니다. (안 바뀐 값까지 매번 같이 보내면,
+    // 조회 이후 다른 경로로 바뀐 서버 값을 오래된 draft 값으로 덮어쓸 수 있어서)
+    const payload = {};
+    if (draft.sido !== data.sido || draft.sigungu !== data.sigungu) {
+      payload.region = { sido: draft.sido, sigungu: draft.sigungu };
+    }
+    if (draft.protectionType !== data.protectionType) {
+      payload.protectionType = fromProtectionTypeLabel(draft.protectionType);
+    }
+    const draftEndDateKey = draft.endDate ? formatDateKey(draft.endDate) : null;
+    const dataEndDateKey = data.endDate ? formatDateKey(data.endDate) : null;
+    if (draftEndDateKey !== dataEndDateKey) {
+      // protectionEndDate는 현재 백엔드가 read_only라 무시되지만, writable로 바뀌는 즉시 바로 동작하도록 미리 보냅니다.
+      payload.protectionEndDate = draftEndDateKey;
+    }
+    if (draft.housing !== data.housing) {
+      payload.housingType = fromHousingTypeLabel(draft.housing);
+    }
+    if (draft.housingSituation !== data.housingSituation) {
+      payload.housingSituation = fromHousingSituationLabel(draft.housingSituation);
+    }
+    if (!sameItems(draft.lifestyle, data.lifestyle)) {
+      payload.livingStatus = fromLivingStatusLabels(draft.lifestyle);
+    }
+    if (draft.incomeType !== data.incomeType) {
+      payload.incomeType = fromIncomeTypeLabel(draft.incomeType);
+    }
+    if (!sameItems(draft.currentSupports, data.currentSupports)) {
+      payload.supportReceived = fromSupportReceivedLabels(draft.currentSupports);
+    }
+    if (!sameItems(draft.supportNeeds, data.supportNeeds)) {
+      payload.neededHelp = fromNeededHelpLabels(draft.supportNeeds);
+    }
+
+    try {
+      await updateMyProfile(payload);
+      await refetch();
+      navigate('/my-info');
+    } catch {
+      setSubmitError('정보를 저장하지 못했어요. 잠시 후 다시 시도해주세요.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -180,6 +255,7 @@ function MyInfoEdit() {
             onChange={handleBirthDateChange}
             inputMode="numeric"
             maxLength={10}
+            disabled
           />
         </section>
 
@@ -223,27 +299,22 @@ function MyInfoEdit() {
                 key={status}
                 label={status}
                 selected={draft.endStatus === status}
-                onClick={() => {
-                  if (draft.endStatus !== status) {
-                    patch({
-                      endStatus: status,
-                      endDate: status === '아직 보호 중이에요' ? null : draft.endDate,
-                    });
-                  }
-                }}
+                onClick={() => patch({ endStatus: status })}
               />
             ))}
           </div>
         </section>
 
-        {draft.endStatus !== '아직 보호 중이에요' && (
-          <section className="myinfo-edit-section">
-            <p className="myinfo-edit-label">
-              {draft.endStatus === '보호 종료했어요' ? '보호 종료일' : '보호 종료 예정일'}
-            </p>
-            <DatePicker value={draft.endDate} onChange={(date) => patch({ endDate: date })} />
-          </section>
-        )}
+        <section className="myinfo-edit-section">
+          <p className="myinfo-edit-label">{endDateLabel}</p>
+          <DatePicker
+            value={draft.endDate}
+            onChange={(date) => patch({ endDate: date })}
+            minDate={endDateMinDate}
+            maxDate={endDateMaxDate}
+          />
+          {endDateRangeError && <p className="myinfo-edit-error-inline">{endDateRangeError}</p>}
+        </section>
 
         <section className="myinfo-edit-section">
           <p className="myinfo-edit-label">주거 형태</p>
@@ -352,8 +423,14 @@ function MyInfoEdit() {
           </div>
         </section>
 
+        {submitError && (
+          <p className="myinfo-edit-error" role="alert">
+            {submitError}
+          </p>
+        )}
+
         <Button type="submit" variant="green" fullWidth disabled={!canSubmit}>
-          수정 완료
+          {isSubmitting ? '저장 중...' : '수정 완료'}
         </Button>
       </form>
     </div>

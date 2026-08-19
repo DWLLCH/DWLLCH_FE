@@ -19,8 +19,8 @@
 }
 
 .my-activity-header h1 {
-  margin: 0;
-  font-size: 25px;
+  margin: 0 0 6px;
+  font-size: 19px;
   font-weight: 500;
   color: #000;
 }
@@ -68,4 +68,38 @@
   height: 100%;
   color: #adadad;
   font-size: 14px;
+}
+
+.my-activity-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 48px 0;
+}
+
+/* 더보기/다시 시도 버튼은 Button 컴포넌트(.btn.btn-full)를 그대로 써서
+   호버/클릭 애니메이션까지 다른 곳의 버튼과 동일하게 맞추고, 여기서는 간격만 잡아줌 */
+.my-activity-more-btn {
+  margin: 16px 0;
+}
+
+.my-activity-loadmore-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0;
+  padding: 12px;
+  text-align: center;
+}
+
+.my-activity-loadmore-error .my-activity-more-btn {
+  margin: 0;
+}
+
+.my-activity-loadmore-error p {
+  margin: 0;
+  font-size: 13px;
+  color: #999;
 }

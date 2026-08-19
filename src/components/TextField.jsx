@@ -15,6 +15,7 @@ function TextField({
   inputMode,
   maxLength,
   autoComplete = 'off',
+  disabled = false,
 }) {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === 'password';
@@ -27,7 +28,7 @@ function TextField({
           {label}
         </label>
       )}
-      <div className="text-field-box">
+      <div className={`text-field-box${disabled ? ' text-field-box--disabled' : ''}`}>
         <input
           id={id}
           name={name}
@@ -39,6 +40,7 @@ function TextField({
           autoComplete={autoComplete}
           inputMode={inputMode}
           maxLength={maxLength}
+          disabled={disabled}
         />
         {rightElement
           ? rightElement

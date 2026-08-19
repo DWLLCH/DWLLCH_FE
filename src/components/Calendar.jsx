@@ -37,7 +37,13 @@ function isSameDate(a, b) {
   );
 }
 
-function Calendar({ value, onSelect, inline = false }) {
+function isDateDisabled(date, minDate, maxDate) {
+  if (minDate && date < minDate) return true;
+  if (maxDate && date > maxDate) return true;
+  return false;
+}
+
+function Calendar({ value, onSelect, inline = false, minDate = null, maxDate = null }) {
   const initial = value instanceof Date ? value : new Date();
   const [viewYear, setViewYear] = useState(initial.getFullYear());
   const [viewMonth, setViewMonth] = useState(initial.getMonth());
@@ -97,13 +103,17 @@ function Calendar({ value, onSelect, inline = false }) {
           const cellDate = cell.current ? new Date(viewYear, viewMonth, cell.day) : null;
           const selected = cell.current && isSameDate(cellDate, value);
           const isToday = cell.current && isSameDate(cellDate, new Date());
+          const outOfRange = cell.current && isDateDisabled(cellDate, minDate, maxDate);
+          const cellDisabled = !cell.current || outOfRange;
           return (
             <button
               key={index}
               type="button"
-              className={`calendar-cell${cell.current ? '' : ' calendar-cell--muted'}${selected ? ' calendar-cell--selected' : ''}${isToday ? ' calendar-cell--today' : ''}`}
-              onClick={() => cell.current && onSelect(new Date(viewYear, viewMonth, cell.day))}
-              disabled={!cell.current}
+              className={`calendar-cell${cell.current ? '' : ' calendar-cell--muted'}${selected ? ' calendar-cell--selected' : ''}${isToday ? ' calendar-cell--today' : ''}${outOfRange ? ' calendar-cell--disabled' : ''}`}
+              onClick={() =>
+                cell.current && !outOfRange && onSelect(new Date(viewYear, viewMonth, cell.day))
+              }
+              disabled={cellDisabled}
             >
               {cell.day}
             </button>

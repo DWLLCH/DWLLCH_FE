@@ -8,6 +8,7 @@ function ChatBubble({
   type = 'text',
   imageUrl,
   fileName,
+  fileUrl,
   quickReplies,
   onSelectQuickReply,
   tail = false,
@@ -17,16 +18,23 @@ function ChatBubble({
   return (
     <div className={`chat-bubble chat-bubble--${sender}${tail ? ' chat-bubble--tail' : ''}`}>
       {type === 'image' && imageUrl && (
-        <img src={imageUrl} alt="첨부 이미지" className="chat-bubble-image" />
+        <a
+          href={imageUrl}
+          download={fileName || '첨부 이미지'}
+          className="chat-bubble-image-link"
+          aria-label="이미지 다운로드"
+        >
+          <img src={imageUrl} alt="첨부 이미지" className="chat-bubble-image" />
+        </a>
       )}
 
       {type === 'file' && fileName && (
-        <div className="chat-bubble-file">
+        <a href={fileUrl} download={fileName} className="chat-bubble-file">
           <span className="chat-bubble-file-icon-wrap">
             <img src={fileIcon} alt="" className="chat-bubble-file-icon" />
           </span>
           <span className="chat-bubble-file-name">{fileName}</span>
-        </div>
+        </a>
       )}
 
       {(title || lines.length > 0) && (
