@@ -5,6 +5,7 @@ import ChatbotButton from '../components/ChatbotButton';
 import HomeCard from '../components/HomeCard';
 import Calendar from '../components/Calendar';
 import LoginRequiredModal from '../components/LoginRequiredModal';
+import OnboardingRequiredModal from '../components/OnboardingRequiredModal';
 import wavingHand from '../assets/waving_hand.svg';
 import { getMyProfile } from '../api/mypage';
 import { getAccessToken } from '../api/auth';
@@ -19,11 +20,13 @@ function Home() {
 
   // 로그인 상태에서만 쓰는 실제 닉네임
   const [username, setUsername] = useState('');
+  const [onboardingComplete, setOnboardingComplete] = useState(false);
   const [profileLoading, setProfileLoading] = useState(isLoggedIn);
   const [profileError, setProfileError] = useState(false);
 
   // TODO: 마이페이지와 마찬가지로 공통 에러 모달이 머지되면 LoginRequiredModal을 그걸로 교체할 것
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showOnboardingModal, setShowOnboardingModal] = useState(false);
 
   const selectedKey = formatDateKey(selectedDate);
   const dailyRecruitments = RECRUITMENTS.filter((item) => item.date === selectedKey);
@@ -35,6 +38,7 @@ function Home() {
     getMyProfile()
       .then((data) => {
         setUsername(data.username || '');
+        setOnboardingComplete(Boolean(data.birthDate));
       })
       .catch(() => {
         setProfileError(true);
@@ -47,6 +51,19 @@ function Home() {
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
+
+  const handleGatedNavigate = (path) => {
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
+    if (profileLoading) return;
+    if (profileError || !onboardingComplete) {
+      setShowOnboardingModal(true);
+      return;
+    }
+    navigate(path);
+  };
 
   return (
     <div className="home">
@@ -86,7 +103,7 @@ function Home() {
               : ['나에게 필요한 지원제도를', '한눈에 확인해보세요.']
           }
           ctaLabel={isLoggedIn ? '지금 확인하러 가기' : '로그인 후 이용 가능'}
-          onClick={() => (isLoggedIn ? navigate('/support/list') : setShowLoginModal(true))}
+          onClick={() => handleGatedNavigate('/support/list')}
         />
 
         <HomeCard
@@ -98,7 +115,7 @@ function Home() {
               : ['내 상황에 맞는 지원지도를', 'AI가 찾아드려요.']
           }
           ctaLabel={isLoggedIn ? '지금 확인하러 가기' : '로그인 후 이용 가능'}
-          onClick={() => (isLoggedIn ? navigate('/theme') : setShowLoginModal(true))}
+          onClick={() => handleGatedNavigate('/theme')}
         />
 
         <div className="home-calendar-card">
@@ -133,6 +150,10 @@ function Home() {
       <BottomNav />
 
       <LoginRequiredModal open={showLoginModal} onClose={() => setShowLoginModal(false)} />
+      <OnboardingRequiredModal
+        open={showOnboardingModal}
+        onClose={() => setShowOnboardingModal(false)}
+      />
     </div>
   );
 }
