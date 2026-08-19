@@ -162,3 +162,49 @@ export function parseBriefingContent(content) {
 
   return sections.filter((section) => section.title || section.body || section.subItems.length > 0);
 }
+
+// 섹션/하위 항목 본문의 "• [라벨]: 설명" 형태 불릿 한 줄을 표(tbody)로 그리기 위해 { label, text } 배열로 변환함
+// 대괄호 라벨이 없는 줄은 label을 비우고 전체 텍스트를 text 칸에 그대로 넣음 (내용 유실 방지)
+export function parseBulletRows(body) {
+  if (!body) return [];
+
+  return body
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const withoutBullet = line.replace(/^[•\-*]\s*/, '');
+      const bracketMatch = withoutBullet.match(/^\[(.+?)\]\s*:?\s*(.*)$/);
+      if (bracketMatch) return { label: bracketMatch[1].trim(), text: bracketMatch[2].trim() };
+      return { label: '', text: withoutBullet };
+    });
+}
+
+function tokenize(text) {
+  return (text || '')
+    .split(/[^\p{L}\p{N}]+/u)
+    .map((token) => token.trim())
+    .filter(Boolean);
+}
+
+// ### 하위 항목 제목과 겹치는 단어가 가장 많은 상위 ## 섹션 개요 불릿을 찾아서 설명(text) 부분만 반환함
+// (예: 라벨 "디딤씨앗통장(CDA) 만기 수령"과 하위 항목 제목 "디딤씨앗통장 수령하는 법 보기"는
+//  "디딤씨앗통장" 토큰이 겹치므로 매칭됨) 겹치는 단어가 하나도 없으면 null 반환함
+export function findRelatedBulletText(sectionBody, subItemTitle) {
+  const rows = parseBulletRows(sectionBody);
+  if (rows.length === 0 || !subItemTitle) return null;
+
+  const titleTokens = new Set(tokenize(subItemTitle));
+  let bestRow = null;
+  let bestScore = 0;
+
+  rows.forEach((row) => {
+    const score = tokenize(row.label).filter((token) => titleTokens.has(token)).length;
+    if (score > bestScore) {
+      bestScore = score;
+      bestRow = row;
+    }
+  });
+
+  return bestScore > 0 ? bestRow.text : null;
+}

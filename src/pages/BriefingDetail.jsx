@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import backBtn from '../assets/backBtn.svg';
 import one from '../assets/one.svg';
 import two from '../assets/two.svg';
@@ -14,6 +12,7 @@ import star2 from '../assets/star2.svg';
 import SectionTag from '../components/SectionTag';
 import DetailSection from '../components/DetailSection';
 import BriefingLinkChip from '../components/BriefingLinkChip';
+import BriefingBulletTable from '../components/BriefingBulletTable';
 import Modal from '../components/Modal';
 import ChatbotButton from '../components/ChatbotButton';
 import AiLoading from '../components/AiLoading';
@@ -22,6 +21,7 @@ import { getBriefingDetail } from '../api/briefing';
 import {
   BRIEFING_ICONS,
   BRIEFING_SECTION_META,
+  findRelatedBulletText,
   getSectionDefaultIcon,
   parseBriefingContent,
 } from '../constants/briefing';
@@ -41,7 +41,9 @@ function BriefingDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState(null);
-  // ### 하위 항목(briefing-link-chip) 클릭 시 본문을 보여줄 모달 상태
+  // ### 하위 항목(briefing-link-chip) 클릭 시 본문을 보여줄 모달 상태 (### 마다 별도로 열림)
+  // introText는 상위 ## 섹션 개요 불릿 중 이 항목과 겹치는 단어가 가장 많은 불릿의 설명 텍스트이고
+  // body는 ### 항목 자체의 상세 불릿임, 모달 상단에 introText(텍스트) → 그 아래 body(표) 순서로 보여줌
   // 최종 리스트/네비게이션 UI가 아직 미확정이라 우선 모달로 임시 처리함
   const [activeSubItem, setActiveSubItem] = useState(null);
 
@@ -202,22 +204,8 @@ function BriefingDetail() {
             number={NUMBER_ICONS[Math.min(index, NUMBER_ICONS.length - 1)]}
             title={sub.title || detail.title}
           >
-            {sub.body && (
-              <div className="briefing-detail-markdown">
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  components={{
-                    table: ({ ...props }) => (
-                      <div className="briefing-detail-table">
-                        <table {...props} />
-                      </div>
-                    ),
-                  }}
-                >
-                  {sub.body}
-                </ReactMarkdown>
-              </div>
-            )}
+            {/* ###(하위 항목)이 있는 섹션은 개요 불릿을 여기 바로 표시하지 않고 칩을 눌렀을 때 모달 상단에 보여줌 */}
+            {sub.subItems.length === 0 && <BriefingBulletTable body={sub.body} />}
 
             {sub.subItems.length > 0 && (
               <div className="briefing-detail-chip-list">
@@ -225,7 +213,12 @@ function BriefingDetail() {
                   <BriefingLinkChip
                     key={item.title}
                     label={item.title}
-                    onClick={() => setActiveSubItem(item)}
+                    onClick={() =>
+                      setActiveSubItem({
+                        ...item,
+                        introText: findRelatedBulletText(sub.body, item.title),
+                      })
+                    }
                   />
                 ))}
               </div>
@@ -247,9 +240,10 @@ function BriefingDetail() {
         title={activeSubItem?.title}
       >
         <div className="briefing-detail-modal-content">
-          <div className="briefing-detail-markdown">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{activeSubItem?.body ?? ''}</ReactMarkdown>
-          </div>
+          {activeSubItem?.introText && (
+            <p className="briefing-detail-modal-intro">{activeSubItem.introText}</p>
+          )}
+          <BriefingBulletTable body={activeSubItem?.body} />
           <button
             type="button"
             className="modal-btn modal-btn--confirm"

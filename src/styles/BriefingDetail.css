@@ -202,40 +202,6 @@
   word-break: keep-all;
 }
 
-/* 번호 섹션 본문 마크다운 렌더링 */
-.briefing-detail-markdown p,
-.briefing-detail-markdown ul,
-.briefing-detail-markdown ol {
-  margin: 0 0 12px;
-  font-size: 12px;
-  color: #666;
-  line-height: 1.6;
-  word-break: keep-all;
-}
-
-.briefing-detail-markdown ul,
-.briefing-detail-markdown ol {
-  padding-left: 18px;
-}
-
-.briefing-detail-markdown li {
-  margin-bottom: 4px;
-}
-
-.briefing-detail-markdown strong {
-  color: #202020;
-  font-weight: 700;
-}
-
-.briefing-detail-markdown a {
-  color: #3bb273;
-  text-decoration: underline;
-}
-
-.briefing-detail-markdown > *:last-child {
-  margin-bottom: 0;
-}
-
 .briefing-detail-links {
   display: flex;
   flex-direction: column;
@@ -252,12 +218,17 @@
 /* 하위 항목 상세 모달 */
 .briefing-detail-modal-content {
   margin-top: 12px;
+  max-height: 60vh;
+  overflow-y: auto;
   text-align: left;
 }
 
-.briefing-detail-modal-content .briefing-detail-markdown {
-  max-height: 50vh;
-  overflow-y: auto;
+.briefing-detail-modal-intro {
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #666;
+  word-break: keep-all;
 }
 
 .briefing-detail-modal-content .modal-btn {
@@ -324,6 +295,24 @@
 
 .briefing-detail-table tr:last-child td:last-child {
   border-radius: 0 0 8px 0;
+}
+
+/* thead 없이 tbody만 있는 불릿 표(BriefingBulletTable) 전용 — 첫 행 상단도 둥글게 처리 */
+.briefing-detail-table--bullets tbody tr:first-child td:first-child {
+  border-radius: 8px 0 0 0;
+}
+
+.briefing-detail-table--bullets tbody tr:first-child td:last-child {
+  border-radius: 0 8px 0 0;
+}
+
+/* 라벨 열은 텍스트 길이에 맞춰 폭이 정해지도록 줄바꿈을 막고, 설명 열이 남은 폭을 가져가게 함 */
+.briefing-detail-table-label {
+  width: 1px;
+  padding-right: 16px;
+  font-weight: 700;
+  color: #202020;
+  white-space: nowrap;
 }
 
 /* 챗봇 안내 */
