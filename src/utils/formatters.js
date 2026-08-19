@@ -120,3 +120,11 @@ export function formatDateKey(date) {
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
+
+export function parseDateKey(dateKey) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateKey || '');
+  if (!match) return null;
+  const [, yearStr, monthStr, dayStr] = match;
+  const date = new Date(Number(yearStr), Number(monthStr) - 1, Number(dayStr));
+  return Number.isNaN(date.getTime()) ? null : date;
+}

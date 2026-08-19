@@ -10,6 +10,7 @@ import Modal from '../components/Modal';
 import useBookmarks from '../hooks/useBookmarks';
 import useNotifications from '../hooks/useNotifications';
 import useAvatar from '../hooks/useAvatar';
+import useApplication from '../hooks/useApplication';
 import { getMyProfile } from '../api/mypage';
 import { getAccessToken } from '../api/auth';
 import { APPLICATION_STATS, APP_VERSION } from '../constants/mypage';
@@ -21,6 +22,7 @@ function MyPage() {
   const { bookmarkedIds } = useBookmarks();
   const { hasUnread } = useNotifications();
   const { avatarUrl, setAvatarUrl } = useAvatar();
+  const { appliedCount } = useApplication();
   const [profile, setProfile] = useState({ username: '', email: '' });
   const [profileError, setProfileError] = useState(false);
   const [photoModalOpen, setPhotoModalOpen] = useState(false);
@@ -125,7 +127,7 @@ function MyPage() {
         <div className="mypage-stats">
           <div className="mypage-stat">
             <span className="mypage-stat-label">신청 완료</span>
-            <span className="mypage-stat-value">{APPLICATION_STATS.completed}회</span>
+            <span className="mypage-stat-value">{appliedCount}회</span>
           </div>
           <span className="mypage-stat-divider" />
           <div className="mypage-stat">

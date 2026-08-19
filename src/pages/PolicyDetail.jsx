@@ -2,10 +2,13 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { DocumentChecklistContext } from '../components/DocumentChecklistProvider';
 import useBookmarks from '../hooks/useBookmarks';
+import useApplication from '../hooks/useApplication';
 import useFetchOnce from '../hooks/useFetchOnce';
 import Toast from '../components/Toast';
 import ErrorState from '../components/ErrorState';
 import LoadingSpinner from '../components/LoadingSpinner';
+import BottomSheet from '../components/BottomSheet';
+import DatePicker from '../components/DatePicker';
 import backBtn from '../assets/backBtn.svg';
 import bookmark from '../assets/bookmark.svg';
 import bookmarkEmpty from '../assets/bookmark_empty.svg';
@@ -24,7 +27,13 @@ import Button from '../components/Button';
 import ChatbotButton from '../components/ChatbotButton';
 import { LEVEL_CONFIG } from '../constants/supportList';
 import { getPolicyDetail } from '../api/policy';
-import { formatDday, formatDateRangeDots, parseRequiredDocuments } from '../utils/formatters';
+import {
+  formatDday,
+  formatDateKey,
+  formatDateRangeDots,
+  parseDateKey,
+  parseRequiredDocuments,
+} from '../utils/formatters';
 import '../styles/PolicyDetail.css';
 
 // 지원 금액/신청 경로처럼 BE가 별도 필드로 안 주는 항목은 아래 문구로 대체 표시함
@@ -46,7 +55,11 @@ function PolicyDetail() {
 
   const { isBookmarked, toggleBookmark, maxCount } = useBookmarks();
   const { getChecked, toggleChecked } = useContext(DocumentChecklistContext);
+  const { getAppliedDate, completeApplication } = useApplication();
   const [toastMessage, setToastMessage] = useState('');
+  const [toastVariant, setToastVariant] = useState('default');
+  const [applySheetOpen, setApplySheetOpen] = useState(false);
+  const [draftApplyDate, setDraftApplyDate] = useState(null);
   const toastTimerRef = useRef(null);
 
   useEffect(
@@ -84,14 +97,28 @@ function PolicyDetail() {
   }
 
   const bookmarked = isBookmarked(policy.id);
+  const appliedDate = getAppliedDate(policy.id);
 
   const documents = parseRequiredDocuments(policy.requiredDocuments);
+
+  const handleOpenApplySheet = () => {
+    setDraftApplyDate(parseDateKey(appliedDate) || new Date());
+    setApplySheetOpen(true);
+  };
+
+  const handleSaveApply = () => {
+    if (!draftApplyDate) return;
+    completeApplication(policy.id, formatDateKey(draftApplyDate));
+    setApplySheetOpen(false);
+  };
 
   const handleToggleBookmark = () => {
     const result = toggleBookmark(policy.id);
     if (result === 'limit-reached') {
+      setToastVariant('warning');
       setToastMessage(`북마크는 최대 ${maxCount}개까지 저장할 수 있어요`);
     } else {
+      setToastVariant('default');
       setToastMessage(result === 'added' ? '북마크에 추가했어요' : '북마크가 해제됐어요');
     }
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
@@ -142,7 +169,7 @@ function PolicyDetail() {
         </button>
       </header>
 
-      <Toast message={toastMessage} visible={Boolean(toastMessage)} />
+      <Toast message={toastMessage} visible={Boolean(toastMessage)} variant={toastVariant} />
 
       <div className="detail-body">
         <div className="detail-hero">
@@ -276,9 +303,41 @@ function PolicyDetail() {
             </Button>
           </div>
         </DetailSection>
+
+        <Button
+          variant="blue"
+          fullWidth
+          disabled={Boolean(appliedDate)}
+          onClick={handleOpenApplySheet}
+        >
+          {appliedDate ? '신청 완료' : '신청 완료하기'}
+        </Button>
       </div>
 
       <ChatbotButton onClick={() => navigate('/chatbot')} />
+
+      <BottomSheet
+        open={applySheetOpen}
+        onClose={() => setApplySheetOpen(false)}
+        footer={
+          <Button variant="blue" fullWidth onClick={handleSaveApply}>
+            저장
+          </Button>
+        }
+      >
+        <div className="detail-apply-sheet">
+          <p className="detail-apply-sheet-label">신청 일자</p>
+          <DatePicker
+            value={draftApplyDate}
+            onChange={setDraftApplyDate}
+            maxDate={new Date()}
+            inlineCalendar
+          />
+          <p className="detail-apply-sheet-helper">
+            신청 일자는 직접 입력한 날짜를 기준으로 저장됩니다.
+          </p>
+        </div>
+      </BottomSheet>
     </div>
   );
 }

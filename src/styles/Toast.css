@@ -18,6 +18,16 @@
   animation: toast-out 0.3s ease forwards;
 }
 
+.toast--warning {
+  border-color: #ff5b5b;
+  color: #ff5b5b;
+  animation: toast-warning-in 0.5s ease;
+}
+
+.toast--warning.toast--closing {
+  animation: toast-out 0.3s ease forwards;
+}
+
 @keyframes toast-in {
   from {
     opacity: 0;
@@ -26,6 +36,43 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes toast-warning-in {
+  0% {
+    opacity: 0;
+    transform: translate(0, -6px);
+  }
+  10% {
+    opacity: 1;
+    transform: translate(-4px, 0);
+  }
+  20% {
+    opacity: 0.4;
+    transform: translate(4px, 0);
+  }
+  30% {
+    opacity: 1;
+    transform: translate(-3px, 0);
+  }
+  40% {
+    opacity: 0.5;
+    transform: translate(3px, 0);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-2px, 0);
+  }
+  65% {
+    transform: translate(2px, 0);
+  }
+  80% {
+    transform: translate(-1px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0);
   }
 }
 

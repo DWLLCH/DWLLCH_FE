@@ -64,6 +64,11 @@ function ThemeView() {
     toCard(policy, matchReason),
   );
 
+  const profileIncomplete = Boolean(curation?.profileIncomplete);
+  const regionEmpty = regionCards.length === 0;
+  const conditionEmpty = !profileIncomplete && conditionCards.length === 0;
+  const bothEmpty = regionEmpty && conditionEmpty;
+
   return (
     <div className="theme-page">
       <header className="theme-header">
@@ -91,40 +96,60 @@ function ThemeView() {
 
         {!loading && !error && curation && (
           <>
-            {regionCards.length > 0 ? (
-              <ThemeGroup
-                title={
-                  username ? `${username}님의 주거지역에 딱맞는 제도` : '내 주거지역에 딱맞는 제도'
-                }
-                color="blue"
-                cards={regionCards}
-                onCardClick={handleCardClick}
-              />
-            ) : (
-              <p className="theme-empty">지역에 맞는 제도를 찾지 못했어요</p>
-            )}
-
-            {curation.profileIncomplete ? (
+            {bothEmpty ? (
               <div className="theme-incomplete">
-                <p>자립 정보를 더 입력하면 조건에 꼭 맞는 제도를 추천해드려요</p>
-                <Button variant="blue" fullWidth onClick={() => navigate('/my-info')}>
-                  내 정보 입력하러 가기
-                </Button>
-              </div>
-            ) : conditionCards.length > 0 ? (
-              <ThemeGroup
-                title={username ? `${username}님의 조건에 딱맞는 제도` : '내 조건에 딱맞는 제도'}
-                color="green"
-                cards={conditionCards}
-                onCardClick={handleCardClick}
-              />
-            ) : (
-              <div className="theme-incomplete">
-                <p>아직 조건에 맞는 제도를 찾지 못했어요</p>
+                <p>아직 나에게 맞는 제도를 찾지 못했어요</p>
                 <Button variant="gray" fullWidth onClick={() => navigate('/support/list')}>
                   전체 정책 둘러보기
                 </Button>
               </div>
+            ) : (
+              <>
+                {regionCards.length > 0 ? (
+                  <ThemeGroup
+                    title={
+                      username
+                        ? `${username}님의 주거지역에 딱맞는 제도`
+                        : '내 주거지역에 딱맞는 제도'
+                    }
+                    color="blue"
+                    cards={regionCards}
+                    onCardClick={handleCardClick}
+                  />
+                ) : (
+                  <div className="theme-incomplete">
+                    <p>지역에 맞는 제도를 찾지 못했어요</p>
+                    <Button variant="gray" fullWidth onClick={() => navigate('/support/list')}>
+                      전체 정책 둘러보기
+                    </Button>
+                  </div>
+                )}
+
+                {profileIncomplete ? (
+                  <div className="theme-incomplete">
+                    <p>자립 정보를 더 입력하면 조건에 꼭 맞는 제도를 추천해드려요</p>
+                    <Button variant="blue" fullWidth onClick={() => navigate('/my-info')}>
+                      내 정보 입력하러 가기
+                    </Button>
+                  </div>
+                ) : conditionCards.length > 0 ? (
+                  <ThemeGroup
+                    title={
+                      username ? `${username}님의 조건에 딱맞는 제도` : '내 조건에 딱맞는 제도'
+                    }
+                    color="green"
+                    cards={conditionCards}
+                    onCardClick={handleCardClick}
+                  />
+                ) : (
+                  <div className="theme-incomplete">
+                    <p>조건에 맞는 제도를 찾지 못했어요</p>
+                    <Button variant="gray" fullWidth onClick={() => navigate('/support/list')}>
+                      전체 정책 둘러보기
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </>
         )}
