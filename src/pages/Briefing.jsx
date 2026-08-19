@@ -1,14 +1,21 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import backBtn from '../assets/backBtn.svg';
 import BriefingCard from '../components/BriefingCard';
 import SectionTag from '../components/SectionTag';
 import BottomNav from '../components/BottomNav';
 import ChatbotButton from '../components/ChatbotButton';
+import LoginRequiredModal from '../components/LoginRequiredModal';
+import OnboardingRequiredModal from '../components/OnboardingRequiredModal';
+import useOnboardingComplete from '../hooks/useOnboardingComplete';
+import { getAccessToken } from '../api/auth';
 import { BRIEFING_SECTIONS } from '../constants/briefing';
 import '../styles/Briefing.css';
 
 function Briefing() {
   const navigate = useNavigate();
+  const [isLoggedIn] = useState(() => Boolean(getAccessToken()));
+  const { onboardingComplete } = useOnboardingComplete();
 
   return (
     <div className="briefing-page">
@@ -46,6 +53,12 @@ function Briefing() {
 
       <ChatbotButton onClick={() => navigate('/chatbot')} />
       <BottomNav />
+
+      <LoginRequiredModal open={!isLoggedIn} onClose={() => navigate('/home')} />
+      <OnboardingRequiredModal
+        open={isLoggedIn && !onboardingComplete}
+        onClose={() => navigate('/home')}
+      />
     </div>
   );
 }

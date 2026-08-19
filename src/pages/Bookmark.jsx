@@ -9,7 +9,9 @@ import ChatbotButton from '../components/ChatbotButton';
 import BottomNav from '../components/BottomNav';
 import LoadingSpinner from '../components/LoadingSpinner';
 import LoginRequiredModal from '../components/LoginRequiredModal';
+import OnboardingRequiredModal from '../components/OnboardingRequiredModal';
 import useBookmarks from '../hooks/useBookmarks';
+import useOnboardingComplete from '../hooks/useOnboardingComplete';
 import { getAccessToken } from '../api/auth';
 import { formatDday } from '../utils/formatters';
 import '../styles/Bookmark.css';
@@ -19,6 +21,7 @@ function Bookmark() {
   const { scraps, loading, maxCount } = useBookmarks();
   const [keyword, setKeyword] = useState('');
   const [isLoggedIn] = useState(() => Boolean(getAccessToken()));
+  const { onboardingComplete } = useOnboardingComplete();
 
   const visibleScraps = useMemo(() => {
     const trimmed = keyword.trim();
@@ -95,6 +98,10 @@ function Bookmark() {
       <BottomNav />
 
       <LoginRequiredModal open={!isLoggedIn} onClose={() => navigate('/home')} />
+      <OnboardingRequiredModal
+        open={isLoggedIn && !onboardingComplete}
+        onClose={() => navigate('/home')}
+      />
     </div>
   );
 }
