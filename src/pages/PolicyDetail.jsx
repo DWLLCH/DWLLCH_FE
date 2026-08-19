@@ -6,6 +6,7 @@ import useFetchOnce from '../hooks/useFetchOnce';
 import Toast from '../components/Toast';
 import ErrorState from '../components/ErrorState';
 import LoadingSpinner from '../components/LoadingSpinner';
+import LoginRequiredModal from '../components/LoginRequiredModal';
 import backBtn from '../assets/backBtn.svg';
 import bookmark from '../assets/bookmark.svg';
 import bookmarkEmpty from '../assets/bookmark_empty.svg';
@@ -47,6 +48,7 @@ function PolicyDetail() {
   const { isBookmarked, toggleBookmark, maxCount } = useBookmarks();
   const { getChecked, toggleChecked } = useContext(DocumentChecklistContext);
   const [toastMessage, setToastMessage] = useState('');
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const toastTimerRef = useRef(null);
 
   useEffect(
@@ -89,6 +91,10 @@ function PolicyDetail() {
 
   const handleToggleBookmark = () => {
     const result = toggleBookmark(policy.id);
+    if (result === 'login-required') {
+      setShowLoginModal(true);
+      return;
+    }
     if (result === 'limit-reached') {
       setToastMessage(`북마크는 최대 ${maxCount}개까지 저장할 수 있어요`);
     } else {
@@ -279,6 +285,8 @@ function PolicyDetail() {
       </div>
 
       <ChatbotButton onClick={() => navigate('/chatbot')} />
+
+      <LoginRequiredModal open={showLoginModal} onClose={() => setShowLoginModal(false)} />
     </div>
   );
 }

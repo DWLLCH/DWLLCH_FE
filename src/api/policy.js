@@ -18,3 +18,21 @@ export async function getPolicyDetail(policyId) {
   const response = await apiClient.get(`/policies/${policyId}`);
   return response.data.data;
 }
+
+/* POST /policies/{policyId}/scrap | 로그인 필요
+   success/data 래퍼가 있어서 response.data.data(생성된 스크랩 정보)를 반환함 */
+export async function scrapPolicy(policyId) {
+  const response = await apiClient.post(`/policies/${policyId}/scrap`);
+  return response.data.data;
+}
+
+/* DELETE /policies/{policyId}/scrap | 로그인 필요, 성공 시 204 No Content */
+export async function unscrapPolicy(policyId) {
+  await apiClient.delete(`/policies/${policyId}/scrap`);
+}
+
+/* GET /policies/scraps | 로그인 필요, 페이징 (getPolicies와 동일한 응답 포맷) */
+export async function getPolicyScraps({ page = 0, size = 20 } = {}) {
+  const response = await apiClient.get('/policies/scraps', { params: { page, size } });
+  return response.data;
+}
