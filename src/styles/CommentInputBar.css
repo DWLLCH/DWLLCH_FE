@@ -25,6 +25,10 @@
   border-color: #4fae7c;
 }
 
+.comment-input-box--no-anon {
+  padding-left: 14px;
+}
+
 .comment-input-anon {
   display: flex;
   flex-shrink: 0;

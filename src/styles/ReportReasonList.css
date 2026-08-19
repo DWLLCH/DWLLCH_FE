@@ -1,0 +1,45 @@
+.report-reason-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 12px;
+  padding: 4px 0 12px;
+}
+
+.report-reason-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 4px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 16px;
+  color: #202020;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+}
+
+.report-reason-item:focus-visible {
+  outline: 2px solid #4fae7c;
+  outline-offset: 2px;
+}
+
+.report-reason-radio {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid #d9d9d9;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.report-reason-item--selected {
+  color: #4fae7c;
+  font-weight: 600;
+}
+
+.report-reason-item--selected .report-reason-radio {
+  border-width: 5px;
+  border-color: #4fae7c;
+}

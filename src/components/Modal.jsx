@@ -22,7 +22,7 @@ function Modal({
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
-    const focusable = modalRef.current?.querySelectorAll('button');
+    const focusable = modalRef.current?.querySelectorAll('button:not(:disabled)');
     const cancelBtn = modalRef.current?.querySelector('.modal-btn--cancel');
     (cancelBtn || focusable?.[focusable.length - 1])?.focus();
 
@@ -44,7 +44,7 @@ function Modal({
       }
       if (event.key !== 'Tab') return;
 
-      const focusable = modalRef.current?.querySelectorAll('button');
+      const focusable = modalRef.current?.querySelectorAll('button:not(:disabled)');
       if (!focusable || focusable.length === 0) return;
 
       const first = focusable[0];

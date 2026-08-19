@@ -4,6 +4,7 @@ import backBtn from '../assets/backBtn.svg';
 import like from '../assets/like.svg';
 import share from '../assets/share.svg';
 import commentIcon from '../assets/comment.svg';
+import more from '../assets/more.svg';
 import PostActionButton from '../components/PostActionButton';
 import PostBadge from '../components/PostBadge';
 import CommentInputBar from '../components/CommentInputBar';
@@ -13,7 +14,11 @@ import Modal from '../components/Modal';
 import LoginRequiredModal from '../components/LoginRequiredModal';
 import ErrorState from '../components/ErrorState';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { BOARD_TYPE_TO_LABEL } from '../constants/community';
+import ReportReasonList from '../components/ReportReasonList';
+import Button from '../components/Button';
+import Toast from '../components/Toast';
+import useBlock from '../hooks/useBlock';
+import { BOARD_TYPE_TO_LABEL, REPORT_REASONS } from '../constants/community';
 import {
   getPost,
   deletePost,
@@ -26,13 +31,17 @@ import {
   likeComment,
   unlikeComment,
   votePoll,
+  reportPost,
 } from '../api/community';
 import { getMyProfile } from '../api/mypage';
 import { getAccessToken, getUserId } from '../api/auth';
 import { formatDateTimeShort } from '../utils/formatters';
 import '../styles/PostDetail.css';
 
-function buildCommentTree(rawComments, { username, myCommentIds, currentUserId }) {
+function buildCommentTree(
+  rawComments,
+  { username, myCommentIds, currentUserId, postAuthorId, isMyPost },
+) {
   const isMine = (item) => {
     if (typeof item.isMine === 'boolean') return item.isMine;
     if (item.authorId != null && currentUserId != null) {
@@ -41,6 +50,15 @@ function buildCommentTree(rawComments, { username, myCommentIds, currentUserId }
     return (
       myCommentIds.has(item.id) || (!item.isAnonymous && !!username && item.authorName === username)
     );
+  };
+
+  // 익명 댓글은 백엔드가 authorId를 안 내려줄 수 있어서, authorId 비교가 안 되면
+  // "내 게시글 + 내가 쓴 댓글"인 경우를 글쓴이로 대체 판별함
+  const isPostAuthor = (item) => {
+    if (postAuthorId != null && item.authorId != null) {
+      return String(item.authorId) === String(postAuthorId);
+    }
+    return isMyPost && isMine(item);
   };
 
   const repliesByParent = {};
@@ -62,6 +80,7 @@ function buildCommentTree(rawComments, { username, myCommentIds, currentUserId }
   return topLevel.map((item) => ({
     id: item.id,
     author: item.authorName,
+    isAuthor: isPostAuthor(item),
     text: item.content,
     deleted: item.isDeleted,
     likeCount: item.likeCount,
@@ -71,6 +90,7 @@ function buildCommentTree(rawComments, { username, myCommentIds, currentUserId }
     replies: (repliesByParent[item.id] || []).map((reply) => ({
       id: reply.id,
       author: reply.authorName,
+      isAuthor: isPostAuthor(reply),
       text: reply.content,
       deleted: reply.isDeleted,
       likeCount: reply.likeCount,
@@ -89,6 +109,7 @@ function PostDetail() {
 
   const [isLoggedIn] = useState(() => Boolean(getAccessToken()));
   const [currentUserId] = useState(() => getUserId());
+  const { blockAuthor } = useBlock();
 
   const [post, setPost] = useState(null);
   const [postLoading, setPostLoading] = useState(true);
@@ -109,6 +130,15 @@ function PostDetail() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isDeletingPost, setIsDeletingPost] = useState(false);
+
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+  const [blockConfirmOpen, setBlockConfirmOpen] = useState(false);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const toastTimerRef = useRef(null);
+  const moreMenuRef = useRef(null);
 
   const isMyPost = Boolean(post?.isMine);
 
@@ -196,6 +226,24 @@ function PostDetail() {
     return () => clearTimeout(timer);
   }, [targetCommentId, postLoading, commentsLoading]);
 
+  useEffect(
+    () => () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!moreMenuOpen) return undefined;
+    const handleClickOutside = (e) => {
+      if (moreMenuRef.current && !moreMenuRef.current.contains(e.target)) {
+        setMoreMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [moreMenuOpen]);
+
   const handleTogglePostLike = () => {
     if (!isLoggedIn) {
       setShowLoginModal(true);
@@ -282,13 +330,61 @@ function PostDetail() {
     }
   };
 
+  const handleToggleMoreMenu = () => {
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
+    setMoreMenuOpen((prev) => !prev);
+  };
+
+  const handleSelectBlock = () => {
+    setMoreMenuOpen(false);
+    setBlockConfirmOpen(true);
+  };
+
+  const handleSelectReport = () => {
+    setMoreMenuOpen(false);
+    setReportReason('');
+    setReportModalOpen(true);
+  };
+
+  const showToast = (message) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToastMessage(message);
+    toastTimerRef.current = setTimeout(() => setToastMessage(''), 1600);
+  };
+
+  const handleConfirmBlock = () => {
+    blockAuthor(post.authorId ?? post.authorName);
+    setBlockConfirmOpen(false);
+    showToast('게시물이 차단되었습니다');
+    setTimeout(() => navigate('/community'), 1600);
+  };
+
+  const handleSubmitReport = () => {
+    if (!reportReason || isSubmittingReport) return;
+    setIsSubmittingReport(true);
+    reportPost(post.id, reportReason)
+      .then(() => {
+        setReportModalOpen(false);
+        showToast('신고가 정상적으로 접수되었습니다.');
+      })
+      .catch(() => {
+        alert('신고 접수에 실패했습니다.');
+      })
+      .finally(() => {
+        setIsSubmittingReport(false);
+      });
+  };
+
   const handleAddComment = () => {
     if (!isLoggedIn) {
       setShowLoginModal(true);
       return;
     }
     if (!commentText.trim()) return;
-    createComment(post.id, { content: commentText.trim(), isAnonymous: anonymous })
+    createComment(post.id, { content: commentText.trim(), isAnonymous: effectiveAnonymous })
       .then((created) => {
         setRawComments((prev) => [...prev, created]);
         setMyCommentIds((prev) => new Set(prev).add(created.id));
@@ -425,7 +521,17 @@ function PostDetail() {
     );
   }
 
-  const comments = buildCommentTree(rawComments, { username, myCommentIds, currentUserId });
+  const comments = buildCommentTree(rawComments, {
+    username,
+    myCommentIds,
+    currentUserId,
+    isMyPost,
+    postAuthorId: post.authorId,
+  });
+
+  // 실명으로 쓴 글의 글쓴이는 자기 글에 익명 댓글을 달 수 없게 막음 (다른 사람은 익명 가능)
+  const forceRealName = isMyPost && post.isAnonymous === false;
+  const effectiveAnonymous = forceRealName ? false : anonymous;
 
   const imageUrls = (post.images || [])
     .slice()
@@ -445,7 +551,43 @@ function PostDetail() {
           <img src={backBtn} alt="" />
         </button>
         <h1>커뮤니티</h1>
+        {!isMyPost && (
+          <div className="post-detail-more-wrap" ref={moreMenuRef}>
+            <button
+              type="button"
+              className="post-detail-more"
+              onClick={handleToggleMoreMenu}
+              aria-haspopup="menu"
+              aria-expanded={moreMenuOpen}
+              aria-label="더보기"
+            >
+              <img src={more} alt="" />
+            </button>
+            {moreMenuOpen && (
+              <div className="post-detail-more-panel" role="menu">
+                <button
+                  type="button"
+                  className="post-detail-more-option"
+                  role="menuitem"
+                  onClick={handleSelectBlock}
+                >
+                  차단하기
+                </button>
+                <button
+                  type="button"
+                  className="post-detail-more-option post-detail-more-option--danger"
+                  role="menuitem"
+                  onClick={handleSelectReport}
+                >
+                  신고하기
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </header>
+
+      <Toast message={toastMessage} visible={Boolean(toastMessage)} />
 
       <div className="post-detail-body">
         <div className="post-detail-top">
@@ -548,6 +690,7 @@ function PostDetail() {
                 id={`comment-${comment.id}`}
                 comment={comment}
                 highlighted={comment.id === highlightedCommentId}
+                lockRealName={forceRealName}
                 onAddReply={handleAddReply}
                 onEditComment={handleEditComment}
                 onDeleteComment={handleDeleteComment}
@@ -564,8 +707,9 @@ function PostDetail() {
         value={commentText}
         onChange={setCommentText}
         onSubmit={handleAddComment}
-        anonymous={anonymous}
-        onToggleAnonymous={() => setAnonymous((prev) => !prev)}
+        anonymous={effectiveAnonymous}
+        onToggleAnonymous={forceRealName ? undefined : () => setAnonymous((prev) => !prev)}
+        hideAnonymous={forceRealName}
       />
 
       <Modal
@@ -578,6 +722,35 @@ function PostDetail() {
         danger
         onConfirm={handleDeletePost}
       />
+
+      <Modal
+        open={blockConfirmOpen}
+        onClose={() => setBlockConfirmOpen(false)}
+        title="이 작성자를 차단할까요?"
+        description="이 작성자의 게시물이 목록에 노출되지 않습니다. 다시 해제하실 수 없습니다."
+        cancelLabel="취소"
+        confirmLabel="확인"
+        onConfirm={handleConfirmBlock}
+      />
+
+      <Modal
+        open={reportModalOpen}
+        onClose={() => setReportModalOpen(false)}
+        title="신고하는 이유를 선택해주세요."
+      >
+        <ReportReasonList
+          reasons={REPORT_REASONS}
+          value={reportReason}
+          onSelect={setReportReason}
+        />
+        <Button
+          fullWidth
+          disabled={!reportReason || isSubmittingReport}
+          onClick={handleSubmitReport}
+        >
+          확인
+        </Button>
+      </Modal>
 
       <LoginRequiredModal open={showLoginModal} onClose={() => setShowLoginModal(false)} />
     </div>
