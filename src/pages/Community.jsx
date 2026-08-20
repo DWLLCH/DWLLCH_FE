@@ -9,10 +9,12 @@ import WriteFabButton from '../components/WriteFabButton';
 import ErrorState from '../components/ErrorState';
 import LoadingSpinner from '../components/LoadingSpinner';
 import SkeletonBlock from '../components/SkeletonBlock';
+import LoginRequiredModal from '../components/LoginRequiredModal';
 import useBlock from '../hooks/useBlock';
 import { CATEGORIES, LABEL_TO_BOARD_TYPE } from '../constants/community';
 import { getPosts } from '../api/community';
-import { formatRelativeTime } from '../utils/formatters';
+import { getAccessToken } from '../api/auth';
+import { formatRelativeTime, toSecureImageUrl } from '../utils/formatters';
 import '../styles/Community.css';
 
 function CommunitySkeletonList() {
@@ -35,6 +37,8 @@ function CommunitySkeletonList() {
 
 function Community() {
   const navigate = useNavigate();
+  // 매 렌더마다 새로 확인함 (로그인/로그아웃으로 토큰이 바뀌어도 즉시 반영되도록)
+  const isLoggedIn = Boolean(getAccessToken());
   const [activeCategory, setActiveCategory] = useState('최신');
   const [posts, setPosts] = useState([]);
   const [page, setPage] = useState(0);
@@ -43,6 +47,7 @@ function Community() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(false);
   const [loadMoreError, setLoadMoreError] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const boardType = LABEL_TO_BOARD_TYPE[activeCategory];
   const requestIdRef = useRef(0);
@@ -85,6 +90,14 @@ function Community() {
   }, [fetchPosts]);
 
   const visiblePosts = posts.filter((post) => !isAuthorBlocked(post.authorId ?? post.authorName));
+
+  const handleWriteClick = () => {
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
+    navigate('/community/write');
+  };
 
   return (
     <div className="community-page">
@@ -131,7 +144,7 @@ function Community() {
                   time={formatRelativeTime(post.createdAt)}
                   likeCount={post.likeCount}
                   commentCount={post.commentCount}
-                  images={post.thumbnail ? [post.thumbnail] : undefined}
+                  images={post.thumbnail ? [toSecureImageUrl(post.thumbnail)] : undefined}
                   onClick={() => navigate(`/community/${post.id}`)}
                 />
               ))}
@@ -163,8 +176,14 @@ function Community() {
         )}
       </div>
 
-      <WriteFabButton onClick={() => navigate('/community/write')} />
+      <WriteFabButton onClick={handleWriteClick} />
       <BottomNav />
+
+      <LoginRequiredModal
+        open={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        description="로그인하고 커뮤니티에 글을 작성해보세요"
+      />
     </div>
   );
 }

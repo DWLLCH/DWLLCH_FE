@@ -7,6 +7,7 @@ import Dropdown from '../components/Dropdown';
 import DatePicker from '../components/DatePicker';
 import OptionChip from '../components/OptionChip';
 import useMyInfo from '../hooks/useMyInfo';
+import useExclusiveToggle from '../hooks/useExclusiveToggle';
 import { updateMyProfile } from '../api/mypage';
 import { SIDO_LIST, SIGUNGU_MAP } from '../constants/regions';
 import { formatBirthDate, formatDateKey } from '../utils/formatters';
@@ -143,20 +144,11 @@ function MyInfoEdit() {
     }
   };
 
-  const toggleCurrentSupport = (item) => {
-    const list = draft.currentSupports;
-    if (list.includes(item)) {
-      patch({ currentSupports: list.filter((value) => value !== item) });
-      return;
-    }
-    if (EXTRA_SUPPORTS.includes(item)) {
-      patch({ currentSupports: [item] });
-    } else {
-      patch({
-        currentSupports: [...list.filter((value) => !EXTRA_SUPPORTS.includes(value)), item],
-      });
-    }
-  };
+  const toggleCurrentSupport = useExclusiveToggle(
+    draft.currentSupports,
+    (currentSupports) => patch({ currentSupports }),
+    EXTRA_SUPPORTS,
+  );
 
   const sigunguOptions = draft.sido ? SIGUNGU_MAP[draft.sido] || [] : [];
   const hasValidResidence =
@@ -222,7 +214,7 @@ function MyInfoEdit() {
     try {
       await updateMyProfile(payload);
       await refetch();
-      navigate('/my-info');
+      navigate('/my-info', { replace: true });
     } catch {
       setSubmitError('정보를 저장하지 못했어요. 잠시 후 다시 시도해주세요.');
     } finally {

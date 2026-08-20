@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import backBtn from '../assets/backBtn.svg';
 import like from '../assets/like.svg';
@@ -35,12 +35,12 @@ import {
 } from '../api/community';
 import { getMyProfile } from '../api/mypage';
 import { getAccessToken, getUserId } from '../api/auth';
-import { formatDateTimeShort } from '../utils/formatters';
+import { formatDateTimeShort, toSecureImageUrl } from '../utils/formatters';
 import '../styles/PostDetail.css';
 
 function buildCommentTree(
   rawComments,
-  { username, myCommentIds, currentUserId, postAuthorId, isMyPost },
+  { username, myCommentIds, currentUserId, postAuthorId, isMyPost, getAnonymousLabel },
 ) {
   const isMine = (item) => {
     if (typeof item.isMine === 'boolean') return item.isMine;
@@ -52,14 +52,19 @@ function buildCommentTree(
     );
   };
 
-  // 익명 댓글은 백엔드가 authorId를 안 내려줄 수 있어서, authorId 비교가 안 되면
-  // "내 게시글 + 내가 쓴 댓글"인 경우를 글쓴이로 대체 판별함
+  // authorId는 항상 내려옴 (community/serializers.py CommentSerializer 확인함),
+  // 그래도 옛날 응답 등 혹시 모를 누락 대비로 로그인 사용자 + 내가 쓴 글 폴백은 남겨둠
   const isPostAuthor = (item) => {
     if (postAuthorId != null && item.authorId != null) {
       return String(item.authorId) === String(postAuthorId);
     }
     return isMyPost && isMine(item);
   };
+
+  // 익명 번호 배정은 useLayoutEffect에서 커밋 이후에만 수행함 (렌더링 도중 캐시를 바꾸면
+  // 버려지는 렌더가 있을 때 번호가 꼬일 수 있어서), 여기서는 이미 배정된 번호만 읽음
+  const resolveAuthor = (item) =>
+    item.isAnonymous ? getAnonymousLabel(item.authorId ?? `comment-${item.id}`) : item.authorName;
 
   const repliesByParent = {};
   const topLevel = [];
@@ -73,13 +78,11 @@ function buildCommentTree(
     }
   });
 
-  // 댓글이 삭제됐다고 닉네임까지 가릴 필요는 없음, 닉네임/익명 표기는 평소처럼 그대로 보여주고
-  // "탈퇴한 회원"은 댓글 삭제 여부가 아니라 작성자 계정 자체가 탈퇴했을 때만 써야 하는 라벨임
-  // 근데 지금 백엔드는 댓글이 삭제되면 이유를 막론하고 authorName을 무조건 빈 문자열로 내려줘서
-  // (계정이 멀쩡히 살아있어도) FE에서는 진짜 탈퇴 계정인지 구분할 방법이 없음, 백엔드 수정 필요
+  // 댓글이 삭제됐다고 닉네임/익명 번호까지 가릴 필요는 없음, 평소처럼 그대로 보여주고
+  // "탈퇴한 회원"은 댓글 삭제 여부가 아니라 작성자 계정 자체가 탈퇴했을 때만 붙는 라벨임
   return topLevel.map((item) => ({
     id: item.id,
-    author: item.authorName,
+    author: resolveAuthor(item),
     isAuthor: isPostAuthor(item),
     text: item.content,
     deleted: item.isDeleted,
@@ -89,7 +92,7 @@ function buildCommentTree(
     createdAt: item.createdAt,
     replies: (repliesByParent[item.id] || []).map((reply) => ({
       id: reply.id,
-      author: reply.authorName,
+      author: resolveAuthor(reply),
       isAuthor: isPostAuthor(reply),
       text: reply.content,
       deleted: reply.isDeleted,
@@ -139,6 +142,47 @@ function PostDetail() {
   const [toastMessage, setToastMessage] = useState('');
   const toastTimerRef = useRef(null);
   const moreMenuRef = useRef(null);
+
+  // 같은 게시글을 보는 동안 익명 작성자별로 한 번 배정한 번호(익명1, 익명2...)를 기억해두는 캐시
+  // 답글 없는 댓글이 삭제되면 BE가 그 댓글을 완전히 지워버려서(comment_detail DELETE) 서버 응답만으로는
+  // "그 번호가 이미 쓰였었다"는 걸 알 수 없음, 그래서 이 페이지를 벗어나지 않는 한(새로고침 전까지)
+  // 한 번 배정된 번호는 재사용하지 않고 새 익명 작성자는 항상 다음 번호를 받도록 세션 내에서만 기억함
+  // (페이지를 새로고침하면 이 캐시도 초기화되므로, 완전삭제된 익명 댓글이 있었다면 번호가 다시 채워질 수 있음
+  //  이 부분을 새로고침 이후에도 유지하려면 BE에 게시글+작성자별 영구 번호 필드가 필요함)
+  const anonNumberMapRef = useRef(new Map());
+  const anonNumberCounterRef = useRef(0);
+  // 새 익명 작성자에게 번호가 배정되면(useLayoutEffect에서) 화면을 다시 그리기 위한 카운터
+  const [, bumpAnonNumberVersion] = useState(0);
+
+  useEffect(() => {
+    anonNumberMapRef.current = new Map();
+    anonNumberCounterRef.current = 0;
+  }, [id]);
+
+  // 렌더링 도중에는 캐시를 절대 바꾸지 않고 읽기만 함, 아직 번호가 없으면 다음 커밋에서 채워짐
+  const getAnonymousLabel = (authorKey) => {
+    const number = anonNumberMapRef.current.get(String(authorKey));
+    return number ? `익명${number}` : '익명';
+  };
+
+  // 익명 번호는 여기(커밋 이후)에서만 배정함, 렌더링 중에 배정하면 버려지는 렌더가 있을 때
+  // (예: React Router의 v7_startTransition 경로) 번호가 실제로 쓰이지 않았는데도 소모될 수 있음
+  useLayoutEffect(() => {
+    const map = anonNumberMapRef.current;
+    let assigned = false;
+    [...rawComments]
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+      .forEach((item) => {
+        if (!item.isAnonymous) return;
+        const key = String(item.authorId ?? `comment-${item.id}`);
+        if (!map.has(key)) {
+          anonNumberCounterRef.current += 1;
+          map.set(key, anonNumberCounterRef.current);
+          assigned = true;
+        }
+      });
+    if (assigned) bumpAnonNumberVersion((v) => v + 1);
+  }, [rawComments]);
 
   const isMyPost = Boolean(post?.isMine);
 
@@ -527,6 +571,7 @@ function PostDetail() {
     currentUserId,
     isMyPost,
     postAuthorId: post.authorId,
+    getAnonymousLabel,
   });
 
   // 실명으로 쓴 글의 글쓴이는 자기 글에 익명 댓글을 달 수 없게 막음 (다른 사람은 익명 가능)
@@ -536,7 +581,7 @@ function PostDetail() {
   const imageUrls = (post.images || [])
     .slice()
     .sort((a, b) => a.order - b.order)
-    .map((image) => image.image);
+    .map((image) => toSecureImageUrl(image.image));
   const contentParagraphs = (post.content || '').split(/\n\s*\n/).filter(Boolean);
 
   return (

@@ -80,6 +80,14 @@ apiClient.interceptors.response.use(
       localStorage.setItem(ACCESS_TOKEN_KEY, data.data.accessToken);
       return apiClient(originalRequest);
     } catch (reissueError) {
+      // BE(users/views.py ReissueView)가 refreshToken이 실제로 유효하지 않을 때만 401을 내려줌
+      // 네트워크 오류·타임아웃·BE 일시 장애처럼 reissue 요청 자체가 실패한 경우(response 자체가 없거나
+      // 401이 아닌 경우)까지 세션을 정리해버리면, 실제로는 refreshToken이 멀쩡한데 토큰만 지워져서
+      // 이후 다른 액션(정책 북마크 등)에서 로그인 상태인데도 "로그인이 필요해요"가 뜨는 문제가 생김
+      if (reissueError.response?.status !== 401) {
+        return Promise.reject(reissueError);
+      }
+
       localStorage.removeItem(ACCESS_TOKEN_KEY);
       localStorage.removeItem(REFRESH_TOKEN_KEY);
       localStorage.removeItem(USER_ID_KEY);

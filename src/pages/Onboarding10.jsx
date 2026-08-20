@@ -3,6 +3,7 @@ import Button from '../components/Button';
 import ProgressBar from '../components/ProgressBar';
 import OptionChip from '../components/OptionChip';
 import useOnboarding from '../hooks/useOnboarding';
+import useExclusiveToggle from '../hooks/useExclusiveToggle';
 import arrowRight from '../assets/arrow_right.svg';
 import '../styles/Onboarding.css';
 
@@ -28,13 +29,11 @@ function Onboarding10() {
 
   const isValid = currentSupports.length > 0;
 
-  const toggleSupport = (item) => {
-    updateData({
-      currentSupports: currentSupports.includes(item)
-        ? currentSupports.filter((value) => value !== item)
-        : [...currentSupports, item],
-    });
-  };
+  const toggleSupport = useExclusiveToggle(
+    currentSupports,
+    (currentSupports) => updateData({ currentSupports }),
+    EXTRA_SUPPORTS,
+  );
 
   const handleSubmit = (e) => {
     e.preventDefault();

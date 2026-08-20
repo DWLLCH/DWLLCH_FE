@@ -57,7 +57,9 @@ function BookmarkProvider({ children }) {
   const isBookmarked = (policyId) => bookmarkedIds.includes(policyId);
 
   const toggleBookmark = (policyId) => {
-    if (!isLoggedIn) return 'login-required';
+    // 클로저로 캡처된 isLoggedIn(마지막 렌더 시점 값) 대신 클릭 시점 localStorage를 다시 확인함
+    // BookmarkProvider가 리렌더되지 않은 사이에 토큰이 바뀌면 isLoggedIn이 실제 상태와 어긋날 수 있음
+    if (!getAccessToken()) return 'login-required';
     if (pendingRef.current.has(policyId)) return undefined; // 이전 요청이 끝날 때까지 대기
 
     const alreadyBookmarked = isBookmarked(policyId);
