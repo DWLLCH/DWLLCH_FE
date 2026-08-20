@@ -9,8 +9,10 @@ import Toggle from '../components/Toggle';
 import PollFormSheet from '../components/PollFormSheet';
 import ErrorState from '../components/ErrorState';
 import LoadingSpinner from '../components/LoadingSpinner';
+import LoginRequiredModal from '../components/LoginRequiredModal';
 import { POST_CATEGORIES, LABEL_TO_BOARD_TYPE, BOARD_TYPE_TO_LABEL } from '../constants/community';
 import { createPost, getPost, updatePost } from '../api/community';
+import { getAccessToken } from '../api/auth';
 import '../styles/WritePost.css';
 
 const MAX_IMAGES = 5;
@@ -49,6 +51,7 @@ function WritePost() {
   const { id } = useParams();
   const isEdit = Boolean(id);
 
+  const [isLoggedIn] = useState(() => Boolean(getAccessToken()));
   const [existingPost, setExistingPost] = useState(null);
   const [postLoading, setPostLoading] = useState(isEdit);
   const [postError, setPostError] = useState(false);
@@ -87,7 +90,7 @@ function WritePost() {
   const fetchedPostIdRef = useRef(null);
 
   const fetchExistingPost = useCallback(() => {
-    if (!isEdit) return;
+    if (!isEdit || !isLoggedIn) return;
     const requestId = ++postRequestIdRef.current;
     setPostLoading(true);
     setPostError(false);
@@ -132,11 +135,11 @@ function WritePost() {
   }, [isEdit, id]);
 
   useEffect(() => {
-    if (!isEdit) return;
+    if (!isEdit || !isLoggedIn) return;
     if (fetchedPostIdRef.current === id) return;
     fetchedPostIdRef.current = id;
     fetchExistingPost();
-  }, [isEdit, id, fetchExistingPost]);
+  }, [isEdit, isLoggedIn, id, fetchExistingPost]);
 
   useEffect(() => {
     imagesRef.current = images;
@@ -292,6 +295,14 @@ function WritePost() {
       setSubmitError(message || '게시글 등록에 실패했어요. 다시 시도해주세요');
     }
   };
+
+  if (!isLoggedIn) {
+    return (
+      <div className="write-page">
+        <LoginRequiredModal open onClose={() => navigate('/community')} />
+      </div>
+    );
+  }
 
   if (isEdit && postLoading) {
     return (
