@@ -18,16 +18,24 @@ export async function createMyProfile(payload) {
   return response.data.data;
 }
 
+/* PATCH /mypage/profile/image | 인증 필요, multipart/form-data
+   BE에 이미지 삭제 엔드포인트는 없음 */
+export async function uploadProfileImage(file) {
+  const formData = new FormData();
+  formData.append('profileImage', file);
+  const response = await apiClient.patch('/mypage/profile/image', formData, {
+    headers: { 'Content-Type': undefined },
+  });
+  return response.data.data;
+}
+
 /* GET /mypage/applications | 인증 필요, 페이징 (getPolicyScraps와 동일한 응답 포맷) */
 export async function getApplications({ page = 0, size = 50 } = {}) {
   const response = await apiClient.get('/mypage/applications', { params: { page, size } });
   return response.data;
 }
 
-/* POST /mypage/applications | 인증 필요
-   status는 'PLANNED'|'IN_PROGRESS'|'COMPLETED'|'REJECTED', Application 모델에 신청일자 필드가 따로 없어서
-   사용자가 고른 날짜는 memo에 같이 실어보냄 (ApplicationProvider의 extractAppliedDate가 다시 꺼내 씀)
-   응답 data: { id, policyId, policyTitle, status, memo, createdAt, updatedAt } */
+/* POST /mypage/applications | 인증 필요 */
 export async function createApplication({ policyId, status = 'COMPLETED', memo = '' } = {}) {
   const response = await apiClient.post('/mypage/applications', {
     policy: policyId,
@@ -37,9 +45,7 @@ export async function createApplication({ policyId, status = 'COMPLETED', memo =
   return response.data.data;
 }
 
-/* GET /mypage/notifications | 인증 필요, 페이징 (getPolicyScraps와 동일한 응답 포맷)
-   응답 항목: { id, message, type, targetId, isRead, createdAt }
-   type은 DEADLINE/COMMENT/REPLY/ETC, targetId는 type마다 의미가 다름(COMMENT/REPLY는 게시글 id) */
+/* GET /mypage/notifications | 인증 필요, 페이징 (getPolicyScraps와 동일한 응답 포맷) */
 export async function getNotifications({ page = 0, size = 50 } = {}) {
   const response = await apiClient.get('/mypage/notifications', { params: { page, size } });
   return response.data;

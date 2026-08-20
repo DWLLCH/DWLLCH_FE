@@ -49,7 +49,7 @@ function CommentEditBox({ initialText, onSave, onCancel }) {
   );
 }
 
-function Reply({ reply, commentId, onEditReply, onDeleteReply, onToggleLike }) {
+function Reply({ reply, commentId, highlighted, onEditReply, onDeleteReply, onToggleLike }) {
   const [isEditing, setIsEditing] = useState(false);
 
   const handleSaveEdit = (text) => {
@@ -58,7 +58,10 @@ function Reply({ reply, commentId, onEditReply, onDeleteReply, onToggleLike }) {
   };
 
   return (
-    <div className="comment-reply">
+    <div
+      id={`comment-${reply.id}`}
+      className={`comment-reply${highlighted ? ' comment-reply--highlighted' : ''}`}
+    >
       <p className={`comment-reply-author${reply.isAuthor ? ' comment-reply-author--owner' : ''}`}>
         {reply.author}
         {reply.isAuthor && '(글쓴이)'}
@@ -102,6 +105,8 @@ function Comment({
   id,
   comment,
   highlighted,
+  targetCommentId,
+  highlightedCommentId,
   lockRealName = false,
   onAddReply,
   onEditComment,
@@ -110,12 +115,16 @@ function Comment({
   onDeleteReply,
   onToggleLike,
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const replies = comment.replies || [];
+  // 알림 등으로 특정 답글을 바로 보여줘야 할 때, 그 답글이 이 댓글 소속이면 처음부터 펼쳐서
+  // DOM에 실제로 렌더링해둠(접혀있으면 답글 자체가 없어서 스크롤·하이라이트 대상을 못 찾음)
+  const [expanded, setExpanded] = useState(() =>
+    replies.some((reply) => reply.id === targetCommentId),
+  );
   const [replyText, setReplyText] = useState('');
   const [replyAnonymous, setReplyAnonymous] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
 
-  const replies = comment.replies || [];
   const effectiveReplyAnonymous = lockRealName ? false : replyAnonymous;
 
   const handleSubmitReply = () => {
@@ -189,6 +198,7 @@ function Comment({
               key={reply.id}
               reply={reply}
               commentId={comment.id}
+              highlighted={reply.id === highlightedCommentId}
               onEditReply={onEditReply}
               onDeleteReply={onDeleteReply}
               onToggleLike={onToggleLike}

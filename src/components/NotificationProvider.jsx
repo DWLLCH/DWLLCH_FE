@@ -31,6 +31,7 @@ function NotificationProvider({ children }) {
           message: item.message,
           type: item.type,
           targetId: item.targetId,
+          commentId: item.commentId,
           read: item.isRead,
           createdAt: item.createdAt,
         }));

@@ -15,24 +15,94 @@ import { getBriefings } from '../api/briefing';
 import { BRIEFING_SECTION_META } from '../constants/briefing';
 import '../styles/Briefing.css';
 
-// briefing-card-row는 이제 자동으로 흘러가는 마퀴라 트랙 자체엔 스크롤이 없음.
-// 데스크톱은 CSS :has(:hover)로 정지시키지만 터치는 hover가 안 잡혀서, 손가락이 닿아있는
-// 동안만 흐름을 멈추도록 touchstart/touchend에 직접 리스너를 붙였다 뗌
-// (React 19 ref 콜백의 정리 함수 반환을 이용, 훅 없이 DOM 노드에 직접 붙임)
-function attachTouchPause(node) {
-  if (!node) return undefined;
+// CSS 애니메이션과 네이티브 스크롤이 서로 안 섞여서, 만지는 동안만 애니메이션을 멈추고 스크롤을 받아줌
+function attachMarqueeInteraction(viewport) {
+  if (!viewport) return undefined;
+  const row = viewport.querySelector('.briefing-card-row');
+  if (!row) return undefined;
 
-  const pause = () => node.classList.add('is-paused');
-  const resume = () => node.classList.remove('is-paused');
+  const pause = () => row.classList.add('is-paused');
+  const resume = () => row.classList.remove('is-paused');
 
-  node.addEventListener('touchstart', pause, { passive: true });
-  node.addEventListener('touchend', resume);
-  node.addEventListener('touchcancel', resume);
+  // 카드가 두 벌 이어붙은 트랙이라 두 번째 벌에 들어가면 한 벌만큼 되감아 순환처럼 보이게 함
+  const loopScroll = () => {
+    const halfWidth = row.scrollWidth / 2;
+    if (halfWidth <= 0) return;
+    while (viewport.scrollLeft >= halfWidth) {
+      viewport.scrollLeft -= halfWidth;
+    }
+  };
+
+  let drag = null;
+  const DRAG_THRESHOLD = 4;
+
+  const handlePointerDown = (e) => {
+    if (e.pointerType === 'touch') return;
+    drag = {
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startScrollLeft: viewport.scrollLeft,
+      moved: false,
+    };
+  };
+  const handlePointerMove = (e) => {
+    if (!drag || e.pointerId !== drag.pointerId) return;
+    const dx = e.clientX - drag.startX;
+    if (!drag.moved) {
+      if (Math.abs(dx) < DRAG_THRESHOLD) return;
+      // pointerdown 즉시 캡처하면 click도 뷰포트로 뺏겨 카드 클릭이 막혀서 이동 후에만 캡처함
+      drag.moved = true;
+      pause();
+      viewport.setPointerCapture(drag.pointerId);
+    }
+    viewport.scrollLeft = drag.startScrollLeft - dx;
+  };
+  const endDrag = (e) => {
+    if (!drag || (e?.pointerId != null && e.pointerId !== drag.pointerId)) return;
+    if (drag.moved) {
+      resume();
+      if (viewport.hasPointerCapture(drag.pointerId))
+        viewport.releasePointerCapture(drag.pointerId);
+    }
+    drag = null;
+  };
+
+  const WHEEL_LINE_HEIGHT_PX = 16;
+  let wheelResumeTimer = null;
+  const handleWheel = (e) => {
+    if (e.deltaX !== 0) return;
+    e.preventDefault();
+    pause();
+    // deltaMode가 px가 아니면(줄/페이지 단위) 변환 안 할 시 Firefox 등에서 스크롤량이 너무 작아짐
+    let deltaPx = e.deltaY;
+    if (e.deltaMode === 1) deltaPx *= WHEEL_LINE_HEIGHT_PX;
+    else if (e.deltaMode === 2) deltaPx *= viewport.clientWidth;
+    viewport.scrollLeft += deltaPx;
+    clearTimeout(wheelResumeTimer);
+    wheelResumeTimer = setTimeout(resume, 200);
+  };
+
+  viewport.addEventListener('scroll', loopScroll, { passive: true });
+  viewport.addEventListener('touchstart', pause, { passive: true });
+  viewport.addEventListener('touchend', resume);
+  viewport.addEventListener('touchcancel', resume);
+  viewport.addEventListener('pointerdown', handlePointerDown);
+  viewport.addEventListener('pointermove', handlePointerMove);
+  viewport.addEventListener('pointerup', endDrag);
+  viewport.addEventListener('pointercancel', endDrag);
+  viewport.addEventListener('wheel', handleWheel, { passive: false });
 
   return () => {
-    node.removeEventListener('touchstart', pause);
-    node.removeEventListener('touchend', resume);
-    node.removeEventListener('touchcancel', resume);
+    clearTimeout(wheelResumeTimer);
+    viewport.removeEventListener('scroll', loopScroll);
+    viewport.removeEventListener('touchstart', pause);
+    viewport.removeEventListener('touchend', resume);
+    viewport.removeEventListener('touchcancel', resume);
+    viewport.removeEventListener('pointerdown', handlePointerDown);
+    viewport.removeEventListener('pointermove', handlePointerMove);
+    viewport.removeEventListener('pointerup', endDrag);
+    viewport.removeEventListener('pointercancel', endDrag);
+    viewport.removeEventListener('wheel', handleWheel);
   };
 }
 
@@ -99,8 +169,8 @@ function Briefing() {
               <SectionTag>{section.title}</SectionTag>
               <p className="briefing-section-desc">{section.description}</p>
               {section.cards.length > 0 ? (
-                <div className="briefing-marquee-viewport">
-                  <div className="briefing-card-row" ref={attachTouchPause}>
+                <div className="briefing-marquee-viewport" ref={attachMarqueeInteraction}>
+                  <div className="briefing-card-row">
                     {/* 카드 목록을 두 벌 이어붙여서 트랙이 -50% 만큼 흘러가면 이음매 없이 반복되게 함 */}
                     {[...section.cards, ...section.cards].map((briefing, index) => (
                       <div

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import backBtn from '../assets/backBtn.svg';
 import NotificationItem from '../components/NotificationItem';
@@ -5,17 +6,33 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import useNotifications from '../hooks/useNotifications';
 import '../styles/NotificationList.css';
 
-// targetId 의미가 type마다 다름, 지금 실제로 만들어지는 알림은 COMMENT뿐이라 target_id가 게시글 id임
-// (REPLY도 같은 의미로 쓰일 예정, DEADLINE은 아직 실제로 내려오는 알림이 없어서 이동 경로 미정)
 function resolveNotificationPath(type, targetId) {
   if (targetId == null) return null;
   if (type === 'COMMENT' || type === 'REPLY') return `/community/${targetId}`;
+  if (type === 'DEADLINE') return `/support/${targetId}`;
   return null;
+}
+
+const NOTIFICATION_CATEGORY_LABELS = {
+  DEADLINE: '신청 마감 임박',
+  COMMUNITY: '커뮤니티',
+  PROTECTION_END: '회원 정보',
+  ETC: '기타',
+};
+
+function resolveNotificationCategory(type) {
+  if (type === 'COMMENT' || type === 'REPLY') return 'COMMUNITY';
+  if (type === 'DEADLINE' || type === 'PROTECTION_END') return type;
+  return 'ETC';
 }
 
 function NotificationList() {
   const navigate = useNavigate();
-  const { notifications, loading, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, loading, markAsRead, markAllAsRead, refetch } = useNotifications();
+
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
 
   const handleBack = () => {
     markAllAsRead();
@@ -25,7 +42,8 @@ function NotificationList() {
   const handleItemClick = (item) => {
     if (!item.read) markAsRead(item.id);
     const path = resolveNotificationPath(item.type, item.targetId);
-    if (path) navigate(path);
+    if (!path) return;
+    navigate(path, item.commentId != null ? { state: { commentId: item.commentId } } : undefined);
   };
 
   return (
@@ -52,6 +70,7 @@ function NotificationList() {
             {notifications.map((item) => (
               <NotificationItem
                 key={item.id}
+                category={NOTIFICATION_CATEGORY_LABELS[resolveNotificationCategory(item.type)]}
                 message={item.message}
                 createdAt={item.createdAt}
                 read={item.read}
