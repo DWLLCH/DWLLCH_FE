@@ -53,7 +53,10 @@ function WritePost() {
   const isEdit = Boolean(id);
 
   // 매 렌더마다 새로 확인함 (로그인/로그아웃으로 토큰이 바뀌어도 즉시 반영되도록)
-  const isLoggedIn = Boolean(getAccessToken());
+  // 토큰 값 자체를 세션 식별자로 씀 (같은 탭에서 로그아웃 후 다른 계정으로 로그인해도
+  // 아래 조회 가드가 계정이 바뀐 걸 감지할 수 있어야 해서 boolean만으로는 부족함)
+  const accessToken = getAccessToken();
+  const isLoggedIn = Boolean(accessToken);
   const [existingPost, setExistingPost] = useState(null);
   const [postLoading, setPostLoading] = useState(isEdit);
   const [postError, setPostError] = useState(false);
@@ -90,6 +93,9 @@ function WritePost() {
   const postRequestIdRef = useRef(0);
   // StrictMode 개발 모드에서 effect가 두 번 실행돼서 GET을 중복으로 보내는 것도 막아줌
   const fetchedPostIdRef = useRef(null);
+  // 마지막으로 조회에 성공했을 때의 토큰 값, id는 그대로인데 계정만 바뀐 경우를 감지하기 위함
+  // (같은 탭에서 로그아웃 후 다른 계정으로 로그인하면 id는 안 바뀌어도 다시 조회해야 함)
+  const fetchedTokenRef = useRef(null);
 
   const fetchExistingPost = useCallback(() => {
     if (!isEdit || !isLoggedIn) return;
@@ -142,10 +148,11 @@ function WritePost() {
 
   useEffect(() => {
     if (!isEdit || !isLoggedIn) return;
-    if (fetchedPostIdRef.current === id) return;
+    if (fetchedPostIdRef.current === id && fetchedTokenRef.current === accessToken) return;
     fetchedPostIdRef.current = id;
+    fetchedTokenRef.current = accessToken;
     fetchExistingPost();
-  }, [isEdit, isLoggedIn, id, fetchExistingPost]);
+  }, [isEdit, isLoggedIn, id, accessToken, fetchExistingPost]);
 
   useEffect(() => {
     imagesRef.current = images;

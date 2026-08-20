@@ -48,11 +48,9 @@ function AccountWithdraw() {
     if (isSubmitting || !password) return;
     setIsSubmitting(true);
     setPasswordError('');
+
     try {
       await withdrawAccount({ password });
-      // 탈퇴 성공 직후 토큰을 정리해 삭제된 계정으로 인증된 상태가 남지 않도록 함
-      clearTokens();
-      setStep('complete');
     } catch (error) {
       const code = error.response?.data?.code;
       if (code === 'AUTH_400_CURRENT_PASSWORD_MISMATCH') {
@@ -60,9 +58,19 @@ function AccountWithdraw() {
       } else {
         setErrorOpen(true);
       }
-    } finally {
       setIsSubmitting(false);
+      return;
     }
+
+    // 탈퇴 자체는 이미 성공했으므로, 토큰 정리 중 예외가 나더라도 탈퇴 실패로 취급하지 않음
+    // (정리가 안 되더라도 완료 화면의 handleComplete에서 한 번 더 clearTokens를 호출함)
+    try {
+      clearTokens();
+    } catch {
+      // 무시함
+    }
+    setStep('complete');
+    setIsSubmitting(false);
   };
 
   const handleComplete = () => {
