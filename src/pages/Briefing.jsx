@@ -38,28 +38,43 @@ function attachMarqueeInteraction(viewport) {
     }
   };
 
-  let dragging = false;
-  let startX = 0;
-  let startScrollLeft = 0;
+  // pointerId가 있으면 마우스 버튼이 눌려 있는 상태, moved는 실제로 드래그 임계값(4px)을
+  // 넘겨서 카드 클릭이 아니라 드래그로 확정됐는지를 구분함
+  let drag = null;
+  const DRAG_THRESHOLD = 4;
 
   const handlePointerDown = (e) => {
     // 터치는 뷰포트의 네이티브 스크롤에 맡기고, 마우스/펜만 직접 드래그 패닝을 처리함
     if (e.pointerType === 'touch') return;
-    dragging = true;
-    startX = e.clientX;
-    startScrollLeft = viewport.scrollLeft;
-    pause();
-    viewport.setPointerCapture(e.pointerId);
+    drag = {
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startScrollLeft: viewport.scrollLeft,
+      moved: false,
+    };
   };
   const handlePointerMove = (e) => {
-    if (!dragging) return;
-    viewport.scrollLeft = startScrollLeft - (e.clientX - startX);
+    if (!drag || e.pointerId !== drag.pointerId) return;
+    const dx = e.clientX - drag.startX;
+    if (!drag.moved) {
+      // 실제로 움직이기 전엔 포인터를 캡처하지 않음 - setPointerCapture를 걸어두면 브라우저가
+      // 그 뒤에 나오는 click 이벤트도 뷰포트로 돌려버려서, 드래그 없이 그냥 클릭만 해도
+      // BriefingCard의 onClick(상세 페이지 이동)이 아예 안 먹는 문제가 있었음
+      if (Math.abs(dx) < DRAG_THRESHOLD) return;
+      drag.moved = true;
+      pause();
+      viewport.setPointerCapture(drag.pointerId);
+    }
+    viewport.scrollLeft = drag.startScrollLeft - dx;
   };
   const endDrag = (e) => {
-    if (!dragging) return;
-    dragging = false;
-    resume();
-    if (e?.pointerId != null) viewport.releasePointerCapture(e.pointerId);
+    if (!drag || (e?.pointerId != null && e.pointerId !== drag.pointerId)) return;
+    if (drag.moved) {
+      resume();
+      if (viewport.hasPointerCapture(drag.pointerId))
+        viewport.releasePointerCapture(drag.pointerId);
+    }
+    drag = null;
   };
 
   // 세로 휠(deltaX === 0)만 굴려도 좌우로 스크롤되게 deltaY를 scrollLeft에 대신 반영함
