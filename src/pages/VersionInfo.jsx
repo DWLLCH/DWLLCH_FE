@@ -4,8 +4,9 @@ import backBtn from '../assets/backBtn.svg';
 import logoImage from '../assets/logo_image.svg';
 import SettingsRow from '../components/SettingsRow';
 import Modal from '../components/Modal';
+import BottomSheet from '../components/BottomSheet';
 import Button from '../components/Button';
-import { APP_VERSION, OPEN_SOURCE_LIBRARIES } from '../constants/mypage';
+import { APP_VERSION, OPEN_SOURCE_LIBRARIES, SERVICE_INFO } from '../constants/mypage';
 import '../styles/AccountChange.css';
 import '../styles/Inquiry.css';
 import '../styles/VersionInfo.css';
@@ -13,6 +14,7 @@ import '../styles/VersionInfo.css';
 function VersionInfo() {
   const navigate = useNavigate();
   const [licenseModalOpen, setLicenseModalOpen] = useState(false);
+  const [serviceInfoOpen, setServiceInfoOpen] = useState(false);
 
   return (
     <div className="account-change-page">
@@ -45,7 +47,7 @@ function VersionInfo() {
             chevron
             onClick={() => setLicenseModalOpen(true)}
           />
-          <SettingsRow label="서비스 정보" chevron onClick={() => navigate('/mypage/terms')} />
+          <SettingsRow label="서비스 정보" chevron onClick={() => setServiceInfoOpen(true)} />
         </div>
       </div>
 
@@ -66,6 +68,33 @@ function VersionInfo() {
           확인
         </Button>
       </Modal>
+
+      <BottomSheet open={serviceInfoOpen} onClose={() => setServiceInfoOpen(false)}>
+        <div className="service-info-sheet">
+          <p className="service-info-name">{SERVICE_INFO.name}</p>
+          <p className="service-info-tagline">{SERVICE_INFO.tagline}</p>
+          <p className="service-info-desc">{SERVICE_INFO.description}</p>
+
+          <div className="service-info-section">
+            <p className="service-info-section-title">주요 기능</p>
+            <ul className="service-info-feature-list">
+              {SERVICE_INFO.features.map((feature) => (
+                <li key={feature}>{feature}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="service-info-section">
+            <p className="service-info-section-title">현재 버전</p>
+            <p className="service-info-version">{APP_VERSION}</p>
+          </div>
+
+          <div className="service-info-contact">
+            <span className="service-info-contact-label">문의</span>
+            <span className="service-info-contact-value">{SERVICE_INFO.contactEmail}</span>
+          </div>
+        </div>
+      </BottomSheet>
     </div>
   );
 }
