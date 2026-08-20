@@ -413,8 +413,15 @@ function PostDetail() {
         setReportModalOpen(false);
         showToast('신고가 정상적으로 접수되었습니다.');
       })
-      .catch(() => {
-        alert('신고 접수에 실패했습니다.');
+      .catch((error) => {
+        // 이미 신고한 게시글이면 BE가 { detail: "이미 신고한 게시글입니다." } 형태(400)로 내려줌
+        // (사유 값 자체가 잘못된 경우엔 { reason: [...] }라 여기선 안 걸림, REPORT_REASONS가 BE choices와 맞아서 정상 흐름에선 발생 안 함)
+        const detail = error.response?.data?.data?.detail;
+        setReportModalOpen(false);
+        showToast(
+          typeof detail === 'string' ? detail : '신고 접수에 실패했어요. 잠시 후 다시 시도해주세요',
+          'warning',
+        );
       })
       .finally(() => {
         setIsSubmittingReport(false);
