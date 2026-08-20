@@ -36,3 +36,11 @@ export async function createApplication({ policyId, status = 'COMPLETED', memo =
   });
   return response.data.data;
 }
+
+/* GET /mypage/notifications | 인증 필요, 페이징 (getPolicyScraps와 동일한 응답 포맷)
+   응답 항목: { id, message, isRead, createdAt } — 알림 종류/이동 대상 필드는 아직 BE에 없어서
+   NotificationItem은 메시지 본문과 시간만 보여줌, 읽음 처리 API도 아직 없어서 markAllAsRead는 로컬 상태로만 동작함 */
+export async function getNotifications({ page = 0, size = 50 } = {}) {
+  const response = await apiClient.get('/mypage/notifications', { params: { page, size } });
+  return response.data;
+}

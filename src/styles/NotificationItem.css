@@ -32,19 +32,17 @@
   border: 0;
 }
 
-.notification-item-category {
-  margin: 0 0 4px;
-  font-size: 15px;
-  font-weight: 600;
-  color: #000;
-  word-break: keep-all;
-}
-
 .notification-item-message {
-  margin: 0;
+  margin: 0 0 4px;
   overflow: hidden;
   font-size: 14px;
   color: #202020;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.notification-item-time {
+  margin: 0;
+  font-size: 12px;
+  color: #adadad;
 }

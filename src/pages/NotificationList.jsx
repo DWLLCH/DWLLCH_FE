@@ -1,12 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 import backBtn from '../assets/backBtn.svg';
 import NotificationItem from '../components/NotificationItem';
+import LoadingSpinner from '../components/LoadingSpinner';
 import useNotifications from '../hooks/useNotifications';
 import '../styles/NotificationList.css';
 
 function NotificationList() {
   const navigate = useNavigate();
-  const { notifications, markAllAsRead } = useNotifications();
+  const { notifications, loading, markAllAsRead } = useNotifications();
 
   const handleBack = () => {
     markAllAsRead();
@@ -28,13 +29,17 @@ function NotificationList() {
       </header>
 
       <div className="notification-list-body">
-        {notifications.length > 0 ? (
+        {loading ? (
+          <div className="notification-list-empty">
+            <LoadingSpinner />
+          </div>
+        ) : notifications.length > 0 ? (
           <ul className="notification-list">
             {notifications.map((item) => (
               <NotificationItem
                 key={item.id}
-                category={item.category}
                 message={item.message}
+                createdAt={item.createdAt}
                 read={item.read}
               />
             ))}
