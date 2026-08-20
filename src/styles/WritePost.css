@@ -103,6 +103,11 @@
   border: 1px solid #d9d9d9;
   border-radius: 10px;
   background-color: #fff;
+  transition: border-color 0.15s ease;
+}
+
+.write-input-box:focus-within {
+  border-color: #4fae7c;
 }
 
 .write-input {
@@ -145,6 +150,11 @@
   border: 1px solid #d9d9d9;
   border-radius: 10px;
   background-color: #fff;
+  transition: border-color 0.15s ease;
+}
+
+.write-content-box:focus-within {
+  border-color: #4fae7c;
 }
 
 .write-textarea {
