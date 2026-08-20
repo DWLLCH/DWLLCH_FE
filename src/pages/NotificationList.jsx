@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import backBtn from '../assets/backBtn.svg';
 import NotificationItem from '../components/NotificationItem';
@@ -5,8 +6,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import useNotifications from '../hooks/useNotifications';
 import '../styles/NotificationList.css';
 
-// targetId 의미가 type마다 다름, 지금 실제로 만들어지는 알림은 COMMENT뿐이라 target_id가 게시글 id임
-// (REPLY도 같은 의미로 쓰일 예정, DEADLINE은 아직 실제로 내려오는 알림이 없어서 이동 경로 미정)
+// targetId 의미가 type마다 다름, COMMENT/REPLY는 게시글 id(DEADLINE 등 다른 타입 이동 경로는 아직 미정)
 function resolveNotificationPath(type, targetId) {
   if (targetId == null) return null;
   if (type === 'COMMENT' || type === 'REPLY') return `/community/${targetId}`;
@@ -15,7 +15,13 @@ function resolveNotificationPath(type, targetId) {
 
 function NotificationList() {
   const navigate = useNavigate();
-  const { notifications, loading, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, loading, markAsRead, markAllAsRead, refetch } = useNotifications();
+
+  // NotificationProvider는 세션당 한 번만 자동으로 조회해서, 앱을 켜놓은 동안 새로 온 알림이
+  // 있어도 새로고침 전엔 안 보였음 - 알림 탭에 들어올 때마다 다시 조회해서 최신 상태로 보여줌
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
 
   const handleBack = () => {
     markAllAsRead();
@@ -25,7 +31,10 @@ function NotificationList() {
   const handleItemClick = (item) => {
     if (!item.read) markAsRead(item.id);
     const path = resolveNotificationPath(item.type, item.targetId);
-    if (path) navigate(path);
+    if (!path) return;
+    // commentId가 있으면(댓글/대댓글 알림) PostDetail이 이 값으로 해당 댓글로 스크롤·하이라이트함
+    // (MyComments.jsx가 댓글 클릭 시 이동하는 것과 동일한 패턴)
+    navigate(path, item.commentId != null ? { state: { commentId: item.commentId } } : undefined);
   };
 
   return (

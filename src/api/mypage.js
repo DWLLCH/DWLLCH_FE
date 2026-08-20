@@ -38,8 +38,9 @@ export async function createApplication({ policyId, status = 'COMPLETED', memo =
 }
 
 /* GET /mypage/notifications | 인증 필요, 페이징 (getPolicyScraps와 동일한 응답 포맷)
-   응답 항목: { id, message, type, targetId, isRead, createdAt }
-   type은 DEADLINE/COMMENT/REPLY/ETC, targetId는 type마다 의미가 다름(COMMENT/REPLY는 게시글 id) */
+   응답 항목: { id, message, type, targetId, commentId, isRead, createdAt }
+   type은 DEADLINE/COMMENT/REPLY/ETC, targetId는 type마다 의미가 다름(COMMENT/REPLY는 게시글 id)
+   commentId는 COMMENT/REPLY일 때만 값이 오고, 스크롤/하이라이트 대상 댓글(REPLY는 새로 달린 답글 자신) id임 */
 export async function getNotifications({ page = 0, size = 50 } = {}) {
   const response = await apiClient.get('/mypage/notifications', { params: { page, size } });
   return response.data;
