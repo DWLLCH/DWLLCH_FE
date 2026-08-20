@@ -280,7 +280,18 @@ function ChatbotProvider({ children }) {
       try {
         const result = await getPolicyChatbotAnswer(question);
         setIsTyping(false);
-        appendMessages([{ sender: 'bot', text: result.answer, quickReplies: BACK_TO_MENU_OPTION }]);
+
+        // answerable이 false면 가진 정책 정보로는 확답할 수 없다는 뜻이라 별도 안내를 덧붙임
+        const botMessages = [{ sender: 'bot', text: result.answer }];
+        if (!result.answerable) {
+          botMessages.push({
+            sender: 'bot',
+            text: '정확한 정보로 답변드리기 어려운 질문이었어요. 관련 기관이나 담당자에게 직접 문의해보시는 걸 추천드려요.',
+          });
+        }
+        botMessages[botMessages.length - 1].quickReplies = BACK_TO_MENU_OPTION;
+
+        appendMessages(botMessages);
       } catch (error) {
         setIsTyping(false);
         const message =
