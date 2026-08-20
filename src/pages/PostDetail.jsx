@@ -747,6 +747,8 @@ function PostDetail() {
                 id={`comment-${comment.id}`}
                 comment={comment}
                 highlighted={comment.id === highlightedCommentId}
+                targetCommentId={targetCommentId}
+                highlightedCommentId={highlightedCommentId}
                 lockRealName={forceRealName}
                 onAddReply={handleAddReply}
                 onEditComment={handleEditComment}
