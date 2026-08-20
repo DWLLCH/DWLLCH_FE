@@ -15,7 +15,6 @@ import { getAccessToken } from '../api/auth';
 import { formatDateKorean, formatDday, parseDateKey, toPolicyLevel } from '../utils/formatters';
 import '../styles/Bookmark.css';
 
-// BE Application.Status 라벨 (mypage/models.py 기준)
 const STATUS_LABELS = {
   PLANNED: '신청 예정',
   IN_PROGRESS: '신청 중',

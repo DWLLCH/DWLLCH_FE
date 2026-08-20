@@ -15,7 +15,7 @@ import { getBriefings } from '../api/briefing';
 import { BRIEFING_SECTION_META } from '../constants/briefing';
 import '../styles/Briefing.css';
 
-// briefing-marquee-viewport(overflow-x: auto)에 붙는 핸들러
+// CSS 애니메이션과 네이티브 스크롤이 서로 안 섞여서, 만지는 동안만 애니메이션을 멈추고 스크롤을 받아줌
 function attachMarqueeInteraction(viewport) {
   if (!viewport) return undefined;
   const row = viewport.querySelector('.briefing-card-row');
@@ -24,6 +24,7 @@ function attachMarqueeInteraction(viewport) {
   const pause = () => row.classList.add('is-paused');
   const resume = () => row.classList.remove('is-paused');
 
+  // 카드가 두 벌 이어붙은 트랙이라 두 번째 벌에 들어가면 한 벌만큼 되감아 순환처럼 보이게 함
   const loopScroll = () => {
     const halfWidth = row.scrollWidth / 2;
     if (halfWidth <= 0) return;
@@ -49,6 +50,7 @@ function attachMarqueeInteraction(viewport) {
     const dx = e.clientX - drag.startX;
     if (!drag.moved) {
       if (Math.abs(dx) < DRAG_THRESHOLD) return;
+      // pointerdown 즉시 캡처하면 click도 뷰포트로 뺏겨 카드 클릭이 막혀서 이동 후에만 캡처함
       drag.moved = true;
       pause();
       viewport.setPointerCapture(drag.pointerId);
@@ -65,13 +67,13 @@ function attachMarqueeInteraction(viewport) {
     drag = null;
   };
 
-  // 세로 휠(deltaX === 0)만 굴려도 좌우로 스크롤되게 deltaY를 scrollLeft에 대신 반영
   const WHEEL_LINE_HEIGHT_PX = 16;
   let wheelResumeTimer = null;
   const handleWheel = (e) => {
     if (e.deltaX !== 0) return;
     e.preventDefault();
     pause();
+    // deltaMode가 px가 아니면(줄/페이지 단위) 변환 안 할 시 Firefox 등에서 스크롤량이 너무 작아짐
     let deltaPx = e.deltaY;
     if (e.deltaMode === 1) deltaPx *= WHEEL_LINE_HEIGHT_PX;
     else if (e.deltaMode === 2) deltaPx *= viewport.clientWidth;

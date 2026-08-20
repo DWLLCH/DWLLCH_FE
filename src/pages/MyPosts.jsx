@@ -39,8 +39,6 @@ function MyPosts() {
       })
       .catch((error) => {
         if (requestId !== requestIdRef.current) return;
-        // 리프레시 토큰이 없거나 재발급 후에도 401이면 apiClient 인터셉터가 처리 못 하고
-        // 여기까지 넘어오는데, 이 경우는 재시도해도 다시 실패하니 로그인 화면으로 보냄
         if (error.response?.status === 401) {
           window.location.href = '/login';
           return;
