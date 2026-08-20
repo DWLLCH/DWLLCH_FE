@@ -24,8 +24,11 @@ function extractAppliedDate(application) {
 }
 
 function ApplicationProvider({ children }) {
-  // { [policyId]: { id, dateKey } }
+  // { [policyId]: { id, dateKey, status } } — 빠른 조회(신청 여부 확인)용
   const [applications, setApplications] = useState({});
+  // 화면에 목록으로 그릴 때 씀, BE가 -created_at 순으로 내려주는 순서를 그대로 유지함
+  // (applications는 policyId가 키라 숫자 키 특성상 정렬 순서가 뒤틀려서 목록 용도로는 못 씀)
+  const [applicationList, setApplicationList] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // 매 렌더마다 새로 확인함 (로그인/로그아웃으로 토큰이 바뀌어도 즉시 반영되도록, BookmarkProvider와 동일 패턴)
@@ -43,14 +46,25 @@ function ApplicationProvider({ children }) {
     getApplications({ page: 0, size: 50 })
       .then((data) => {
         if (sessionRef.current !== requestedFor) return; // 세션이 바뀐 뒤 도착한 응답은 무시
+        const content = data.content || [];
         const next = {};
-        (data.content || []).forEach((application) => {
+        const list = content.map((application) => {
+          const dateKey = extractAppliedDate(application);
           next[application.policyId] = {
             id: application.id,
-            dateKey: extractAppliedDate(application),
+            dateKey,
+            status: application.status,
+          };
+          return {
+            id: application.id,
+            policyId: application.policyId,
+            policyTitle: application.policyTitle,
+            status: application.status,
+            dateKey,
           };
         });
         setApplications(next);
+        setApplicationList(list);
       })
       .catch(() => {
         // 신청 목록 조회 실패는 조용히 무시함 (다음 재조회 때 다시 시도)
@@ -70,6 +84,7 @@ function ApplicationProvider({ children }) {
       fetchApplications();
     } else {
       setApplications({});
+      setApplicationList([]);
     }
   }, [userId, fetchApplications]);
 
@@ -91,8 +106,22 @@ function ApplicationProvider({ children }) {
       .then((application) => {
         setApplications((prev) => ({
           ...prev,
-          [policyId]: { id: application.id, dateKey },
+          [policyId]: {
+            id: application.id,
+            dateKey,
+            status: application.status,
+          },
         }));
+        setApplicationList((prev) => [
+          {
+            id: application.id,
+            policyId,
+            policyTitle: application.policyTitle,
+            status: application.status,
+            dateKey,
+          },
+          ...prev,
+        ]);
         return 'completed';
       })
       .catch(() => 'error')
@@ -103,7 +132,14 @@ function ApplicationProvider({ children }) {
 
   return (
     <ApplicationContext.Provider
-      value={{ applications, getAppliedDate, completeApplication, appliedCount, loading }}
+      value={{
+        applications,
+        applicationList,
+        getAppliedDate,
+        completeApplication,
+        appliedCount,
+        loading,
+      }}
     >
       {children || <Outlet />}
     </ApplicationContext.Provider>
