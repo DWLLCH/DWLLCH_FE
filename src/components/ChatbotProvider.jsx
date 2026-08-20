@@ -6,6 +6,7 @@ import {
   CONNECT_TARGET_OPTIONS,
   INITIAL_MESSAGES,
   MAX_ATTACH_COUNT,
+  MENU_OPTIONS,
   RISK_CHECK_CONNECT_PREFIX,
   RISK_CHECK_STRUCTURE_VALUE,
   STRUCTURE_REQUEST_OPTION,
@@ -29,6 +30,10 @@ const BOT_REPLY_DELAY = 800;
 
 // 새로고침해도 진행 중이던 위기판독(직접 입력 상담) 세션을 이어갈 수 있도록 탭 단위로 저장
 const RISK_CHECK_SESSION_KEY = 'dwllch_riskCheckSessionId';
+
+// 마지막으로 위기판독 세션을 사용한 시각, 일정 시간 응답이 없으면 세션을 끊고 새로 시작하기 위해 씀
+const RISK_CHECK_LAST_ACTIVITY_KEY = 'dwllch_riskCheckLastActivity';
+const RISK_CHECK_IDLE_TIMEOUT_MS = 60 * 60 * 1000;
 
 // "직접 입력"을 선택해서 본인 상황을 자유롭게 설명하는 동안만 위기판독 흐름으로 봄
 // 메뉴로 돌아가면 초기화됨, MENU_OPTIONS의 manual-input 값과 맞춰둠 (constants/chatbot.js 참고)
@@ -124,22 +129,44 @@ function ChatbotProvider({ children }) {
   );
 
   // 위기판독 세션이 아직 없으면 새로 만들고, 이미 있으면 그대로 재사용함
+  // 단, 마지막 활동 후 1시간이 지났으면 보안을 위해 이전 세션을 끊고 새로 시작함
   const ensureRiskCheckSession = useCallback(async () => {
-    if (riskCheckSessionId) return riskCheckSessionId;
     if (!getAccessToken()) return null;
+
+    const lastActivity = Number(sessionStorage.getItem(RISK_CHECK_LAST_ACTIVITY_KEY));
+    const isIdleExpired =
+      riskCheckSessionId && lastActivity && Date.now() - lastActivity > RISK_CHECK_IDLE_TIMEOUT_MS;
+
+    if (isIdleExpired) {
+      sessionStorage.removeItem(RISK_CHECK_SESSION_KEY);
+      sessionStorage.removeItem(RISK_CHECK_LAST_ACTIVITY_KEY);
+      setRiskCheckSessionId(null);
+      setRiskCheckStatus(null);
+      hasAutoStructuredRef.current = false;
+      appendMessages([
+        {
+          sender: 'bot',
+          text: '일정 시간이 지나, 보안을 위해 이전 대화와 분리하여 새로운 상담을 준비합니다.',
+        },
+      ]);
+    } else if (riskCheckSessionId) {
+      sessionStorage.setItem(RISK_CHECK_LAST_ACTIVITY_KEY, String(Date.now()));
+      return riskCheckSessionId;
+    }
 
     try {
       const session = await createRiskCheckSession();
       setRiskCheckSessionId(session.id);
       setRiskCheckStatus(session.status);
       sessionStorage.setItem(RISK_CHECK_SESSION_KEY, String(session.id));
+      sessionStorage.setItem(RISK_CHECK_LAST_ACTIVITY_KEY, String(Date.now()));
       hasAutoStructuredRef.current = false;
       return session.id;
     } catch {
       // 세션 생성 실패는 sendRiskCheckTurn 쪽에서 안내 메시지로 처리함
       return null;
     }
-  }, [riskCheckSessionId]);
+  }, [riskCheckSessionId, appendMessages]);
 
   // 위기판독 대화 한 턴을 실제로 보내고 AI 분석 결과를 봇 말풍선으로 붙임
   const sendRiskCheckTurn = useCallback(
@@ -310,7 +337,14 @@ function ChatbotProvider({ children }) {
             text: '정확한 정보로 답변드리기 어려운 질문이었어요. 관련 기관이나 담당자에게 직접 문의해보시는 걸 추천드려요.',
           });
         }
-        botMessages[botMessages.length - 1].quickReplies = BACK_TO_MENU_OPTION;
+
+        // 답변 후 메뉴 칩 대신 메인 메뉴 질문을 바로 이어붙여서 다음 흐름으로 자연스럽게 유도함
+        botMessages.push({
+          sender: 'bot',
+          title: '무엇이 궁금하신가요?',
+          quickReplies: MENU_OPTIONS,
+        });
+        isPolicyQaFlowRef.current = false;
 
         appendMessages(botMessages);
       } catch (error) {
