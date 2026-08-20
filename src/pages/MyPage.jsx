@@ -7,12 +7,14 @@ import BottomNav from '../components/BottomNav';
 import SettingsRow from '../components/SettingsRow';
 import LoginRequiredModal from '../components/LoginRequiredModal';
 import Modal from '../components/Modal';
+import Toast from '../components/Toast';
 import useBookmarks from '../hooks/useBookmarks';
 import useNotifications from '../hooks/useNotifications';
 import useAvatar from '../hooks/useAvatar';
 import useApplication from '../hooks/useApplication';
-import { getMyProfile } from '../api/mypage';
+import { getMyProfile, uploadProfileImage } from '../api/mypage';
 import { getAccessToken, clearTokens } from '../api/auth';
+import { toSecureImageUrl } from '../utils/formatters';
 import { APP_VERSION } from '../constants/mypage';
 import '../styles/MyPage.css';
 
@@ -20,22 +22,31 @@ function MyPage() {
   const navigate = useNavigate();
   const [isLoggedIn] = useState(() => Boolean(getAccessToken()));
   const { bookmarkedIds } = useBookmarks();
-  const { hasUnread } = useNotifications();
+  const { hasUnread, refetch: refetchNotifications } = useNotifications();
   const { avatarUrl, setAvatarUrl } = useAvatar();
   const { appliedCount } = useApplication();
   const [profile, setProfile] = useState({ username: '', email: '' });
   const [profileError, setProfileError] = useState(false);
   const [photoModalOpen, setPhotoModalOpen] = useState(false);
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastVariant, setToastVariant] = useState('default');
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const fileInputRef = useRef(null);
   const isMountedRef = useRef(true);
+  const toastTimerRef = useRef(null);
 
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
+      clearTimeout(toastTimerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (isLoggedIn) refetchNotifications();
+  }, [isLoggedIn, refetchNotifications]);
 
   const fetchProfile = useCallback(() => {
     if (!isLoggedIn) return;
@@ -44,22 +55,48 @@ function MyPage() {
       .then((data) => {
         if (!isMountedRef.current) return;
         setProfile({ username: data.username, email: data.email });
+        setAvatarUrl(data.profileImage ? toSecureImageUrl(data.profileImage) : null);
       })
       .catch(() => {
         if (!isMountedRef.current) return;
         setProfileError(true);
       });
-  }, [isLoggedIn]);
+  }, [isLoggedIn, setAvatarUrl]);
 
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
 
+  const showToast = (message, variant = 'default') => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToastVariant(variant);
+    setToastMessage(message);
+    toastTimerRef.current = setTimeout(() => setToastMessage(''), 1600);
+  };
+
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
-    setAvatarUrl(URL.createObjectURL(file));
     e.target.value = '';
+    if (!file || avatarUploading) return;
+
+    const previousAvatarUrl = avatarUrl;
+    setAvatarUrl(URL.createObjectURL(file));
+    setAvatarUploading(true);
+
+    uploadProfileImage(file)
+      .then((data) => {
+        if (!isMountedRef.current) return;
+        setAvatarUrl(toSecureImageUrl(data.profileImage));
+      })
+      .catch(() => {
+        if (!isMountedRef.current) return;
+        setAvatarUrl(previousAvatarUrl);
+        showToast('프로필 사진 업로드에 실패했어요. 잠시 후 다시 시도해주세요', 'warning');
+      })
+      .finally(() => {
+        if (!isMountedRef.current) return;
+        setAvatarUploading(false);
+      });
   };
 
   const handlePickAlbum = () => {
@@ -80,6 +117,8 @@ function MyPage() {
 
   return (
     <div className="mypage">
+      <Toast message={toastMessage} visible={Boolean(toastMessage)} variant={toastVariant} />
+
       <div className="mypage-scroll">
         <div className="mypage-hero">
           <button
@@ -105,6 +144,7 @@ function MyPage() {
               className="mypage-avatar-edit"
               aria-label="프로필 사진 변경"
               onClick={() => setPhotoModalOpen(true)}
+              disabled={avatarUploading}
             >
               <img src={pencil} alt="" />
             </button>
@@ -114,6 +154,7 @@ function MyPage() {
               accept="image/*"
               onChange={handleAvatarChange}
               className="mypage-avatar-input"
+              disabled={avatarUploading}
             />
           </div>
 

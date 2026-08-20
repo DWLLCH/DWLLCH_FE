@@ -93,10 +93,21 @@
 .briefing-marquee-viewport {
   margin: 8px -24px 0;
   padding: 14px 24px 12px;
-  /* overflow-x만 지정하면 스펙상 overflow-y가 auto로 강제 승격되는데(둘 다 visible이 아니면 auto 취급),
-     이 컨테이너는 세로 스크롤이 필요 없어서 카드가 hover로 확대되는 순간(transform도 scrollable overflow에
-     반영됨) 세로 스크롤바가 불쑥 나타났음. 양쪽 다 hidden으로 명시해서 스크롤바 자체가 안 생기게 함 */
-  overflow: hidden;
+  /* 자동 float 애니메이션은 유지하되, 사용자가 직접 좌우로 스크롤/드래그해서 넘겨볼 수 있도록
+     overflow-x는 항상 auto로 열어둠(터치는 네이티브 스크롤, 마우스는 Briefing.jsx의 드래그 핸들러가 처리) */
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  cursor: grab;
+}
+
+.briefing-marquee-viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.briefing-marquee-viewport:active {
+  cursor: grabbing;
 }
 
 /* 카드가 두 벌 이어붙여진 트랙. width를 컨텐츠 크기만큼 늘려서(max-content)
@@ -148,11 +159,5 @@
   .briefing-card-row,
   .briefing-card-float {
     animation: none;
-  }
-
-  /* 애니메이션이 꺼지면 트랙이 더 이상 저절로 안 흘러서, 뷰포트가 overflow: hidden이면 첫 화면
-     밖의 카드는 아예 못 봄 - 수동 스크롤이라도 가능하게 열어둠 */
-  .briefing-marquee-viewport {
-    overflow-x: auto;
   }
 }
