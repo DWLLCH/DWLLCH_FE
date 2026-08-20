@@ -103,6 +103,11 @@
   border: 1px solid #d9d9d9;
   border-radius: 10px;
   background-color: #fff;
+  transition: border-color 0.15s ease;
+}
+
+.write-input-box:focus-within {
+  border-color: #4fae7c;
 }
 
 .write-input {
@@ -120,6 +125,20 @@
 
 .write-input::placeholder {
   color: #d9d9d9;
+}
+
+/* 테두리 색만으로는 대비가 부족해서, 키보드 포커스일 때 진한 아웃라인을 추가로 표시함 */
+.write-input:focus-visible,
+.write-textarea:focus-visible {
+  outline: 2px solid #2f7d55;
+  outline-offset: 1px;
+}
+
+@media (forced-colors: active) {
+  .write-input:focus-visible,
+  .write-textarea:focus-visible {
+    outline: 2px solid CanvasText;
+  }
 }
 
 .write-counter {
@@ -145,6 +164,11 @@
   border: 1px solid #d9d9d9;
   border-radius: 10px;
   background-color: #fff;
+  transition: border-color 0.15s ease;
+}
+
+.write-content-box:focus-within {
+  border-color: #4fae7c;
 }
 
 .write-textarea {

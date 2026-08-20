@@ -56,3 +56,74 @@
   font-size: 13px;
   color: #999;
 }
+
+/* 서비스 정보 바텀시트 */
+.service-info-sheet {
+  padding-bottom: 24px;
+  text-align: left;
+}
+
+.service-info-name {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #202020;
+}
+
+.service-info-tagline {
+  margin: 12px 0 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #202020;
+}
+
+.service-info-desc {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #666;
+}
+
+.service-info-section {
+  margin-top: 24px;
+}
+
+.service-info-section-title {
+  margin: 0 0 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #202020;
+}
+
+.service-info-feature-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14px;
+  line-height: 1.8;
+  color: #444;
+}
+
+.service-info-version {
+  margin: 0;
+  font-size: 14px;
+  color: #444;
+}
+
+.service-info-contact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.service-info-contact-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #202020;
+}
+
+.service-info-contact-value {
+  font-size: 14px;
+  color: #666;
+}

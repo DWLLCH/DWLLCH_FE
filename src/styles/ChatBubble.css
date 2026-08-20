@@ -105,14 +105,89 @@
   text-overflow: ellipsis;
 }
 
-/* 빠른 응답 버튼 */
-.chat-quick-replies {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
+/* 상황 정리(구조화) 카드 */
+.chat-structured-summary {
+  margin-top: 10px;
+  padding: 14px;
+  border-radius: 14px;
+  background-color: #fff;
 }
 
+.chat-structured-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.chat-structured-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.chat-structured-grade {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  /* 흰 글자는 아래 배경색들과 대비가 부족해서 진한 색으로 바꿈 (다른 곳에서 쓰는 다크 텍스트 톤 재사용) */
+  color: #1f1f1f;
+  background-color: #9aa0a6;
+}
+
+.chat-structured-grade--low {
+  background-color: #6cd59b;
+}
+
+.chat-structured-grade--medium {
+  background-color: #f2b84b;
+}
+
+.chat-structured-grade--high {
+  background-color: #f08a5d;
+}
+
+.chat-structured-grade--critical {
+  background-color: #e05c5c;
+}
+
+.chat-structured-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+
+.chat-structured-row {
+  display: flex;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.chat-structured-row dt {
+  flex-shrink: 0;
+  width: 56px;
+  color: #767676;
+}
+
+.chat-structured-row dd {
+  margin: 0;
+  color: #202020;
+}
+
+.chat-structured-missing {
+  margin: 10px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
+  font-size: 12px;
+  color: #a3a3a3;
+}
+
+/* 빠른 응답 버튼, 컨테이너는 chatbot-quick-replies-row(Chatbot.css)에서 우측 정렬로 감쌈 */
 .chat-quick-reply {
   padding: 9px 16px;
   border: 1.5px solid #6cd59b;

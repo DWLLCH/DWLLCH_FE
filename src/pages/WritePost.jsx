@@ -10,6 +10,7 @@ import PollFormSheet from '../components/PollFormSheet';
 import ErrorState from '../components/ErrorState';
 import LoadingSpinner from '../components/LoadingSpinner';
 import LoginRequiredModal from '../components/LoginRequiredModal';
+import Modal from '../components/Modal';
 import { POST_CATEGORIES, LABEL_TO_BOARD_TYPE, BOARD_TYPE_TO_LABEL } from '../constants/community';
 import { createPost, getPost, updatePost } from '../api/community';
 import { getAccessToken } from '../api/auth';
@@ -520,12 +521,6 @@ function WritePost() {
           <Toggle checked={notifyEnabled} onChange={setNotifyEnabled} ariaLabel="알림 설정" />
         </div>
 
-        {submitError && (
-          <p className="write-error-text" role="alert">
-            {submitError}
-          </p>
-        )}
-
         <div className="write-guide-box">
           <p className="write-guide-title">커뮤니티 이용 안내</p>
           <ul className="write-guide-list">
@@ -541,6 +536,13 @@ function WritePost() {
         onClose={() => setPollSheetOpen(false)}
         initialValue={poll}
         onSubmit={setPoll}
+      />
+
+      <Modal
+        open={Boolean(submitError)}
+        onClose={() => setSubmitError('')}
+        title={isEdit ? '게시글 수정 실패' : '게시글 등록 실패'}
+        description={submitError}
       />
     </div>
   );

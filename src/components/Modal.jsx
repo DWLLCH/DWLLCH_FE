@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import '../styles/Modal.css';
 
 function Modal({
@@ -14,6 +14,8 @@ function Modal({
 }) {
   const triggerRef = useRef(null);
   const modalRef = useRef(null);
+  // description이 있을 때만 aria-describedby로 연결, id는 Modal이 여러 개 떠도 안 겹치게 useId로 생성
+  const descriptionId = useId();
 
   useEffect(() => {
     if (!open) return undefined;
@@ -78,10 +80,15 @@ function Modal({
         role="alertdialog"
         aria-modal="true"
         aria-label={title}
+        aria-describedby={description ? descriptionId : undefined}
         onClick={(event) => event.stopPropagation()}
       >
         {title && <p className="modal-title">{title}</p>}
-        {description && <p className="modal-description">{description}</p>}
+        {description && (
+          <p id={descriptionId} className="modal-description">
+            {description}
+          </p>
+        )}
         {children || (
           <div className="modal-actions">
             {cancelLabel && (
