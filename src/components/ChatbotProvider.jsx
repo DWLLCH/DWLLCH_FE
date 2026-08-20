@@ -106,7 +106,8 @@ function ChatbotProvider({ children }) {
       });
   }, []);
 
-  // 탭에 이미 만들어둔 위기판독 세션이 남아있으면(새로고침 등) 그대로 이어서 조회함
+  // 탭에 이미 만들어둔 위기판독 세션이 남아있으면(새로고침 등) 세션뿐 아니라 그동안 주고받은
+  // 메시지 목록도 함께 복원함 (getRiskCheckSession이 status와 messages를 같이 내려줌)
   useEffect(() => {
     const storedId = sessionStorage.getItem(RISK_CHECK_SESSION_KEY);
     if (!storedId || !getAccessToken()) return;
@@ -116,6 +117,35 @@ function ChatbotProvider({ children }) {
         activeSessionIdRef.current = session.id;
         setRiskCheckSessionId(session.id);
         setRiskCheckStatus(session.status);
+        // 세션이 이미 ACTIVE를 벗어났다면(구조화/연계/종료) 상황 정리 카드가 이미 한 번 떴다는 뜻이라,
+        // 새로고침 후 다음 메시지에서 자동 정리 카드가 중복으로 다시 뜨지 않게 플래그도 같이 복원함
+        hasAutoStructuredRef.current = session.status !== 'ACTIVE';
+
+        // 업로드 파일의 원래 이름은 BE가 저장하지 않아서(스토리지엔 uuid로 교체 저장) 첨부 종류별
+        // 고정 문구로 대체함, 실제 다운로드 링크(fileUrl)는 그대로 살아있어서 열람 자체는 가능함
+        const drafts = (session.messages || []).map((message) => {
+          const sender = message.sender === 'ASSISTANT' ? 'bot' : 'user';
+
+          if (message.type === 'IMAGE') {
+            return { sender, type: 'image', imageUrl: message.fileUrl, fileName: '첨부 이미지' };
+          }
+          if (message.type === 'DOCUMENT') {
+            return { sender, type: 'file', fileUrl: message.fileUrl, fileName: '첨부 파일' };
+          }
+          return { sender, text: message.content };
+        });
+
+        if (drafts.length === 0) return;
+
+        // Chatbot.jsx의 enterChat이 이미 마운트 시점에 한 번 실행되고 지나간 뒤라(이 조회가 끝나기 전),
+        // "이전 대화" 구분선은 여기서 직접 붙여야 함
+        const dividerId = createId(idCounterRef);
+        const withIds = drafts.map((draft) => ({ ...draft, id: createId(idCounterRef) }));
+        setMessages((prev) => [
+          ...prev,
+          { id: dividerId, sender: 'system', type: 'divider', text: '이전 대화' },
+          ...withIds,
+        ]);
       })
       .catch(() => {
         // 세션이 이미 종료됐거나 다른 계정 것이면 조용히 정리하고 다음에 새로 만듦
