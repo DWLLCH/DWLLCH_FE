@@ -170,6 +170,11 @@ function BriefingDetail() {
 
   const sectionMeta = BRIEFING_SECTION_META.find((meta) => meta.category === detail.category);
   const contentSections = parseBriefingContent(detail.content);
+  // BE가 개별 브리핑마다 다른 icon을 내려주는데(같은 카테고리 안에서도 브리핑마다 다름), 매핑에 없는 값이면
+  // 목록 카드(BriefingCard)와 마찬가지로 안전하게 카테고리 기본값으로 대체함
+  const heroIcon = Object.prototype.hasOwnProperty.call(BRIEFING_ICONS, detail.icon)
+    ? detail.icon
+    : getSectionDefaultIcon(sectionMeta?.id);
 
   return (
     <div className="briefing-detail-page">
@@ -196,7 +201,7 @@ function BriefingDetail() {
 
             <div className="briefing-detail-hero-icon">
               <img
-                src={BRIEFING_ICONS[getSectionDefaultIcon(sectionMeta?.id)]}
+                src={BRIEFING_ICONS[heroIcon]}
                 alt=""
                 className="briefing-detail-hero-icon-img"
               />
