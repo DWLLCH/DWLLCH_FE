@@ -15,6 +15,12 @@ export function formatDateDots(date) {
   return `${year}.${month}.${day}`;
 }
 
+// "2026년 8월 21일" 형태 - 점 표기(formatDateDots)와 달리 월/일은 앞에 0을 안 붙이는 게 자연스러움
+export function formatDateKorean(date) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
+  return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
+}
+
 export function formatDateTimeShort(date) {
   const parsed = date instanceof Date ? date : new Date(date);
   if (Number.isNaN(parsed.getTime())) return '';

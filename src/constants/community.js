@@ -14,7 +14,7 @@ export const REPORT_REASONS = [
   { value: 'SEXUAL', label: '음란성, 선정성 글' },
   { value: 'HATE', label: '혐오, 반응 조장 발언' },
   { value: 'PRIVACY', label: '개인정보 노출' },
-  { value: 'FAKE_NEWS', label: '의도적인 거짓 정보 확산' },
+  { value: 'MISINFORMATION', label: '의도적인 거짓 정보 확산' },
 ];
 
 export const NOTICE_POST = {

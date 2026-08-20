@@ -12,18 +12,18 @@ function BriefingCard({ color, icon, title, onClick }) {
     : 'document';
 
   return (
-    <div className="briefing-card">
+    // 카드 전체가 클릭 영역이라 실제 button으로 만들어야 키보드로도 포커스/활성화가 됨(div는 안 됨)
+    // "바로가기"는 시각적 CTA일 뿐 별도 상호작용이 없어서 button을 중첩하지 않고 span으로 둠
+    <button type="button" className="briefing-card" onClick={onClick}>
       <img src={BRIEFING_BOX_IMAGES[resolvedColor]} alt="" className="briefing-card-box" />
       <img src={BRIEFING_ICONS[resolvedIcon]} alt="" className="briefing-card-icon" />
       <div className="briefing-card-content">
         <div className="briefing-card-title-wrap">
           <p className="briefing-card-title">{title}</p>
         </div>
-        <button type="button" className="briefing-card-btn" onClick={onClick}>
-          바로가기
-        </button>
+        <span className="briefing-card-btn">바로가기</span>
       </div>
-    </div>
+    </button>
   );
 }
 

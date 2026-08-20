@@ -38,9 +38,21 @@ export async function createApplication({ policyId, status = 'COMPLETED', memo =
 }
 
 /* GET /mypage/notifications | 인증 필요, 페이징 (getPolicyScraps와 동일한 응답 포맷)
-   응답 항목: { id, message, isRead, createdAt } — 알림 종류/이동 대상 필드는 아직 BE에 없어서
-   NotificationItem은 메시지 본문과 시간만 보여줌, 읽음 처리 API도 아직 없어서 markAllAsRead는 로컬 상태로만 동작함 */
+   응답 항목: { id, message, type, targetId, isRead, createdAt }
+   type은 DEADLINE/COMMENT/REPLY/ETC, targetId는 type마다 의미가 다름(COMMENT/REPLY는 게시글 id) */
 export async function getNotifications({ page = 0, size = 50 } = {}) {
   const response = await apiClient.get('/mypage/notifications', { params: { page, size } });
   return response.data;
+}
+
+/* PATCH /mypage/notifications/{notificationId}/read | 인증 필요 */
+export async function markNotificationRead(notificationId) {
+  const response = await apiClient.patch(`/mypage/notifications/${notificationId}/read`);
+  return response.data.data;
+}
+
+/* PATCH /mypage/notifications/read-all | 인증 필요, 응답 data: { updatedCount } */
+export async function markAllNotificationsRead() {
+  const response = await apiClient.patch('/mypage/notifications/read-all');
+  return response.data.data;
 }

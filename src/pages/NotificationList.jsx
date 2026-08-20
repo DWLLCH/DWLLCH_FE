@@ -5,13 +5,27 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import useNotifications from '../hooks/useNotifications';
 import '../styles/NotificationList.css';
 
+// targetId 의미가 type마다 다름, 지금 실제로 만들어지는 알림은 COMMENT뿐이라 target_id가 게시글 id임
+// (REPLY도 같은 의미로 쓰일 예정, DEADLINE은 아직 실제로 내려오는 알림이 없어서 이동 경로 미정)
+function resolveNotificationPath(type, targetId) {
+  if (targetId == null) return null;
+  if (type === 'COMMENT' || type === 'REPLY') return `/community/${targetId}`;
+  return null;
+}
+
 function NotificationList() {
   const navigate = useNavigate();
-  const { notifications, loading, markAllAsRead } = useNotifications();
+  const { notifications, loading, markAsRead, markAllAsRead } = useNotifications();
 
   const handleBack = () => {
     markAllAsRead();
     navigate(-1);
+  };
+
+  const handleItemClick = (item) => {
+    if (!item.read) markAsRead(item.id);
+    const path = resolveNotificationPath(item.type, item.targetId);
+    if (path) navigate(path);
   };
 
   return (
@@ -41,6 +55,7 @@ function NotificationList() {
                 message={item.message}
                 createdAt={item.createdAt}
                 read={item.read}
+                onClick={() => handleItemClick(item)}
               />
             ))}
           </ul>

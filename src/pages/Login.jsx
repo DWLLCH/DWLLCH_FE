@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import TextField from '../components/TextField';
 import Button from '../components/Button';
 import SocialLoginButton from '../components/SocialLoginButton';
+import Modal from '../components/Modal';
 import { login, setTokens } from '../api/auth';
 import '../styles/Login.css';
 
@@ -11,6 +12,8 @@ function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  // 비밀번호 찾기/구글 로그인 둘 다 아직 미구현이라 실제 동작 대신 안내 모달만 띄움
+  const [comingSoonOpen, setComingSoonOpen] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -82,18 +85,32 @@ function Login() {
         <div className="login-divider">
           <span>또는</span>
         </div>
-        <SocialLoginButton label="Google로 시작하기" />
+        <SocialLoginButton label="Google로 시작하기" onClick={() => setComingSoonOpen(true)} />
 
         {/* 하단 링크 */}
         <div className="login-links">
-          <Link to="/find-password" className="login-forgot">
+          <button type="button" className="login-forgot" onClick={() => setComingSoonOpen(true)}>
             비밀번호를 잊으셨나요?
-          </Link>
+          </button>
           <p className="login-signup">
             아직 Fledge 회원이 아니신가요? <Link to="/signup">회원가입</Link>
           </p>
         </div>
       </form>
+
+      <Modal
+        open={comingSoonOpen}
+        onClose={() => setComingSoonOpen(false)}
+        title="준비 중이에요"
+        description={
+          <>
+            아직 준비 중이에요
+            <br />
+            빠른 시일 내에 만나볼 수 있어요.
+          </>
+        }
+        confirmLabel="확인"
+      />
     </div>
   );
 }
