@@ -133,7 +133,8 @@
   border-radius: 20px;
   font-size: 12px;
   font-weight: 600;
-  color: #fff;
+  /* 흰 글자는 아래 배경색들과 대비가 부족해서 진한 색으로 바꿈 (다른 곳에서 쓰는 다크 텍스트 톤 재사용) */
+  color: #1f1f1f;
   background-color: #9aa0a6;
 }
 

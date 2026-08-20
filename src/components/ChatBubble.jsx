@@ -6,6 +6,11 @@ import {
 } from '../constants/chatbot';
 import '../styles/ChatBubble.css';
 
+// 항목 값이 0처럼 falsy해도 유효한 값이면 그대로 보여주고, null/undefined일 때만 안내 문구로 대체함
+function formatReportValue(value) {
+  return value === null || value === undefined || value === '' ? '확인되지 않음' : value;
+}
+
 function ChatBubble({
   sender,
   title,
@@ -66,7 +71,7 @@ function ChatBubble({
             {STRUCTURED_REPORT_FIELDS.map(({ key, label }) => (
               <div className="chat-structured-row" key={key}>
                 <dt>{label}</dt>
-                <dd>{structured.report?.[key] || '확인되지 않음'}</dd>
+                <dd>{formatReportValue(structured.report?.[key])}</dd>
               </div>
             ))}
           </dl>

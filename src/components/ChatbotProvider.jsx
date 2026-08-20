@@ -71,6 +71,13 @@ function ChatbotProvider({ children }) {
   const isPolicyQaFlowRef = useRef(false);
   // 세션당 한 번만 자동으로 상황 정리 카드를 붙이기 위한 플래그, 새 세션을 만들 때 초기화됨
   const hasAutoStructuredRef = useRef(false);
+  // ensureRiskCheckSession이 riskCheckSessionId(state)를 직접 읽으면, 이미지 여러 장을 한 번에
+  // 보낼 때처럼 같은 콜백 클로저를 재사용하는 상황에서 state 갱신 전 값을 계속 참조할 수 있음
+  // 항상 최신 세션 id를 보게 하려고 ref로 따로 들고 있고, state와 세트로 갱신함
+  const activeSessionIdRef = useRef(null);
+  // 세션 생성이 진행 중일 때 새로 생성 요청이 겹치면(이미지 여러 장 동시 첨부 등) 같은 Promise를
+  // 같이 기다리게 해서 세션이 여러 개로 쪼개지는 걸 막음
+  const pendingSessionPromiseRef = useRef(null);
 
   useEffect(
     () => () => {
@@ -106,6 +113,7 @@ function ChatbotProvider({ children }) {
 
     getRiskCheckSession(storedId)
       .then((session) => {
+        activeSessionIdRef.current = session.id;
         setRiskCheckSessionId(session.id);
         setRiskCheckStatus(session.status);
       })
@@ -143,18 +151,20 @@ function ChatbotProvider({ children }) {
     }, MENU_PROMPT_DELAY_MS);
   }, [appendMessages]);
 
-  // 위기판독 세션이 아직 없으면 새로 만들고, 이미 있으면 그대로 재사용함
-  // 단, 마지막 활동 후 1시간이 지났으면 보안을 위해 이전 세션을 끊고 새로 시작함
   const ensureRiskCheckSession = useCallback(async () => {
     if (!getAccessToken()) return null;
 
     const lastActivity = Number(sessionStorage.getItem(RISK_CHECK_LAST_ACTIVITY_KEY));
     const isIdleExpired =
-      riskCheckSessionId && lastActivity && Date.now() - lastActivity > RISK_CHECK_IDLE_TIMEOUT_MS;
+      activeSessionIdRef.current &&
+      lastActivity &&
+      Date.now() - lastActivity > RISK_CHECK_IDLE_TIMEOUT_MS;
 
     if (isIdleExpired) {
       sessionStorage.removeItem(RISK_CHECK_SESSION_KEY);
       sessionStorage.removeItem(RISK_CHECK_LAST_ACTIVITY_KEY);
+      activeSessionIdRef.current = null;
+      pendingSessionPromiseRef.current = null;
       setRiskCheckSessionId(null);
       setRiskCheckStatus(null);
       hasAutoStructuredRef.current = false;
@@ -164,24 +174,37 @@ function ChatbotProvider({ children }) {
           text: '일정 시간이 지나, 보안을 위해 이전 대화와 분리하여 새로운 상담을 준비합니다.',
         },
       ]);
-    } else if (riskCheckSessionId) {
+    } else if (activeSessionIdRef.current) {
       sessionStorage.setItem(RISK_CHECK_LAST_ACTIVITY_KEY, String(Date.now()));
-      return riskCheckSessionId;
+      return activeSessionIdRef.current;
     }
 
-    try {
-      const session = await createRiskCheckSession();
-      setRiskCheckSessionId(session.id);
-      setRiskCheckStatus(session.status);
-      sessionStorage.setItem(RISK_CHECK_SESSION_KEY, String(session.id));
-      sessionStorage.setItem(RISK_CHECK_LAST_ACTIVITY_KEY, String(Date.now()));
-      hasAutoStructuredRef.current = false;
-      return session.id;
-    } catch {
-      // 세션 생성 실패는 sendRiskCheckTurn 쪽에서 안내 메시지로 처리함
-      return null;
+    // 이미 세션 생성이 진행 중이면 새로 또 만들지 않고 같은 Promise를 같이 기다림
+    if (pendingSessionPromiseRef.current) {
+      return pendingSessionPromiseRef.current;
     }
-  }, [riskCheckSessionId, appendMessages]);
+
+    const creationPromise = (async () => {
+      try {
+        const session = await createRiskCheckSession();
+        activeSessionIdRef.current = session.id;
+        setRiskCheckSessionId(session.id);
+        setRiskCheckStatus(session.status);
+        sessionStorage.setItem(RISK_CHECK_SESSION_KEY, String(session.id));
+        sessionStorage.setItem(RISK_CHECK_LAST_ACTIVITY_KEY, String(Date.now()));
+        hasAutoStructuredRef.current = false;
+        return session.id;
+      } catch {
+        // 세션 생성 실패는 sendRiskCheckTurn 쪽에서 안내 메시지로 처리함
+        return null;
+      } finally {
+        pendingSessionPromiseRef.current = null;
+      }
+    })();
+
+    pendingSessionPromiseRef.current = creationPromise;
+    return creationPromise;
+  }, [appendMessages]);
 
   // 위기판독 대화 한 턴을 실제로 보내고 AI 분석 결과를 봇 말풍선으로 붙임
   const sendRiskCheckTurn = useCallback(
