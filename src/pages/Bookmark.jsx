@@ -13,7 +13,7 @@ import OnboardingRequiredModal from '../components/OnboardingRequiredModal';
 import useBookmarks from '../hooks/useBookmarks';
 import useOnboardingComplete from '../hooks/useOnboardingComplete';
 import { getAccessToken } from '../api/auth';
-import { formatDday } from '../utils/formatters';
+import { formatDday, toPolicyLevel } from '../utils/formatters';
 import '../styles/Bookmark.css';
 
 function Bookmark() {
@@ -90,8 +90,10 @@ function Bookmark() {
                 {visibleScraps.map((scrap) => (
                   <PolicyCard
                     key={scrap.policyId}
+                    level={toPolicyLevel(scrap.matchLevel)}
                     dday={formatDday(scrap.applicationEnd)}
                     title={scrap.policyTitle}
+                    description={scrap.matchReason}
                     onClick={() => navigate(`/support/${scrap.policyId}`)}
                   />
                 ))}
