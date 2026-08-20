@@ -20,7 +20,7 @@ function MyPage() {
   const navigate = useNavigate();
   const [isLoggedIn] = useState(() => Boolean(getAccessToken()));
   const { bookmarkedIds } = useBookmarks();
-  const { hasUnread } = useNotifications();
+  const { hasUnread, refetch: refetchNotifications } = useNotifications();
   const { avatarUrl, setAvatarUrl } = useAvatar();
   const { appliedCount } = useApplication();
   const [profile, setProfile] = useState({ username: '', email: '' });
@@ -36,6 +36,12 @@ function MyPage() {
       isMountedRef.current = false;
     };
   }, []);
+
+  // NotificationProvider는 세션당 한 번만 자동 조회해서, 마이페이지를 계속 켜두고 있다가
+  // 새 알림이 와도 알림 종 옆 빨간 점(hasUnread)이 안 뜸 - 마이페이지 들어올 때마다 재조회함
+  useEffect(() => {
+    if (isLoggedIn) refetchNotifications();
+  }, [isLoggedIn, refetchNotifications]);
 
   const fetchProfile = useCallback(() => {
     if (!isLoggedIn) return;
