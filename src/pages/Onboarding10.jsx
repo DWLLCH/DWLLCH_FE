@@ -29,11 +29,20 @@ function Onboarding10() {
   const isValid = currentSupports.length > 0;
 
   const toggleSupport = (item) => {
-    updateData({
-      currentSupports: currentSupports.includes(item)
-        ? currentSupports.filter((value) => value !== item)
-        : [...currentSupports, item],
-    });
+    if (currentSupports.includes(item)) {
+      updateData({ currentSupports: currentSupports.filter((value) => value !== item) });
+      return;
+    }
+    if (EXTRA_SUPPORTS.includes(item)) {
+      updateData({ currentSupports: [item] });
+    } else {
+      updateData({
+        currentSupports: [
+          ...currentSupports.filter((value) => !EXTRA_SUPPORTS.includes(value)),
+          item,
+        ],
+      });
+    }
   };
 
   const handleSubmit = (e) => {
