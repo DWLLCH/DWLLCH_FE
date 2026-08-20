@@ -133,7 +133,6 @@ function MyPage() {
 
         <div className="mypage-stats">
           <button
-            className="mypage-stat"
             type="button"
             className="mypage-stat mypage-stat--link"
             onClick={() => navigate('/mypage/applications')}
