@@ -131,21 +131,10 @@ function ApplicationProvider({ children }) {
             status: application.status,
           },
         }));
-        setApplicationList((prev) => [
-          {
-            id: application.id,
-            policyId,
-            policyTitle: application.policyTitle,
-            status: application.status,
-            dateKey,
-            // 등록 응답엔 매칭 컨텍스트가 안 실려서 matchLevel/matchReason이 항상 null로 옴
-            // (목록 조회 때만 채워짐), 다음 재조회 때 자연스럽게 채워짐
-            matchLevel: application.matchLevel,
-            matchReason: application.matchReason,
-            applicationEnd: application.applicationEnd,
-          },
-          ...prev,
-        ]);
+        // 등록 응답엔 매칭 컨텍스트(matchLevel/applicationEnd)가 안 실려서, 그 값 그대로 목록에 넣으면
+        // 배지가 안 뜨는 걸 넘어 formatDday(undefined)가 "상시모집"으로 잘못 표시될 수 있음
+        // 응답을 직접 쓰지 않고 재조회해서 목록 조회 때만 채워지는 값까지 정확하게 받음
+        fetchApplications();
         return 'completed';
       })
       .catch(() => 'error')

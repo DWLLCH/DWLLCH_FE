@@ -15,6 +15,10 @@ function NotificationProvider({ children }) {
 
   const fetchedForRef = useRef(null);
   const sessionRef = useRef(userId);
+  // markAsRead/markAllAsRead가 겹칠 때, 먼저 실패한 쪽의 재조회가 아직 안 끝난 다른 요청의
+  // 이전 상태를 덮어써버리는 걸 막기 위한 진행 중 요청 카운터(모두 끝난 뒤 한 번만 재조회함)
+  const pendingReadRequestsRef = useRef(0);
+  const hasFailedReadRequestRef = useRef(false);
 
   const fetchNotifications = useCallback(() => {
     const requestedFor = sessionRef.current;
@@ -56,6 +60,16 @@ function NotificationProvider({ children }) {
 
   const hasUnread = notifications.some((item) => !item.read);
 
+  // 진행 중이던 읽음 요청이 모두 끝난 뒤(개별/전체 읽음이 겹쳐도) 그중 하나라도 실패했을 때만
+  // 한 번 재조회함, 아직 안 끝난 다른 요청의 이전 상태로 재조회 결과가 덮어써지는 걸 막기 위함
+  const resolveReadRequest = useCallback(() => {
+    pendingReadRequestsRef.current -= 1;
+    if (pendingReadRequestsRef.current > 0) return;
+    if (!hasFailedReadRequestRef.current) return;
+    hasFailedReadRequestRef.current = false;
+    fetchNotifications();
+  }, [fetchNotifications]);
+
   // 낙관적으로 먼저 로컬 상태를 바꾸고 서버에도 반영함, 실패하면 로컬 상태만 읽음으로 남아있고
   // 서버는 그대로라 hasUnread 등이 실제와 어긋날 수 있어서 재조회로 다시 맞춤
   // (fetchNotifications 자체에 세션 일치 가드가 있어서 그 사이 로그아웃/계정 전환돼도 안전함)
@@ -64,19 +78,25 @@ function NotificationProvider({ children }) {
       setNotifications((prev) =>
         prev.map((item) => (item.id === notificationId ? { ...item, read: true } : item)),
       );
-      markNotificationRead(notificationId).catch(() => {
-        fetchNotifications();
-      });
+      pendingReadRequestsRef.current += 1;
+      markNotificationRead(notificationId)
+        .catch(() => {
+          hasFailedReadRequestRef.current = true;
+        })
+        .finally(resolveReadRequest);
     },
-    [fetchNotifications],
+    [resolveReadRequest],
   );
 
   const markAllAsRead = useCallback(() => {
     setNotifications((prev) => prev.map((item) => ({ ...item, read: true })));
-    markAllNotificationsRead().catch(() => {
-      fetchNotifications();
-    });
-  }, [fetchNotifications]);
+    pendingReadRequestsRef.current += 1;
+    markAllNotificationsRead()
+      .catch(() => {
+        hasFailedReadRequestRef.current = true;
+      })
+      .finally(resolveReadRequest);
+  }, [resolveReadRequest]);
 
   return (
     <NotificationContext.Provider

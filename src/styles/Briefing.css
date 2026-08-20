@@ -104,7 +104,8 @@
 .briefing-card-row {
   display: flex;
   width: max-content;
-  gap: 14px;
+  --briefing-marquee-gap: 14px;
+  gap: var(--briefing-marquee-gap);
   animation: briefing-marquee 45s linear infinite;
 }
 
@@ -122,12 +123,14 @@
   animation: briefing-float 3.2s ease-in-out infinite;
 }
 
+/* 카드를 두 벌 이어붙인 트랙에서 -50%는 "한 벌"의 카드 폭만큼만 이동시키고, 두 벌 사이의 이음매 gap은
+   못 셈, 그래서 반복마다 gap의 절반(7px)만큼 밀리며 튀었음 - 그만큼 더 이동시켜서 보정함 */
 @keyframes briefing-marquee {
   from {
     transform: translateX(0);
   }
   to {
-    transform: translateX(-50%);
+    transform: translateX(calc(-50% - (var(--briefing-marquee-gap) / 2)));
   }
 }
 
@@ -145,5 +148,11 @@
   .briefing-card-row,
   .briefing-card-float {
     animation: none;
+  }
+
+  /* 애니메이션이 꺼지면 트랙이 더 이상 저절로 안 흘러서, 뷰포트가 overflow: hidden이면 첫 화면
+     밖의 카드는 아예 못 봄 - 수동 스크롤이라도 가능하게 열어둠 */
+  .briefing-marquee-viewport {
+    overflow-x: auto;
   }
 }
