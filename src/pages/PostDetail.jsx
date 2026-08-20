@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import backBtn from '../assets/backBtn.svg';
 import like from '../assets/like.svg';
@@ -40,7 +40,7 @@ import '../styles/PostDetail.css';
 
 function buildCommentTree(
   rawComments,
-  { username, myCommentIds, currentUserId, postAuthorId, isMyPost, getAnonymousLabel },
+  { username, myCommentIds, currentUserId, postAuthorId, isMyPost },
 ) {
   const isMine = (item) => {
     if (typeof item.isMine === 'boolean') return item.isMine;
@@ -61,10 +61,12 @@ function buildCommentTree(
     return isMyPost && isMine(item);
   };
 
-  // 익명 번호 배정은 useLayoutEffect에서 커밋 이후에만 수행함 (렌더링 도중 캐시를 바꾸면
-  // 버려지는 렌더가 있을 때 번호가 꼬일 수 있어서), 여기서는 이미 배정된 번호만 읽음
-  const resolveAuthor = (item) =>
-    item.isAnonymous ? getAnonymousLabel(item.authorId ?? `comment-${item.id}`) : item.authorName;
+  // 익명 번호는 BE가 게시글+작성자 단위로 영구 배정해서 내려주는 anonymousSequence를 그대로 씀
+  // (community/serializers.py CommentSerializer 확인함, 실명 댓글은 null)
+  const resolveAuthor = (item) => {
+    if (!item.isAnonymous) return item.authorName;
+    return item.anonymousSequence != null ? `익명${item.anonymousSequence}` : '익명';
+  };
 
   const repliesByParent = {};
   const topLevel = [];
@@ -142,47 +144,6 @@ function PostDetail() {
   const [toastMessage, setToastMessage] = useState('');
   const toastTimerRef = useRef(null);
   const moreMenuRef = useRef(null);
-
-  // 같은 게시글을 보는 동안 익명 작성자별로 한 번 배정한 번호(익명1, 익명2...)를 기억해두는 캐시
-  // 답글 없는 댓글이 삭제되면 BE가 그 댓글을 완전히 지워버려서(comment_detail DELETE) 서버 응답만으로는
-  // "그 번호가 이미 쓰였었다"는 걸 알 수 없음, 그래서 이 페이지를 벗어나지 않는 한(새로고침 전까지)
-  // 한 번 배정된 번호는 재사용하지 않고 새 익명 작성자는 항상 다음 번호를 받도록 세션 내에서만 기억함
-  // (페이지를 새로고침하면 이 캐시도 초기화되므로, 완전삭제된 익명 댓글이 있었다면 번호가 다시 채워질 수 있음
-  //  이 부분을 새로고침 이후에도 유지하려면 BE에 게시글+작성자별 영구 번호 필드가 필요함)
-  const anonNumberMapRef = useRef(new Map());
-  const anonNumberCounterRef = useRef(0);
-  // 새 익명 작성자에게 번호가 배정되면(useLayoutEffect에서) 화면을 다시 그리기 위한 카운터
-  const [, bumpAnonNumberVersion] = useState(0);
-
-  useEffect(() => {
-    anonNumberMapRef.current = new Map();
-    anonNumberCounterRef.current = 0;
-  }, [id]);
-
-  // 렌더링 도중에는 캐시를 절대 바꾸지 않고 읽기만 함, 아직 번호가 없으면 다음 커밋에서 채워짐
-  const getAnonymousLabel = (authorKey) => {
-    const number = anonNumberMapRef.current.get(String(authorKey));
-    return number ? `익명${number}` : '익명';
-  };
-
-  // 익명 번호는 여기(커밋 이후)에서만 배정함, 렌더링 중에 배정하면 버려지는 렌더가 있을 때
-  // (예: React Router의 v7_startTransition 경로) 번호가 실제로 쓰이지 않았는데도 소모될 수 있음
-  useLayoutEffect(() => {
-    const map = anonNumberMapRef.current;
-    let assigned = false;
-    [...rawComments]
-      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-      .forEach((item) => {
-        if (!item.isAnonymous) return;
-        const key = String(item.authorId ?? `comment-${item.id}`);
-        if (!map.has(key)) {
-          anonNumberCounterRef.current += 1;
-          map.set(key, anonNumberCounterRef.current);
-          assigned = true;
-        }
-      });
-    if (assigned) bumpAnonNumberVersion((v) => v + 1);
-  }, [rawComments]);
 
   const isMyPost = Boolean(post?.isMine);
 
@@ -571,7 +532,6 @@ function PostDetail() {
     currentUserId,
     isMyPost,
     postAuthorId: post.authorId,
-    getAnonymousLabel,
   });
 
   // 실명으로 쓴 글의 글쓴이는 자기 글에 익명 댓글을 달 수 없게 막음 (다른 사람은 익명 가능)
