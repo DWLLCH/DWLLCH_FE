@@ -58,3 +58,14 @@ export async function structureRiskCheckSession(sessionId) {
   );
   return response.data.data;
 }
+
+/* POST /chat/sos/sessions/{sessionId}/connect | 로그인 필요
+   connectTo는 'SUPPORT_STAFF'|'COUNSELOR'|'EMERGENCY'
+   응답 data: { connected, connectedAt, forcedConnection, notice? } */
+export async function connectRiskCheckSession(sessionId, { consent = false, connectTo } = {}) {
+  const response = await apiClient.post(`/chat/sos/sessions/${sessionId}/connect`, {
+    consent,
+    connectTo,
+  });
+  return response.data.data;
+}

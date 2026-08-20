@@ -2,14 +2,18 @@ import { createContext, useCallback, useEffect, useRef, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import {
   BACK_TO_MENU_OPTION,
+  CONNECT_TARGET_LABELS,
+  CONNECT_TARGET_OPTIONS,
   INITIAL_MESSAGES,
   MAX_ATTACH_COUNT,
+  RISK_CHECK_CONNECT_PREFIX,
   RISK_CHECK_STRUCTURE_VALUE,
   STRUCTURE_REQUEST_OPTION,
   getAttachmentReply,
   getBotReply,
 } from '../constants/chatbot';
 import {
+  connectRiskCheckSession,
   createRiskCheckSession,
   getRiskCheckSession,
   sendRiskCheckMessage,
@@ -109,7 +113,6 @@ function ChatbotProvider({ children }) {
   }, [riskCheckSessionId]);
 
   // 위기판독 대화 한 턴을 실제로 보내고 AI 분석 결과를 봇 말풍선으로 붙임
-  // (TEXT: 자유 입력, IMAGE: 사진 첨부 둘 다 여기로 옴)
   const sendRiskCheckTurn = useCallback(
     async ({ type, content = '', file }) => {
       if (!getAccessToken()) {
@@ -154,8 +157,6 @@ function ChatbotProvider({ children }) {
           error.response?.status === 422
             ? '이미지를 다시 촬영하거나 텍스트로 설명해주세요'
             : error.response?.data?.message || 'AI 분석에 실패했어요. 잠시 후 다시 시도해주세요';
-        // 실패했다고 상담을 끝내고 싶어하는 게 아니라 같은 자리에서 다시 시도하고 싶어할 확률이
-        // 높아서, 여기서는 메뉴로 돌아가기를 보여주지 않음 (isRiskCheckFlowRef도 그대로 유지)
         appendMessages([{ sender: 'bot', text: message }]);
       }
     },
@@ -190,7 +191,7 @@ function ChatbotProvider({ children }) {
             riskGrade: result.riskGrade,
             missingFields: result.missingFields,
           },
-          quickReplies: BACK_TO_MENU_OPTION,
+          quickReplies: [...CONNECT_TARGET_OPTIONS, ...BACK_TO_MENU_OPTION],
         },
       ]);
     } catch (error) {
@@ -201,6 +202,47 @@ function ChatbotProvider({ children }) {
       appendMessages([{ sender: 'bot', text: message }]);
     }
   }, [appendMessages, ensureRiskCheckSession]);
+
+  // 조력자 연계 칩을 누르는 것 자체를 동의(consent)로 보고 바로 해당 종류로 연계 요청함
+  const requestSupportConnection = useCallback(
+    async (connectTo) => {
+      if (!getAccessToken()) {
+        appendMessages([
+          { sender: 'bot', text: '로그인 후 이용할 수 있어요. 로그인하고 다시 시도해주세요.' },
+        ]);
+        return;
+      }
+
+      setIsTyping(true);
+
+      try {
+        const sessionId = await ensureRiskCheckSession();
+        if (!sessionId) {
+          throw new Error('위기판독 세션을 준비하지 못했습니다.');
+        }
+
+        const result = await connectRiskCheckSession(sessionId, { consent: true, connectTo });
+        setIsTyping(false);
+
+        const targetLabel = CONNECT_TARGET_LABELS[connectTo] || '조력자';
+        const noticeText = result.notice ? `\n${result.notice}` : '';
+        appendMessages([
+          {
+            sender: 'bot',
+            text: `${targetLabel} 연계 요청이 접수됐어요. 곧 연락드릴게요.${noticeText}`,
+            quickReplies: BACK_TO_MENU_OPTION,
+          },
+        ]);
+      } catch (error) {
+        setIsTyping(false);
+        const message =
+          error.response?.data?.message || '연계 요청에 실패했어요. 잠시 후 다시 시도해주세요';
+        // 여기도 같은 자리에서 다시 시도할 수 있게 메뉴로 돌아가기는 보여주지 않음
+        appendMessages([{ sender: 'bot', text: message }]);
+      }
+    },
+    [appendMessages, ensureRiskCheckSession],
+  );
 
   const clearQuickReplies = useCallback((messageId) => {
     setMessages((prev) =>
@@ -237,6 +279,12 @@ function ChatbotProvider({ children }) {
         return;
       }
 
+      if (option.value.startsWith(RISK_CHECK_CONNECT_PREFIX)) {
+        appendMessages([{ sender: 'user', text: option.label }]);
+        requestSupportConnection(option.value.slice(RISK_CHECK_CONNECT_PREFIX.length));
+        return;
+      }
+
       if (RISK_CHECK_ENTER_VALUES.includes(option.value)) {
         isRiskCheckFlowRef.current = true;
       } else if (RISK_CHECK_EXIT_VALUES.includes(option.value)) {
@@ -259,6 +307,7 @@ function ChatbotProvider({ children }) {
       ensureRiskCheckSession,
       sendRiskCheckTurn,
       requestStructuredSummary,
+      requestSupportConnection,
     ],
   );
 

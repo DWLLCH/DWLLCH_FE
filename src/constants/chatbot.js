@@ -51,6 +51,22 @@ export const MISSING_FIELD_LABELS = {
   risk_type: '위험 유형',
 };
 
+// 상황 정리 카드 뒤에 붙는 조력자 연계 칩, 클릭 자체를 동의(consent)로 간주해서 바로 연계 요청함
+export const RISK_CHECK_CONNECT_PREFIX = 'risk-check-connect:';
+
+export const CONNECT_TARGET_OPTIONS = [
+  { value: `${RISK_CHECK_CONNECT_PREFIX}SUPPORT_STAFF`, label: '조력자 연결해줘' },
+  { value: `${RISK_CHECK_CONNECT_PREFIX}COUNSELOR`, label: '상담사 연결해줘' },
+  { value: `${RISK_CHECK_CONNECT_PREFIX}EMERGENCY`, label: '긴급 지원 연결해줘' },
+];
+
+// BE(SupportConnection.ConnectTo) 값 그대로 키로 씀
+export const CONNECT_TARGET_LABELS = {
+  SUPPORT_STAFF: '조력자',
+  COUNSELOR: '상담사',
+  EMERGENCY: '긴급 지원',
+};
+
 export const INITIAL_MESSAGES = [
   {
     id: 'greeting',
