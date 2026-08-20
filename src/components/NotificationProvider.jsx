@@ -56,23 +56,27 @@ function NotificationProvider({ children }) {
 
   const hasUnread = notifications.some((item) => !item.read);
 
-  // 낙관적으로 먼저 로컬 상태를 바꾸고 서버에도 반영함, 실패해도 다음 재조회 때 실제 상태로 다시 맞춰지므로
-  // 별도 롤백은 하지 않음(북마크처럼 서버 상태를 잘못 표시할 위험이 없는 단순 읽음 처리라 낙관적 갱신으로 충분함)
-  const markAsRead = useCallback((notificationId) => {
-    setNotifications((prev) =>
-      prev.map((item) => (item.id === notificationId ? { ...item, read: true } : item)),
-    );
-    markNotificationRead(notificationId).catch(() => {
-      // 조용히 무시 (다음 조회 때 실제 상태로 재동기화됨)
-    });
-  }, []);
+  // 낙관적으로 먼저 로컬 상태를 바꾸고 서버에도 반영함, 실패하면 로컬 상태만 읽음으로 남아있고
+  // 서버는 그대로라 hasUnread 등이 실제와 어긋날 수 있어서 재조회로 다시 맞춤
+  // (fetchNotifications 자체에 세션 일치 가드가 있어서 그 사이 로그아웃/계정 전환돼도 안전함)
+  const markAsRead = useCallback(
+    (notificationId) => {
+      setNotifications((prev) =>
+        prev.map((item) => (item.id === notificationId ? { ...item, read: true } : item)),
+      );
+      markNotificationRead(notificationId).catch(() => {
+        fetchNotifications();
+      });
+    },
+    [fetchNotifications],
+  );
 
   const markAllAsRead = useCallback(() => {
     setNotifications((prev) => prev.map((item) => ({ ...item, read: true })));
     markAllNotificationsRead().catch(() => {
-      // 조용히 무시 (다음 조회 때 실제 상태로 재동기화됨)
+      fetchNotifications();
     });
-  }, []);
+  }, [fetchNotifications]);
 
   return (
     <NotificationContext.Provider

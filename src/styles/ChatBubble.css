@@ -34,6 +34,12 @@
   color: #fff;
 }
 
+.chat-bubble-text {
+  /* 마크다운(CommonMark)은 한 줄바꿈("\n")을 문단 내 줄바꿈으로 안 쳐서 공백 하나로 합쳐버림,
+     pre-wrap으로 원문 줄바꿈을 그대로 살림(문단 구분은 여전히 "\n\n"이 만드는 별도 p 태그로 처리됨) */
+  white-space: pre-wrap;
+}
+
 .chat-bubble-text p {
   margin: 0;
 }
