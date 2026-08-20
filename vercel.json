@@ -2,11 +2,11 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "http://dwllch-be-prod.eba-3miabepr.ap-northeast-2.elasticbeanstalk.com/:path*"
+      "destination": "https://d13now97s6nc26.cloudfront.net/:path*"
     },
     {
       "source": "/media/:path*",
-      "destination": "http://dwllch-be-prod.eba-3miabepr.ap-northeast-2.elasticbeanstalk.com/media/:path*"
+      "destination": "https://d13now97s6nc26.cloudfront.net/media/:path*"
     },
     {
       "source": "/(.*)",
