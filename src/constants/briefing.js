@@ -96,19 +96,25 @@ const CARD_VISUAL_ROTATION = {
   ],
 };
 
-// 상세 히어로 아이콘도 BE 응답에 없어서 섹션 대표 아이콘(순환 배열의 첫 번째)으로 임시 표시함
+// 상세 히어로 아이콘도 BE 응답에 없어서 섹션 대표 아이콘(순환 배열의 첫 번째)으로 임시 표시
 export function getSectionDefaultIcon(sectionId) {
   const rotation = CARD_VISUAL_ROTATION[sectionId] || CARD_VISUAL_ROTATION.finance;
   return rotation[0].icon;
 }
 
 // content는 "#"/"##"(상위 번호 섹션)와 "###"(상위 섹션에 속한 하위 링크 항목) 2단계
-// 마크다운 헤딩 구조로 내려오는 단일 텍스트임
-// 상위 섹션 { title, body, subItems } 배열로 변환하고, ### 하위 항목은 subItems에 { title, body }로 묶어 넣음
-// 상위 섹션 title 앞에 붙은 "1. " 같은 번호는 떼어냄 (DetailSection의 번호 아이콘이 이미 표시하므로 중복 방지)
 // 헤딩이 하나도 없으면 전체를 제목 없는 섹션 하나로 반환함
 function stripLeadingNumber(text) {
   return text.replace(/^\d+\.\s*/, '').trim();
+}
+
+// contentTables의 section 값은 BE가 "2. 통장 쪼개기"처럼 번호가 붙은 원문 그대로 저장하고 있어서
+// parseBriefingContent가 번호를 뗀 sub.title("통장 쪼개기")과 바로 비교하면 안 맞음, 양쪽 다 번호를 뗀 뒤 비교함
+export function findContentTable(contentTables, sectionTitle) {
+  if (!Array.isArray(contentTables) || !sectionTitle) return null;
+
+  const target = stripLeadingNumber(sectionTitle);
+  return contentTables.find((table) => stripLeadingNumber(table.section || '') === target) || null;
 }
 
 export function parseBriefingContent(content) {

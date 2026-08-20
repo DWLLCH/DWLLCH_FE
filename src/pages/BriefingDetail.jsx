@@ -13,6 +13,7 @@ import SectionTag from '../components/SectionTag';
 import DetailSection from '../components/DetailSection';
 import BriefingLinkChip from '../components/BriefingLinkChip';
 import BriefingBulletTable from '../components/BriefingBulletTable';
+import BriefingContentTable from '../components/BriefingContentTable';
 import Modal from '../components/Modal';
 import ChatbotButton from '../components/ChatbotButton';
 import AiLoading from '../components/AiLoading';
@@ -21,6 +22,7 @@ import { getBriefingDetail } from '../api/briefing';
 import {
   BRIEFING_ICONS,
   BRIEFING_SECTION_META,
+  findContentTable,
   findRelatedBulletText,
   getSectionDefaultIcon,
   parseBriefingContent,
@@ -219,33 +221,44 @@ function BriefingDetail() {
           </div>
         </div>
 
-        {contentSections.map((sub, index) => (
-          <DetailSection
-            key={sub.title || index}
-            number={NUMBER_ICONS[Math.min(index, NUMBER_ICONS.length - 1)]}
-            title={sub.title || detail.title}
-          >
-            {/* ###(하위 항목)이 있는 섹션은 개요 불릿을 여기 바로 표시하지 않고 칩을 눌렀을 때 모달 상단에 보여줌 */}
-            {sub.subItems.length === 0 && <BriefingBulletTable body={sub.body} />}
+        {contentSections.map((sub, index) => {
+          // BE가 이 섹션 표를 headers/rows로 미리 구조화해뒀으면(contentTables) 그걸 그대로 쓰고,
+          // 없으면 기존처럼 본문 불릿 텍스트를 파싱해서 표 흉내를 냄(BriefingBulletTable)
+          const structuredTable = findContentTable(detail.contentTables, sub.title);
 
-            {sub.subItems.length > 0 && (
-              <div className="briefing-detail-chip-list">
-                {sub.subItems.map((item) => (
-                  <BriefingLinkChip
-                    key={item.title}
-                    label={item.title}
-                    onClick={() =>
-                      setActiveSubItem({
-                        ...item,
-                        introText: findRelatedBulletText(sub.body, item.title),
-                      })
-                    }
-                  />
+          return (
+            <DetailSection
+              key={sub.title || index}
+              number={NUMBER_ICONS[Math.min(index, NUMBER_ICONS.length - 1)]}
+              title={sub.title || detail.title}
+            >
+              {/* ###(하위 항목)이 있는 섹션은 개요 불릿을 여기 바로 표시하지 않고 칩을 눌렀을 때 모달 상단에 보여줌 */}
+              {sub.subItems.length === 0 &&
+                (structuredTable ? (
+                  <BriefingContentTable table={structuredTable} />
+                ) : (
+                  <BriefingBulletTable body={sub.body} />
                 ))}
-              </div>
-            )}
-          </DetailSection>
-        ))}
+
+              {sub.subItems.length > 0 && (
+                <div className="briefing-detail-chip-list">
+                  {sub.subItems.map((item) => (
+                    <BriefingLinkChip
+                      key={item.title}
+                      label={item.title}
+                      onClick={() =>
+                        setActiveSubItem({
+                          ...item,
+                          introText: findRelatedBulletText(sub.body, item.title),
+                        })
+                      }
+                    />
+                  ))}
+                </div>
+              )}
+            </DetailSection>
+          );
+        })}
       </div>
 
       <div
@@ -264,7 +277,16 @@ function BriefingDetail() {
           {activeSubItem?.introText && (
             <p className="briefing-detail-modal-intro">{activeSubItem.introText}</p>
           )}
-          <BriefingBulletTable body={activeSubItem?.body} />
+          {(() => {
+            // 지금까지 contentTables는 ##(상위) 섹션에만 붙어있었지만, ###(하위) 항목 제목으로도
+            // 매칭을 시도해둠(나중에 BE가 하위 항목 표도 구조화해서 내려주면 별도 수정 없이 바로 반영됨)
+            const structuredTable = findContentTable(detail.contentTables, activeSubItem?.title);
+            return structuredTable ? (
+              <BriefingContentTable table={structuredTable} />
+            ) : (
+              <BriefingBulletTable body={activeSubItem?.body} />
+            );
+          })()}
           <button
             type="button"
             className="modal-btn modal-btn--confirm"
