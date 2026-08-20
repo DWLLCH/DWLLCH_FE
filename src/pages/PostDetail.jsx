@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import backBtn from '../assets/backBtn.svg';
 import like from '../assets/like.svg';
@@ -61,15 +61,8 @@ function buildCommentTree(
     return isMyPost && isMine(item);
   };
 
-  // 익명 댓글 번호(익명1, 익명2...)는 같은 게시글 안에서 authorId가 같으면 항상 같은 번호를 받아야 하고,
-  // 순서는 화면에 어떤 순서로 그려지는지가 아니라 실제 작성 시각 순서를 따라야 함 (답글이 댓글보다
-  // 먼저 트리에서 처리되는 구조라, 트리 빌드 순서에 맡기면 순번이 뒤틀릴 수 있어서 미리 한 번 훑음)
-  [...rawComments]
-    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-    .forEach((item) => {
-      if (item.isAnonymous) getAnonymousLabel(item.authorId ?? `comment-${item.id}`);
-    });
-
+  // 익명 번호 배정은 useLayoutEffect에서 커밋 이후에만 수행함 (렌더링 도중 캐시를 바꾸면
+  // 버려지는 렌더가 있을 때 번호가 꼬일 수 있어서), 여기서는 이미 배정된 번호만 읽음
   const resolveAuthor = (item) =>
     item.isAnonymous ? getAnonymousLabel(item.authorId ?? `comment-${item.id}`) : item.authorName;
 
@@ -158,21 +151,38 @@ function PostDetail() {
   //  이 부분을 새로고침 이후에도 유지하려면 BE에 게시글+작성자별 영구 번호 필드가 필요함)
   const anonNumberMapRef = useRef(new Map());
   const anonNumberCounterRef = useRef(0);
+  // 새 익명 작성자에게 번호가 배정되면(useLayoutEffect에서) 화면을 다시 그리기 위한 카운터
+  const [, bumpAnonNumberVersion] = useState(0);
 
   useEffect(() => {
     anonNumberMapRef.current = new Map();
     anonNumberCounterRef.current = 0;
   }, [id]);
 
+  // 렌더링 도중에는 캐시를 절대 바꾸지 않고 읽기만 함, 아직 번호가 없으면 다음 커밋에서 채워짐
   const getAnonymousLabel = (authorKey) => {
-    const map = anonNumberMapRef.current;
-    const key = String(authorKey);
-    if (!map.has(key)) {
-      anonNumberCounterRef.current += 1;
-      map.set(key, anonNumberCounterRef.current);
-    }
-    return `익명${map.get(key)}`;
+    const number = anonNumberMapRef.current.get(String(authorKey));
+    return number ? `익명${number}` : '익명';
   };
+
+  // 익명 번호는 여기(커밋 이후)에서만 배정함, 렌더링 중에 배정하면 버려지는 렌더가 있을 때
+  // (예: React Router의 v7_startTransition 경로) 번호가 실제로 쓰이지 않았는데도 소모될 수 있음
+  useLayoutEffect(() => {
+    const map = anonNumberMapRef.current;
+    let assigned = false;
+    [...rawComments]
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+      .forEach((item) => {
+        if (!item.isAnonymous) return;
+        const key = String(item.authorId ?? `comment-${item.id}`);
+        if (!map.has(key)) {
+          anonNumberCounterRef.current += 1;
+          map.set(key, anonNumberCounterRef.current);
+          assigned = true;
+        }
+      });
+    if (assigned) bumpAnonNumberVersion((v) => v + 1);
+  }, [rawComments]);
 
   const isMyPost = Boolean(post?.isMine);
 

@@ -52,7 +52,8 @@ function WritePost() {
   const { id } = useParams();
   const isEdit = Boolean(id);
 
-  const [isLoggedIn] = useState(() => Boolean(getAccessToken()));
+  // 매 렌더마다 새로 확인함 (로그인/로그아웃으로 토큰이 바뀌어도 즉시 반영되도록)
+  const isLoggedIn = Boolean(getAccessToken());
   const [existingPost, setExistingPost] = useState(null);
   const [postLoading, setPostLoading] = useState(isEdit);
   const [postError, setPostError] = useState(false);
@@ -304,7 +305,11 @@ function WritePost() {
   if (!isLoggedIn) {
     return (
       <div className="write-page">
-        <LoginRequiredModal open onClose={() => navigate('/community')} />
+        <LoginRequiredModal
+          open
+          onClose={() => navigate('/community')}
+          description="로그인하고 게시글을 작성해보세요"
+        />
       </div>
     );
   }

@@ -37,7 +37,8 @@ function CommunitySkeletonList() {
 
 function Community() {
   const navigate = useNavigate();
-  const [isLoggedIn] = useState(() => Boolean(getAccessToken()));
+  // 매 렌더마다 새로 확인함 (로그인/로그아웃으로 토큰이 바뀌어도 즉시 반영되도록)
+  const isLoggedIn = Boolean(getAccessToken());
   const [activeCategory, setActiveCategory] = useState('최신');
   const [posts, setPosts] = useState([]);
   const [page, setPage] = useState(0);
@@ -178,7 +179,11 @@ function Community() {
       <WriteFabButton onClick={handleWriteClick} />
       <BottomNav />
 
-      <LoginRequiredModal open={showLoginModal} onClose={() => setShowLoginModal(false)} />
+      <LoginRequiredModal
+        open={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        description="로그인하고 커뮤니티에 글을 작성해보세요"
+      />
     </div>
   );
 }

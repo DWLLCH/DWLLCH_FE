@@ -32,7 +32,8 @@ function AccountWithdraw() {
       return;
     }
     if (step === 'complete') {
-      navigate('/mypage', { replace: true });
+      // 탈퇴가 끝난 계정이라 마이페이지로는 되돌아갈 수 없음
+      navigate('/login', { replace: true });
       return;
     }
     navigate(-1);
@@ -49,6 +50,8 @@ function AccountWithdraw() {
     setPasswordError('');
     try {
       await withdrawAccount({ password });
+      // 탈퇴 성공 직후 토큰을 정리해 삭제된 계정으로 인증된 상태가 남지 않도록 함
+      clearTokens();
       setStep('complete');
     } catch (error) {
       const code = error.response?.data?.code;
