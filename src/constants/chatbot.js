@@ -5,7 +5,6 @@ export const MAX_ATTACH_COUNT = 5;
 export const MENU_OPTIONS = [
   { value: 'ask-policy', label: '제도 관련 질문이 있어요' },
   { value: 'recommend-criteria', label: '제도 추천 기준이 뭔가요?' },
-  { value: 'manual-input', label: '직접 입력하기' },
 ];
 
 export const RENT_GUIDE_OPTIONS = [
