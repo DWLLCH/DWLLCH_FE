@@ -49,7 +49,7 @@ function ChatAttachSheet({ open, onClose, onSelectImages, onSelectFiles }) {
         <span className="chat-attach-option-icon">
           <img src={fileIcon} alt="" className="chat-attach-option-icon--file" />
         </span>
-        파일 선택하기
+        PDF, DOCX 파일 선택하기
       </button>
 
       <input
@@ -63,6 +63,7 @@ function ChatAttachSheet({ open, onClose, onSelectImages, onSelectFiles }) {
       <input
         ref={fileInputRef}
         type="file"
+        accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         multiple
         className="chat-attach-input"
         onChange={handleFilePick}

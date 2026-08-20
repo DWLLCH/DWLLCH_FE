@@ -266,10 +266,9 @@ function ChatbotProvider({ children }) {
         appendMessages(botMessages);
       } catch (error) {
         setIsTyping(false);
+        // 422(이미지/문서 판독 실패)는 BE가 첨부 종류별로 다른 안내 문구를 message에 실어주므로 그대로 씀
         const message =
-          error.response?.status === 422
-            ? '이미지를 다시 촬영하거나 텍스트로 설명해주세요'
-            : error.response?.data?.message || 'AI 분석에 실패했어요. 잠시 후 다시 시도해주세요';
+          error.response?.data?.message || 'AI 분석에 실패했어요. 잠시 후 다시 시도해주세요';
         appendMessages([{ sender: 'bot', text: message }]);
       }
     },
@@ -527,27 +526,26 @@ function ChatbotProvider({ children }) {
   const attachFiles = useCallback(
     (files) => {
       if (!files || files.length === 0) return;
-      const drafts = files.slice(0, MAX_ATTACH_COUNT).map((file) => {
+      const limitedFiles = files.slice(0, MAX_ATTACH_COUNT);
+      const drafts = limitedFiles.map((file) => {
         const url = URL.createObjectURL(file);
         objectUrlsRef.current.push(url);
         return { sender: 'user', type: 'file', fileName: file.name, fileUrl: url };
       });
       appendMessages(drafts);
 
-      // 이미지 분석은 위기판독에서만 지원해서, 메뉴 선택 여부와 상관없이 위기판독 상담으로 봄
+      // 문서 분석도 위기판독에서만 지원해서, 메뉴 선택 여부와 상관없이 위기판독 상담으로 봄
       isRiskCheckFlowRef.current = true;
       isPolicyQaFlowRef.current = false;
 
-      // 위기판독 분석은 이미지 파일만 지원해서(BE MessageCreateSerializer), 일반 파일은 분석을 못 붙임
-      // 상담을 끝내려는 게 아니라 사진으로 다시 첨부하고 싶을 확률이 높아서 메뉴로 돌아가기는 안 보여줌
-      appendMessages([
-        {
-          sender: 'bot',
-          text: '위기판독 상담에서는 이미지 파일만 확인할 수 있어요. 사진으로 다시 첨부해주세요.',
-        },
-      ]);
+      // 문서(PDF/DOCX) 한 개당 AI 분석 한 턴, 여러 개면 순서대로 이어서 보냄 (attachImages와 동일 패턴)
+      // 확장자가 다른 파일이 섞여 있어도 BE가 타입별로 검증해서 첨부 종류에 맞는 안내 문구를 돌려줌
+      limitedFiles.reduce(
+        (chain, file) => chain.then(() => sendRiskCheckTurn({ type: 'DOCUMENT', file })),
+        Promise.resolve(),
+      );
     },
-    [appendMessages],
+    [appendMessages, sendRiskCheckTurn],
   );
 
   return (
