@@ -222,7 +222,7 @@ function MyInfoEdit() {
     try {
       await updateMyProfile(payload);
       await refetch();
-      navigate('/my-info');
+      navigate('/my-info', { replace: true });
     } catch {
       setSubmitError('정보를 저장하지 못했어요. 잠시 후 다시 시도해주세요.');
     } finally {
