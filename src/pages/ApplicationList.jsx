@@ -12,7 +12,7 @@ import OnboardingRequiredModal from '../components/OnboardingRequiredModal';
 import useApplication from '../hooks/useApplication';
 import useOnboardingComplete from '../hooks/useOnboardingComplete';
 import { getAccessToken } from '../api/auth';
-import { formatDateDots, parseDateKey } from '../utils/formatters';
+import { formatDateDots, formatDday, parseDateKey, toPolicyLevel } from '../utils/formatters';
 import '../styles/Bookmark.css';
 
 // BE Application.Status 라벨 (mypage/models.py 기준)
@@ -100,6 +100,8 @@ function ApplicationList() {
                 {visibleApplications.map((application) => (
                   <PolicyCard
                     key={application.id}
+                    level={toPolicyLevel(application.matchLevel)}
+                    dday={formatDday(application.applicationEnd)}
                     title={application.policyTitle}
                     description={buildDescription(application)}
                     onClick={() => navigate(`/support/${application.policyId}`)}

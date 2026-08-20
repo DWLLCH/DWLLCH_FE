@@ -63,6 +63,9 @@ function ApplicationProvider({ children }) {
             policyTitle: application.policyTitle,
             status: application.status,
             dateKey,
+            matchLevel: application.matchLevel,
+            matchReason: application.matchReason,
+            applicationEnd: application.applicationEnd,
           };
         });
         setApplications(next);
@@ -135,6 +138,11 @@ function ApplicationProvider({ children }) {
             policyTitle: application.policyTitle,
             status: application.status,
             dateKey,
+            // 등록 응답엔 매칭 컨텍스트가 안 실려서 matchLevel/matchReason이 항상 null로 옴
+            // (목록 조회 때만 채워짐), 다음 재조회 때 자연스럽게 채워짐
+            matchLevel: application.matchLevel,
+            matchReason: application.matchReason,
+            applicationEnd: application.applicationEnd,
           },
           ...prev,
         ]);
