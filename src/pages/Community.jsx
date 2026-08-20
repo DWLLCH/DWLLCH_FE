@@ -14,7 +14,7 @@ import useBlock from '../hooks/useBlock';
 import { CATEGORIES, LABEL_TO_BOARD_TYPE } from '../constants/community';
 import { getPosts } from '../api/community';
 import { getAccessToken } from '../api/auth';
-import { formatRelativeTime } from '../utils/formatters';
+import { formatRelativeTime, toSecureImageUrl } from '../utils/formatters';
 import '../styles/Community.css';
 
 function CommunitySkeletonList() {
@@ -143,7 +143,7 @@ function Community() {
                   time={formatRelativeTime(post.createdAt)}
                   likeCount={post.likeCount}
                   commentCount={post.commentCount}
-                  images={post.thumbnail ? [post.thumbnail] : undefined}
+                  images={post.thumbnail ? [toSecureImageUrl(post.thumbnail)] : undefined}
                   onClick={() => navigate(`/community/${post.id}`)}
                 />
               ))}

@@ -35,7 +35,7 @@ import {
 } from '../api/community';
 import { getMyProfile } from '../api/mypage';
 import { getAccessToken, getUserId } from '../api/auth';
-import { formatDateTimeShort } from '../utils/formatters';
+import { formatDateTimeShort, toSecureImageUrl } from '../utils/formatters';
 import '../styles/PostDetail.css';
 
 function buildCommentTree(
@@ -536,7 +536,7 @@ function PostDetail() {
   const imageUrls = (post.images || [])
     .slice()
     .sort((a, b) => a.order - b.order)
-    .map((image) => image.image);
+    .map((image) => toSecureImageUrl(image.image));
   const contentParagraphs = (post.content || '').split(/\n\s*\n/).filter(Boolean);
 
   return (

@@ -13,6 +13,7 @@ import LoginRequiredModal from '../components/LoginRequiredModal';
 import { POST_CATEGORIES, LABEL_TO_BOARD_TYPE, BOARD_TYPE_TO_LABEL } from '../constants/community';
 import { createPost, getPost, updatePost } from '../api/community';
 import { getAccessToken } from '../api/auth';
+import { toSecureImageUrl } from '../utils/formatters';
 import '../styles/WritePost.css';
 
 const MAX_IMAGES = 5;
@@ -107,7 +108,11 @@ function WritePost() {
           (data.images || [])
             .slice()
             .sort((a, b) => a.order - b.order)
-            .map((image) => ({ id: `existing-${image.id}`, url: image.image, isExisting: true })),
+            .map((image) => ({
+              id: `existing-${image.id}`,
+              url: toSecureImageUrl(image.image),
+              isExisting: true,
+            })),
         );
         const pollFromData = data.poll
           ? {

@@ -5,6 +5,10 @@
       "destination": "http://dwllch-be-prod.eba-3miabepr.ap-northeast-2.elasticbeanstalk.com/:path*"
     },
     {
+      "source": "/media/:path*",
+      "destination": "http://dwllch-be-prod.eba-3miabepr.ap-northeast-2.elasticbeanstalk.com/media/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
