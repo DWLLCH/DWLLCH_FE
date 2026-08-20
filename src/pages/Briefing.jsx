@@ -15,24 +15,86 @@ import { getBriefings } from '../api/briefing';
 import { BRIEFING_SECTION_META } from '../constants/briefing';
 import '../styles/Briefing.css';
 
-// briefing-card-row는 이제 자동으로 흘러가는 마퀴라 트랙 자체엔 스크롤이 없음.
-// 데스크톱은 CSS :has(:hover)로 정지시키지만 터치는 hover가 안 잡혀서, 손가락이 닿아있는
-// 동안만 흐름을 멈추도록 touchstart/touchend에 직접 리스너를 붙였다 뗌
-// (React 19 ref 콜백의 정리 함수 반환을 이용, 훅 없이 DOM 노드에 직접 붙임)
-function attachTouchPause(node) {
-  if (!node) return undefined;
+// briefing-marquee-viewport(overflow-x: auto)에 붙는 핸들러. briefing-card-row는 자동으로
+// 흘러가는 마퀴라 터치/마우스로 만지는 동안은 잠깐 멈추고, 뷰포트의 네이티브 스크롤(터치)이나
+// 마우스 드래그(desktop, overflow-x:auto만으론 마우스 클릭드래그 패닝이 안 돼서 직접 구현)로
+// 좌우 이동을 받아줌 (React 19 ref 콜백의 정리 함수 반환을 이용, 훅 없이 DOM 노드에 직접 붙임)
+function attachMarqueeInteraction(viewport) {
+  if (!viewport) return undefined;
+  const row = viewport.querySelector('.briefing-card-row');
+  if (!row) return undefined;
 
-  const pause = () => node.classList.add('is-paused');
-  const resume = () => node.classList.remove('is-paused');
+  const pause = () => row.classList.add('is-paused');
+  const resume = () => row.classList.remove('is-paused');
 
-  node.addEventListener('touchstart', pause, { passive: true });
-  node.addEventListener('touchend', resume);
-  node.addEventListener('touchcancel', resume);
+  // 카드가 두 벌 이어붙여진 트랙이라(-50% 지점이 정확히 "한 벌"의 끝), 오른쪽 끝까지 스크롤해서
+  // 두 번째 벌 안으로 들어가면 몰래 한 벌만큼 되감아서(scrollLeft -= half) 첫 벌로 이어붙임 -
+  // 두 벌 다 내용이 같아서 사용자 눈에는 끊김 없이 계속 원형으로 도는 것처럼 보임
+  const loopScroll = () => {
+    const halfWidth = row.scrollWidth / 2;
+    if (halfWidth <= 0) return;
+    while (viewport.scrollLeft >= halfWidth) {
+      viewport.scrollLeft -= halfWidth;
+    }
+  };
+
+  let dragging = false;
+  let startX = 0;
+  let startScrollLeft = 0;
+
+  const handlePointerDown = (e) => {
+    // 터치는 뷰포트의 네이티브 스크롤에 맡기고, 마우스/펜만 직접 드래그 패닝을 처리함
+    if (e.pointerType === 'touch') return;
+    dragging = true;
+    startX = e.clientX;
+    startScrollLeft = viewport.scrollLeft;
+    pause();
+    viewport.setPointerCapture(e.pointerId);
+  };
+  const handlePointerMove = (e) => {
+    if (!dragging) return;
+    viewport.scrollLeft = startScrollLeft - (e.clientX - startX);
+  };
+  const endDrag = (e) => {
+    if (!dragging) return;
+    dragging = false;
+    resume();
+    if (e?.pointerId != null) viewport.releasePointerCapture(e.pointerId);
+  };
+
+  // 세로 휠(deltaX === 0)만 굴려도 좌우로 스크롤되게 deltaY를 scrollLeft에 대신 반영함
+  // (트랙패드 가로 스와이프나 Shift+휠처럼 이미 deltaX가 있는 경우는 브라우저 네이티브 동작 그대로 둠)
+  let wheelResumeTimer = null;
+  const handleWheel = (e) => {
+    if (e.deltaX !== 0) return;
+    e.preventDefault();
+    pause();
+    viewport.scrollLeft += e.deltaY;
+    clearTimeout(wheelResumeTimer);
+    wheelResumeTimer = setTimeout(resume, 200);
+  };
+
+  viewport.addEventListener('scroll', loopScroll, { passive: true });
+  viewport.addEventListener('touchstart', pause, { passive: true });
+  viewport.addEventListener('touchend', resume);
+  viewport.addEventListener('touchcancel', resume);
+  viewport.addEventListener('pointerdown', handlePointerDown);
+  viewport.addEventListener('pointermove', handlePointerMove);
+  viewport.addEventListener('pointerup', endDrag);
+  viewport.addEventListener('pointercancel', endDrag);
+  viewport.addEventListener('wheel', handleWheel, { passive: false });
 
   return () => {
-    node.removeEventListener('touchstart', pause);
-    node.removeEventListener('touchend', resume);
-    node.removeEventListener('touchcancel', resume);
+    clearTimeout(wheelResumeTimer);
+    viewport.removeEventListener('scroll', loopScroll);
+    viewport.removeEventListener('touchstart', pause);
+    viewport.removeEventListener('touchend', resume);
+    viewport.removeEventListener('touchcancel', resume);
+    viewport.removeEventListener('pointerdown', handlePointerDown);
+    viewport.removeEventListener('pointermove', handlePointerMove);
+    viewport.removeEventListener('pointerup', endDrag);
+    viewport.removeEventListener('pointercancel', endDrag);
+    viewport.removeEventListener('wheel', handleWheel);
   };
 }
 
@@ -99,8 +161,8 @@ function Briefing() {
               <SectionTag>{section.title}</SectionTag>
               <p className="briefing-section-desc">{section.description}</p>
               {section.cards.length > 0 ? (
-                <div className="briefing-marquee-viewport">
-                  <div className="briefing-card-row" ref={attachTouchPause}>
+                <div className="briefing-marquee-viewport" ref={attachMarqueeInteraction}>
+                  <div className="briefing-card-row">
                     {/* 카드 목록을 두 벌 이어붙여서 트랙이 -50% 만큼 흘러가면 이음매 없이 반복되게 함 */}
                     {[...section.cards, ...section.cards].map((briefing, index) => (
                       <div

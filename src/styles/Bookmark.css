@@ -65,6 +65,11 @@
   border: 1px solid #d9d9d9;
   border-radius: 50px;
   background-color: #fff;
+  transition: border-color 0.15s ease;
+}
+
+.bookmark-search-box:focus-within {
+  border-color: #4fae7c;
 }
 
 .bookmark-search-input {
