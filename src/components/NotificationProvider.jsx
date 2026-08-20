@@ -1,7 +1,7 @@
 import { createContext, useCallback, useEffect, useRef, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { getAccessToken, getUserId } from '../api/auth';
-import { getNotifications } from '../api/mypage';
+import { getNotifications, markAllNotificationsRead, markNotificationRead } from '../api/mypage';
 
 export const NotificationContext = createContext(null);
 
@@ -25,6 +25,8 @@ function NotificationProvider({ children }) {
         const items = (data.content || []).map((item) => ({
           id: item.id,
           message: item.message,
+          type: item.type,
+          targetId: item.targetId,
           read: item.isRead,
           createdAt: item.createdAt,
         }));
@@ -54,15 +56,34 @@ function NotificationProvider({ children }) {
 
   const hasUnread = notifications.some((item) => !item.read);
 
-  // BE에 읽음 처리 API가 아직 없어서(mypage/urls.py에 GET만 있음) 서버에는 반영되지 않고
-  // 화면을 벗어났다 다시 들어오면(재조회) 다시 안읽음 상태로 보일 수 있음
+  // 낙관적으로 먼저 로컬 상태를 바꾸고 서버에도 반영함, 실패해도 다음 재조회 때 실제 상태로 다시 맞춰지므로
+  // 별도 롤백은 하지 않음(북마크처럼 서버 상태를 잘못 표시할 위험이 없는 단순 읽음 처리라 낙관적 갱신으로 충분함)
+  const markAsRead = useCallback((notificationId) => {
+    setNotifications((prev) =>
+      prev.map((item) => (item.id === notificationId ? { ...item, read: true } : item)),
+    );
+    markNotificationRead(notificationId).catch(() => {
+      // 조용히 무시 (다음 조회 때 실제 상태로 재동기화됨)
+    });
+  }, []);
+
   const markAllAsRead = useCallback(() => {
     setNotifications((prev) => prev.map((item) => ({ ...item, read: true })));
+    markAllNotificationsRead().catch(() => {
+      // 조용히 무시 (다음 조회 때 실제 상태로 재동기화됨)
+    });
   }, []);
 
   return (
     <NotificationContext.Provider
-      value={{ notifications, hasUnread, markAllAsRead, loading, refetch: fetchNotifications }}
+      value={{
+        notifications,
+        hasUnread,
+        markAsRead,
+        markAllAsRead,
+        loading,
+        refetch: fetchNotifications,
+      }}
     >
       {children || <Outlet />}
     </NotificationContext.Provider>

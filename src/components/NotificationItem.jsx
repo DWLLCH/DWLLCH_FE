@@ -1,7 +1,7 @@
 import { formatRelativeTime } from '../utils/formatters';
 import '../styles/NotificationItem.css';
 
-function NotificationItem({ message, createdAt, read }) {
+function NotificationItem({ message, createdAt, read, onClick }) {
   return (
     <li className={`notification-item${read ? '' : ' notification-item--unread'}`}>
       {!read && (
@@ -10,8 +10,10 @@ function NotificationItem({ message, createdAt, read }) {
           <span className="notification-item-sr-only">읽지 않음</span>
         </>
       )}
-      <p className="notification-item-message">{message}</p>
-      {createdAt && <p className="notification-item-time">{formatRelativeTime(createdAt)}</p>}
+      <button type="button" className="notification-item-body" onClick={onClick}>
+        <p className="notification-item-message">{message}</p>
+        {createdAt && <p className="notification-item-time">{formatRelativeTime(createdAt)}</p>}
+      </button>
     </li>
   );
 }
