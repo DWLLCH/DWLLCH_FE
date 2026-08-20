@@ -6,11 +6,28 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import useNotifications from '../hooks/useNotifications';
 import '../styles/NotificationList.css';
 
-// targetId 의미가 type마다 다름, COMMENT/REPLY는 게시글 id(DEADLINE 등 다른 타입 이동 경로는 아직 미정)
+// targetId 의미가 type마다 다름, COMMENT/REPLY와 DEADLINE은 각각 게시글/정책 id
+// PROTECTION_END는 target_id가 안 내려와서(BE mypage/notification_services.py) 이동 없이 정보성으로만 보여줌
 function resolveNotificationPath(type, targetId) {
   if (targetId == null) return null;
   if (type === 'COMMENT' || type === 'REPLY') return `/community/${targetId}`;
+  if (type === 'DEADLINE') return `/support/${targetId}`;
   return null;
+}
+
+// 알림 카드마다 각자 자기 구분(카테고리)을 보여줌(피그마 디자인 기준), 공용 섹션 헤더가 아니라
+// NotificationItem 하나하나 안에 굵은 글씨로 들어감
+const NOTIFICATION_CATEGORY_LABELS = {
+  DEADLINE: '신청 마감 임박',
+  COMMUNITY: '커뮤니티',
+  PROTECTION_END: '회원 정보',
+  ETC: '기타',
+};
+
+function resolveNotificationCategory(type) {
+  if (type === 'COMMENT' || type === 'REPLY') return 'COMMUNITY';
+  if (type === 'DEADLINE' || type === 'PROTECTION_END') return type;
+  return 'ETC';
 }
 
 function NotificationList() {
@@ -61,6 +78,7 @@ function NotificationList() {
             {notifications.map((item) => (
               <NotificationItem
                 key={item.id}
+                category={NOTIFICATION_CATEGORY_LABELS[resolveNotificationCategory(item.type)]}
                 message={item.message}
                 createdAt={item.createdAt}
                 read={item.read}

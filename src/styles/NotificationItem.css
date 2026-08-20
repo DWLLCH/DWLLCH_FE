@@ -44,6 +44,14 @@
   cursor: pointer;
 }
 
+.notification-item-category {
+  display: block;
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #202020;
+}
+
 .notification-item-message {
   display: block;
   margin: 0 0 4px;

@@ -1,7 +1,7 @@
 import { formatRelativeTime } from '../utils/formatters';
 import '../styles/NotificationItem.css';
 
-function NotificationItem({ message, createdAt, read, onClick }) {
+function NotificationItem({ category, message, createdAt, read, onClick }) {
   return (
     <li className={`notification-item${read ? '' : ' notification-item--unread'}`}>
       {!read && (
@@ -12,6 +12,7 @@ function NotificationItem({ message, createdAt, read, onClick }) {
       )}
       <button type="button" className="notification-item-body" onClick={onClick}>
         {/* button 콘텐츠 모델은 phrasing content라 p(flow content)는 유효하지 않음, span + display: block으로 대체 */}
+        {category && <span className="notification-item-category">{category}</span>}
         <span className="notification-item-message">{message}</span>
         {createdAt && (
           <span className="notification-item-time">{formatRelativeTime(createdAt)}</span>
