@@ -28,6 +28,9 @@ export const ChatbotContext = createContext(null);
 
 const BOT_REPLY_DELAY = 800;
 
+// 답변 메시지와 메인 메뉴 질문이 동시에 뜨지 않도록, 메뉴는 답변이 보이고 나서 이 시간만큼 텀을 두고 붙임
+const MENU_PROMPT_DELAY_MS = 900;
+
 // 새로고침해도 진행 중이던 위기판독(직접 입력 상담) 세션을 이어갈 수 있도록 탭 단위로 저장
 const RISK_CHECK_SESSION_KEY = 'dwllch_riskCheckSessionId';
 
@@ -127,6 +130,18 @@ function ChatbotProvider({ children }) {
     },
     [appendMessages],
   );
+
+  // 답변 뒤에 메인 메뉴 질문을 살짝 텀을 두고 붙여서 순서대로 이어지는 것처럼 보이게 함
+  // (제도 질문 답변, 추천 기준 안내 등 답변 후 바로 메뉴로 이어지는 흐름에서 공통으로 씀)
+  const showMenuPromptWithDelay = useCallback(() => {
+    setIsTyping(true);
+    timeoutRef.current = setTimeout(() => {
+      setIsTyping(false);
+      appendMessages([
+        { sender: 'bot', title: '무엇이 궁금하신가요?', quickReplies: MENU_OPTIONS },
+      ]);
+    }, MENU_PROMPT_DELAY_MS);
+  }, [appendMessages]);
 
   // 위기판독 세션이 아직 없으면 새로 만들고, 이미 있으면 그대로 재사용함
   // 단, 마지막 활동 후 1시간이 지났으면 보안을 위해 이전 세션을 끊고 새로 시작함
@@ -337,16 +352,11 @@ function ChatbotProvider({ children }) {
             text: '정확한 정보로 답변드리기 어려운 질문이었어요. 관련 기관이나 담당자에게 직접 문의해보시는 걸 추천드려요.',
           });
         }
-
-        // 답변 후 메뉴 칩 대신 메인 메뉴 질문을 바로 이어붙여서 다음 흐름으로 자연스럽게 유도함
-        botMessages.push({
-          sender: 'bot',
-          title: '무엇이 궁금하신가요?',
-          quickReplies: MENU_OPTIONS,
-        });
         isPolicyQaFlowRef.current = false;
 
         appendMessages(botMessages);
+        // 답변 후 메뉴 칩 대신 메인 메뉴 질문을 텀을 두고 이어붙여서 다음 흐름으로 자연스럽게 유도함
+        showMenuPromptWithDelay();
       } catch (error) {
         setIsTyping(false);
         const message =
@@ -355,7 +365,7 @@ function ChatbotProvider({ children }) {
         appendMessages([{ sender: 'bot', text: message }]);
       }
     },
-    [appendMessages],
+    [appendMessages, showMenuPromptWithDelay],
   );
 
   const clearQuickReplies = useCallback((messageId) => {
@@ -421,12 +431,25 @@ function ChatbotProvider({ children }) {
         return;
       }
 
+      if (option.value === 'recommend-criteria') {
+        appendMessages([{ sender: 'user', text: option.label }]);
+        setIsTyping(true);
+        timeoutRef.current = setTimeout(() => {
+          setIsTyping(false);
+          appendMessages(getBotReply({ optionValue: option.value }));
+          // 답변이 보이고 나서 텀을 두고 메인 메뉴 질문을 이어붙임
+          showMenuPromptWithDelay();
+        }, BOT_REPLY_DELAY);
+        return;
+      }
+
       appendMessages([{ sender: 'user', text: option.label }]);
       respondWithDelay(() => getBotReply({ optionValue: option.value }));
     },
     [
       appendMessages,
       clearQuickReplies,
+      showMenuPromptWithDelay,
       respondWithDelay,
       ensureRiskCheckSession,
       sendRiskCheckTurn,

@@ -143,11 +143,6 @@ export function getBotReply({ optionValue, freeText }) {
         sender: 'bot',
         text: '연령, 거주지역, 보호종료 시기, 소득·주거 상황 등 회원님이 입력해주신 정보를 바탕으로 신청 가능성이 높은 제도부터 추천해 드려요.',
       },
-      {
-        sender: 'bot',
-        title: '무엇이 궁금하신가요?',
-        quickReplies: MENU_OPTIONS,
-      },
     ];
   }
 
