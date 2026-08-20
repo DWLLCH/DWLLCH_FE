@@ -15,17 +15,14 @@ import { getBriefings } from '../api/briefing';
 import { BRIEFING_SECTION_META } from '../constants/briefing';
 import '../styles/Briefing.css';
 
-// briefing-card-row는 overflow-x: auto라 트랙패드/드래그로는 가로 스크롤이 되지만,
-// 일반 마우스 휠(세로 입력)로는 안 움직여서 세로 휠 입력을 가로 스크롤로 바꿔줌
-// (React 19 ref 콜백의 정리 함수 반환을 이용, 훅 없이 DOM 노드에 직접 리스너를 붙였다 뗌)
+// briefing-card-row 가로 스크롤
 function attachHorizontalWheelScroll(node) {
   if (!node) return undefined;
 
   const handleWheel = (event) => {
-    // 이미 가로 입력(트랙패드 가로 스와이프 등)이면 그대로 두고, 세로 입력일 때만 가로로 바꿔줌
     if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
     event.preventDefault();
-    node.scrollLeft += event.deltaY;
+    node.scrollBy({ left: event.deltaY, behavior: 'smooth' });
   };
 
   node.addEventListener('wheel', handleWheel, { passive: false });
