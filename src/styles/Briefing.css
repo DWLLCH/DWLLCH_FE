@@ -10,7 +10,6 @@
   bottom: 100px;
 }
 
-/* 헤더 */
 .briefing-header {
   position: relative;
   flex-shrink: 0;
@@ -73,7 +72,6 @@
   color: #767676;
 }
 
-/* 섹션 */
 .briefing-section {
   margin-bottom: 32px;
 }
@@ -93,8 +91,7 @@
 .briefing-marquee-viewport {
   margin: 8px -24px 0;
   padding: 14px 24px 12px;
-  /* 자동 float 애니메이션은 유지하되, 사용자가 직접 좌우로 스크롤/드래그해서 넘겨볼 수 있도록
-     overflow-x는 항상 auto로 열어둠(터치는 네이티브 스크롤, 마우스는 Briefing.jsx의 드래그 핸들러가 처리) */
+  /* 사용자가 직접 좌우로 스크롤/드래그할 수 있도록 overflow-x를 항상 auto로 열어둠 */
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
@@ -110,8 +107,7 @@
   cursor: grabbing;
 }
 
-/* 카드가 두 벌 이어붙여진 트랙. width를 컨텐츠 크기만큼 늘려서(max-content)
-   -50%가 정확히 "한 벌"의 너비가 되게 하고, 그만큼 흘려보내면 이음매 없이 반복됨 */
+/* 카드를 두 벌 이어붙여 width:max-content로 늘려서 -50%가 정확히 한 벌 너비가 되게 함 */
 .briefing-card-row {
   display: flex;
   width: max-content;
@@ -134,8 +130,7 @@
   animation: briefing-float 3.2s ease-in-out infinite;
 }
 
-/* 카드를 두 벌 이어붙인 트랙에서 -50%는 "한 벌"의 카드 폭만큼만 이동시키고, 두 벌 사이의 이음매 gap은
-   못 셈, 그래서 반복마다 gap의 절반(7px)만큼 밀리며 튀었음 - 그만큼 더 이동시켜서 보정함 */
+/* -50%는 두 벌 사이 이음매 gap을 못 셈 - 반복마다 튀지 않게 gap 절반만큼 더 이동시켜 보정함 */
 @keyframes briefing-marquee {
   from {
     transform: translateX(0);

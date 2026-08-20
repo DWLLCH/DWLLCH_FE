@@ -44,6 +44,7 @@ function MyPage() {
     };
   }, []);
 
+  // NotificationProvider가 세션당 한 번만 조회해서 마이페이지 진입 시마다 재조회함
   useEffect(() => {
     if (isLoggedIn) refetchNotifications();
   }, [isLoggedIn, refetchNotifications]);
@@ -81,6 +82,7 @@ function MyPage() {
 
     const previousAvatarUrl = avatarUrl;
     setAvatarUrl(URL.createObjectURL(file));
+    // 업로드 중 재선택 시 응답 순서가 꼬여 최신 선택이 덮어써지는 걸 막으려고 잠금
     setAvatarUploading(true);
 
     uploadProfileImage(file)
@@ -104,6 +106,7 @@ function MyPage() {
     fileInputRef.current.click();
   };
 
+  // BE에 이미지 삭제 엔드포인트가 없어서 기본 이미지 되돌리기는 로컬에서만 처리함
   const handleResetDefault = () => {
     setPhotoModalOpen(false);
     setAvatarUrl(null);
