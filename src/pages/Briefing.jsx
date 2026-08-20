@@ -15,10 +15,7 @@ import { getBriefings } from '../api/briefing';
 import { BRIEFING_SECTION_META } from '../constants/briefing';
 import '../styles/Briefing.css';
 
-// briefing-marquee-viewport(overflow-x: auto)에 붙는 핸들러. briefing-card-row는 자동으로
-// 흘러가는 마퀴라 터치/마우스로 만지는 동안은 잠깐 멈추고, 뷰포트의 네이티브 스크롤(터치)이나
-// 마우스 드래그(desktop, overflow-x:auto만으론 마우스 클릭드래그 패닝이 안 돼서 직접 구현)로
-// 좌우 이동을 받아줌 (React 19 ref 콜백의 정리 함수 반환을 이용, 훅 없이 DOM 노드에 직접 붙임)
+// briefing-marquee-viewport(overflow-x: auto)에 붙는 핸들러
 function attachMarqueeInteraction(viewport) {
   if (!viewport) return undefined;
   const row = viewport.querySelector('.briefing-card-row');
@@ -27,9 +24,6 @@ function attachMarqueeInteraction(viewport) {
   const pause = () => row.classList.add('is-paused');
   const resume = () => row.classList.remove('is-paused');
 
-  // 카드가 두 벌 이어붙여진 트랙이라(-50% 지점이 정확히 "한 벌"의 끝), 오른쪽 끝까지 스크롤해서
-  // 두 번째 벌 안으로 들어가면 몰래 한 벌만큼 되감아서(scrollLeft -= half) 첫 벌로 이어붙임 -
-  // 두 벌 다 내용이 같아서 사용자 눈에는 끊김 없이 계속 원형으로 도는 것처럼 보임
   const loopScroll = () => {
     const halfWidth = row.scrollWidth / 2;
     if (halfWidth <= 0) return;
@@ -38,13 +32,10 @@ function attachMarqueeInteraction(viewport) {
     }
   };
 
-  // pointerId가 있으면 마우스 버튼이 눌려 있는 상태, moved는 실제로 드래그 임계값(4px)을
-  // 넘겨서 카드 클릭이 아니라 드래그로 확정됐는지를 구분함
   let drag = null;
   const DRAG_THRESHOLD = 4;
 
   const handlePointerDown = (e) => {
-    // 터치는 뷰포트의 네이티브 스크롤에 맡기고, 마우스/펜만 직접 드래그 패닝을 처리함
     if (e.pointerType === 'touch') return;
     drag = {
       pointerId: e.pointerId,
@@ -57,9 +48,6 @@ function attachMarqueeInteraction(viewport) {
     if (!drag || e.pointerId !== drag.pointerId) return;
     const dx = e.clientX - drag.startX;
     if (!drag.moved) {
-      // 실제로 움직이기 전엔 포인터를 캡처하지 않음 - setPointerCapture를 걸어두면 브라우저가
-      // 그 뒤에 나오는 click 이벤트도 뷰포트로 돌려버려서, 드래그 없이 그냥 클릭만 해도
-      // BriefingCard의 onClick(상세 페이지 이동)이 아예 안 먹는 문제가 있었음
       if (Math.abs(dx) < DRAG_THRESHOLD) return;
       drag.moved = true;
       pause();
@@ -77,14 +65,17 @@ function attachMarqueeInteraction(viewport) {
     drag = null;
   };
 
-  // 세로 휠(deltaX === 0)만 굴려도 좌우로 스크롤되게 deltaY를 scrollLeft에 대신 반영함
-  // (트랙패드 가로 스와이프나 Shift+휠처럼 이미 deltaX가 있는 경우는 브라우저 네이티브 동작 그대로 둠)
+  // 세로 휠(deltaX === 0)만 굴려도 좌우로 스크롤되게 deltaY를 scrollLeft에 대신 반영
+  const WHEEL_LINE_HEIGHT_PX = 16;
   let wheelResumeTimer = null;
   const handleWheel = (e) => {
     if (e.deltaX !== 0) return;
     e.preventDefault();
     pause();
-    viewport.scrollLeft += e.deltaY;
+    let deltaPx = e.deltaY;
+    if (e.deltaMode === 1) deltaPx *= WHEEL_LINE_HEIGHT_PX;
+    else if (e.deltaMode === 2) deltaPx *= viewport.clientWidth;
+    viewport.scrollLeft += deltaPx;
     clearTimeout(wheelResumeTimer);
     wheelResumeTimer = setTimeout(resume, 200);
   };

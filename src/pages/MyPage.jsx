@@ -31,6 +31,7 @@ function MyPage() {
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastVariant, setToastVariant] = useState('default');
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const fileInputRef = useRef(null);
   const isMountedRef = useRef(true);
   const toastTimerRef = useRef(null);
@@ -39,11 +40,10 @@ function MyPage() {
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
+      clearTimeout(toastTimerRef.current);
     };
   }, []);
 
-  // NotificationProvider는 세션당 한 번만 자동 조회해서, 마이페이지를 계속 켜두고 있다가
-  // 새 알림이 와도 알림 종 옆 빨간 점(hasUnread)이 안 뜸 - 마이페이지 들어올 때마다 재조회함
   useEffect(() => {
     if (isLoggedIn) refetchNotifications();
   }, [isLoggedIn, refetchNotifications]);
@@ -55,7 +55,6 @@ function MyPage() {
       .then((data) => {
         if (!isMountedRef.current) return;
         setProfile({ username: data.username, email: data.email });
-        // 새로고침해도 이전에 올린 사진이 유지되도록 profileImage를 avatarUrl 초기값으로 반영
         setAvatarUrl(data.profileImage ? toSecureImageUrl(data.profileImage) : null);
       })
       .catch(() => {
@@ -78,11 +77,11 @@ function MyPage() {
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     e.target.value = '';
-    if (!file) return;
+    if (!file || avatarUploading) return;
 
-    // 업로드 응답을 기다리는 동안에도 바로 보이도록 로컬 미리보기를 먼저 띄우고, 성공하면 서버 URL로 교체
     const previousAvatarUrl = avatarUrl;
     setAvatarUrl(URL.createObjectURL(file));
+    setAvatarUploading(true);
 
     uploadProfileImage(file)
       .then((data) => {
@@ -93,6 +92,10 @@ function MyPage() {
         if (!isMountedRef.current) return;
         setAvatarUrl(previousAvatarUrl);
         showToast('프로필 사진 업로드에 실패했어요. 잠시 후 다시 시도해주세요', 'warning');
+      })
+      .finally(() => {
+        if (!isMountedRef.current) return;
+        setAvatarUploading(false);
       });
   };
 
@@ -101,7 +104,6 @@ function MyPage() {
     fileInputRef.current.click();
   };
 
-  // BE에 프로필 이미지 삭제 엔드포인트가 없어서(mypage/views.py 기준) 기본 이미지 되돌리기는 로컬에서만 처리
   const handleResetDefault = () => {
     setPhotoModalOpen(false);
     setAvatarUrl(null);
@@ -142,6 +144,7 @@ function MyPage() {
               className="mypage-avatar-edit"
               aria-label="프로필 사진 변경"
               onClick={() => setPhotoModalOpen(true)}
+              disabled={avatarUploading}
             >
               <img src={pencil} alt="" />
             </button>
@@ -151,6 +154,7 @@ function MyPage() {
               accept="image/*"
               onChange={handleAvatarChange}
               className="mypage-avatar-input"
+              disabled={avatarUploading}
             />
           </div>
 
