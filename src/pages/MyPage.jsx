@@ -7,12 +7,14 @@ import BottomNav from '../components/BottomNav';
 import SettingsRow from '../components/SettingsRow';
 import LoginRequiredModal from '../components/LoginRequiredModal';
 import Modal from '../components/Modal';
+import Toast from '../components/Toast';
 import useBookmarks from '../hooks/useBookmarks';
 import useNotifications from '../hooks/useNotifications';
 import useAvatar from '../hooks/useAvatar';
 import useApplication from '../hooks/useApplication';
-import { getMyProfile } from '../api/mypage';
+import { getMyProfile, uploadProfileImage } from '../api/mypage';
 import { getAccessToken, clearTokens } from '../api/auth';
+import { toSecureImageUrl } from '../utils/formatters';
 import { APP_VERSION } from '../constants/mypage';
 import '../styles/MyPage.css';
 
@@ -27,8 +29,11 @@ function MyPage() {
   const [profileError, setProfileError] = useState(false);
   const [photoModalOpen, setPhotoModalOpen] = useState(false);
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastVariant, setToastVariant] = useState('default');
   const fileInputRef = useRef(null);
   const isMountedRef = useRef(true);
+  const toastTimerRef = useRef(null);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -50,22 +55,45 @@ function MyPage() {
       .then((data) => {
         if (!isMountedRef.current) return;
         setProfile({ username: data.username, email: data.email });
+        // 새로고침해도 이전에 올린 사진이 유지되도록 profileImage를 avatarUrl 초기값으로 반영
+        setAvatarUrl(data.profileImage ? toSecureImageUrl(data.profileImage) : null);
       })
       .catch(() => {
         if (!isMountedRef.current) return;
         setProfileError(true);
       });
-  }, [isLoggedIn]);
+  }, [isLoggedIn, setAvatarUrl]);
 
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
 
+  const showToast = (message, variant = 'default') => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToastVariant(variant);
+    setToastMessage(message);
+    toastTimerRef.current = setTimeout(() => setToastMessage(''), 1600);
+  };
+
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
-    setAvatarUrl(URL.createObjectURL(file));
     e.target.value = '';
+    if (!file) return;
+
+    // 업로드 응답을 기다리는 동안에도 바로 보이도록 로컬 미리보기를 먼저 띄우고, 성공하면 서버 URL로 교체
+    const previousAvatarUrl = avatarUrl;
+    setAvatarUrl(URL.createObjectURL(file));
+
+    uploadProfileImage(file)
+      .then((data) => {
+        if (!isMountedRef.current) return;
+        setAvatarUrl(toSecureImageUrl(data.profileImage));
+      })
+      .catch(() => {
+        if (!isMountedRef.current) return;
+        setAvatarUrl(previousAvatarUrl);
+        showToast('프로필 사진 업로드에 실패했어요. 잠시 후 다시 시도해주세요', 'warning');
+      });
   };
 
   const handlePickAlbum = () => {
@@ -73,6 +101,7 @@ function MyPage() {
     fileInputRef.current.click();
   };
 
+  // BE에 프로필 이미지 삭제 엔드포인트가 없어서(mypage/views.py 기준) 기본 이미지 되돌리기는 로컬에서만 처리
   const handleResetDefault = () => {
     setPhotoModalOpen(false);
     setAvatarUrl(null);
@@ -86,6 +115,8 @@ function MyPage() {
 
   return (
     <div className="mypage">
+      <Toast message={toastMessage} visible={Boolean(toastMessage)} variant={toastVariant} />
+
       <div className="mypage-scroll">
         <div className="mypage-hero">
           <button

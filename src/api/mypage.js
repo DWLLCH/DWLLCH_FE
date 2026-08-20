@@ -18,6 +18,18 @@ export async function createMyProfile(payload) {
   return response.data.data;
 }
 
+/* PATCH /mypage/profile/image | 인증 필요, multipart/form-data
+   BE에 이미지 삭제 엔드포인트는 없음(mypage/views.py 기준) - "기본 이미지로 변경"은 FE 로컬에서만 처리함
+   응답 data: { profileImage: <절대경로 URL> } */
+export async function uploadProfileImage(file) {
+  const formData = new FormData();
+  formData.append('profileImage', file);
+  const response = await apiClient.patch('/mypage/profile/image', formData, {
+    headers: { 'Content-Type': undefined },
+  });
+  return response.data.data;
+}
+
 /* GET /mypage/applications | 인증 필요, 페이징 (getPolicyScraps와 동일한 응답 포맷) */
 export async function getApplications({ page = 0, size = 50 } = {}) {
   const response = await apiClient.get('/mypage/applications', { params: { page, size } });
