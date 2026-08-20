@@ -18,8 +18,11 @@ export function changeUsername(payload) {
   });
 }
 
-/* DELETE /auth/withdraw | 로그인 필요 (엔드포인트는 추정치, 연동 시 확인 필요) */
-export async function withdrawAccount() {
-  const response = await apiClient.delete('/auth/withdraw');
+/* DELETE /auth/account | 로그인 필요, AccountDeleteSerializer가 password를 필수로 받음
+   (reason은 선택 필드라 안 보내도 됨), 비밀번호가 틀리면 AUTH_400_CURRENT_PASSWORD_MISMATCH */
+export async function withdrawAccount({ password, reason } = {}) {
+  const payload = { password };
+  if (reason) payload.reason = reason;
+  const response = await apiClient.delete('/auth/account', { data: payload });
   return response.data;
 }

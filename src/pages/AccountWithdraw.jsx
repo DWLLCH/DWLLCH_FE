@@ -5,6 +5,7 @@ import trash from '../assets/trash.svg';
 import warningTriangle from '../assets/warning_triangle.svg';
 import Button from '../components/Button';
 import Modal from '../components/Modal';
+import TextField from '../components/TextField';
 import AccountChangeSuccess from '../components/AccountChangeSuccess';
 import { withdrawAccount } from '../api/account';
 import { clearTokens } from '../api/auth';
@@ -20,6 +21,8 @@ const STEP_TITLE = {
 function AccountWithdraw() {
   const navigate = useNavigate();
   const [step, setStep] = useState('info');
+  const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorOpen, setErrorOpen] = useState(false);
 
@@ -35,14 +38,25 @@ function AccountWithdraw() {
     navigate(-1);
   };
 
+  const handlePasswordChange = (e) => {
+    setPasswordError('');
+    setPassword(e.target.value);
+  };
+
   const handleWithdraw = async () => {
-    if (isSubmitting) return;
+    if (isSubmitting || !password) return;
     setIsSubmitting(true);
+    setPasswordError('');
     try {
-      await withdrawAccount();
+      await withdrawAccount({ password });
       setStep('complete');
     } catch (error) {
-      setErrorOpen(true);
+      const code = error.response?.data?.code;
+      if (code === 'AUTH_400_CURRENT_PASSWORD_MISMATCH') {
+        setPasswordError('비밀번호가 일치하지 않아요');
+      } else {
+        setErrorOpen(true);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -100,8 +114,30 @@ function AccountWithdraw() {
             <br />
             재가입이 불가합니다.
           </p>
+          <div className="withdraw-password-section">
+            <TextField
+              id="withdraw-password"
+              name="password"
+              type="password"
+              label="비밀번호 확인"
+              placeholder="비밀번호를 입력해주세요"
+              value={password}
+              onChange={handlePasswordChange}
+              autoComplete="current-password"
+            />
+            {passwordError && (
+              <p className="account-change-message account-change-message--error">
+                {passwordError}
+              </p>
+            )}
+          </div>
           <div className="withdraw-actions">
-            <Button fullWidth variant="danger" disabled={isSubmitting} onClick={handleWithdraw}>
+            <Button
+              fullWidth
+              variant="danger"
+              disabled={isSubmitting || !password}
+              onClick={handleWithdraw}
+            >
               탈퇴합니다
             </Button>
           </div>

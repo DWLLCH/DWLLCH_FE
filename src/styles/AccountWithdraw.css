@@ -78,6 +78,13 @@
   word-break: keep-all;
 }
 
+/* 비밀번호 확인 입력 */
+.withdraw-password-section {
+  width: 100%;
+  margin-top: 28px;
+  text-align: left;
+}
+
 .withdraw-actions {
   width: 100%;
   margin-top: auto;
