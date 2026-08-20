@@ -1,3 +1,4 @@
+import ReactMarkdown from 'react-markdown';
 import fileIcon from '../assets/fileIcon.svg';
 import {
   MISSING_FIELD_LABELS,
@@ -11,6 +12,11 @@ function formatReportValue(value) {
   return value === null || value === undefined || value === '' ? '확인되지 않음' : value;
 }
 
+// 마크다운 파서는 진짜 개행 문자만 줄바꿈으로 인식하므로, 파싱 전에 문자 그대로의 "\n"을 실제 개행으로 바꿔줌
+function normalizeLiteralNewlines(value) {
+  return value.replace(/\\n/g, '\n');
+}
+
 function ChatBubble({
   sender,
   title,
@@ -22,8 +28,6 @@ function ChatBubble({
   structured,
   tail = false,
 }) {
-  const lines = text ? text.split('\n') : [];
-
   return (
     <div className={`chat-bubble chat-bubble--${sender}${tail ? ' chat-bubble--tail' : ''}`}>
       {type === 'image' && imageUrl && (
@@ -46,12 +50,11 @@ function ChatBubble({
         </a>
       )}
 
-      {(title || lines.length > 0) && (
+      {(title || text) && (
         <div className="chat-bubble-text">
           {title && <p className="chat-bubble-title">{title}</p>}
-          {lines.map((line, index) => (
-            <p key={`${index}-${line}`}>{line || ' '}</p>
-          ))}
+          {}
+          {text && <ReactMarkdown>{normalizeLiteralNewlines(text)}</ReactMarkdown>}
         </div>
       )}
 

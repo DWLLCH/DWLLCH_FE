@@ -90,15 +90,69 @@
   word-break: keep-all;
 }
 
-.briefing-card-row {
-  display: flex;
-  gap: 14px;
+.briefing-marquee-viewport {
   margin: 8px -24px 0;
-  padding: 6px 24px 12px;
-  overflow-x: auto;
-  scrollbar-width: none;
+  padding: 14px 24px 12px;
+  /* overflow-x만 지정하면 스펙상 overflow-y가 auto로 강제 승격되는데(둘 다 visible이 아니면 auto 취급),
+     이 컨테이너는 세로 스크롤이 필요 없어서 카드가 hover로 확대되는 순간(transform도 scrollable overflow에
+     반영됨) 세로 스크롤바가 불쑥 나타났음. 양쪽 다 hidden으로 명시해서 스크롤바 자체가 안 생기게 함 */
+  overflow: hidden;
 }
 
-.briefing-card-row::-webkit-scrollbar {
-  display: none;
+/* 카드가 두 벌 이어붙여진 트랙. width를 컨텐츠 크기만큼 늘려서(max-content)
+   -50%가 정확히 "한 벌"의 너비가 되게 하고, 그만큼 흘려보내면 이음매 없이 반복됨 */
+.briefing-card-row {
+  display: flex;
+  width: max-content;
+  --briefing-marquee-gap: 14px;
+  gap: var(--briefing-marquee-gap);
+  animation: briefing-marquee 45s linear infinite;
+}
+
+.briefing-card-row.is-paused,
+.briefing-card-row:has(.briefing-card:hover) {
+  animation-play-state: paused;
+}
+
+.briefing-card-row.is-paused .briefing-card-float,
+.briefing-card-row:has(.briefing-card:hover) .briefing-card-float {
+  animation-play-state: paused;
+}
+
+.briefing-card-float {
+  animation: briefing-float 3.2s ease-in-out infinite;
+}
+
+/* 카드를 두 벌 이어붙인 트랙에서 -50%는 "한 벌"의 카드 폭만큼만 이동시키고, 두 벌 사이의 이음매 gap은
+   못 셈, 그래서 반복마다 gap의 절반(7px)만큼 밀리며 튀었음 - 그만큼 더 이동시켜서 보정함 */
+@keyframes briefing-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-50% - (var(--briefing-marquee-gap) / 2)));
+  }
+}
+
+@keyframes briefing-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(1deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .briefing-card-row,
+  .briefing-card-float {
+    animation: none;
+  }
+
+  /* 애니메이션이 꺼지면 트랙이 더 이상 저절로 안 흘러서, 뷰포트가 overflow: hidden이면 첫 화면
+     밖의 카드는 아예 못 봄 - 수동 스크롤이라도 가능하게 열어둠 */
+  .briefing-marquee-viewport {
+    overflow-x: auto;
+  }
 }

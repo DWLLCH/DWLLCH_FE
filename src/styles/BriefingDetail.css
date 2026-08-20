@@ -275,11 +275,14 @@
   word-break: keep-all;
 }
 
-.briefing-detail-table th:first-child {
+/* thead로 범위를 좁혀야 함: BriefingBulletTable은 thead 없이 tbody 안에서 매 행의
+   첫 칸을 th(scope="row")로 씀. :first-child는 table이 아니라 자기 tr 기준이라,
+   범위를 안 좁히면 모든 행의 라벨 th가 여기 걸려서 행마다 왼쪽 위가 둥글게 나옴 */
+.briefing-detail-table thead th:first-child {
   border-radius: 8px 0 0 0;
 }
 
-.briefing-detail-table th:last-child {
+.briefing-detail-table thead th:last-child {
   border-radius: 0 8px 0 0;
 }
 

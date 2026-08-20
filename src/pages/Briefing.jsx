@@ -15,6 +15,27 @@ import { getBriefings } from '../api/briefing';
 import { BRIEFING_SECTION_META } from '../constants/briefing';
 import '../styles/Briefing.css';
 
+// briefing-card-row는 이제 자동으로 흘러가는 마퀴라 트랙 자체엔 스크롤이 없음.
+// 데스크톱은 CSS :has(:hover)로 정지시키지만 터치는 hover가 안 잡혀서, 손가락이 닿아있는
+// 동안만 흐름을 멈추도록 touchstart/touchend에 직접 리스너를 붙였다 뗌
+// (React 19 ref 콜백의 정리 함수 반환을 이용, 훅 없이 DOM 노드에 직접 붙임)
+function attachTouchPause(node) {
+  if (!node) return undefined;
+
+  const pause = () => node.classList.add('is-paused');
+  const resume = () => node.classList.remove('is-paused');
+
+  node.addEventListener('touchstart', pause, { passive: true });
+  node.addEventListener('touchend', resume);
+  node.addEventListener('touchcancel', resume);
+
+  return () => {
+    node.removeEventListener('touchstart', pause);
+    node.removeEventListener('touchend', resume);
+    node.removeEventListener('touchcancel', resume);
+  };
+}
+
 function Briefing() {
   const navigate = useNavigate();
   const [isLoggedIn] = useState(() => Boolean(getAccessToken()));
@@ -78,16 +99,24 @@ function Briefing() {
               <SectionTag>{section.title}</SectionTag>
               <p className="briefing-section-desc">{section.description}</p>
               {section.cards.length > 0 ? (
-                <div className="briefing-card-row">
-                  {section.cards.map((briefing) => (
-                    <BriefingCard
-                      key={briefing.id}
-                      color={briefing.color}
-                      icon={briefing.icon}
-                      title={briefing.title}
-                      onClick={() => navigate(`/ai-briefing/${briefing.id}`)}
-                    />
-                  ))}
+                <div className="briefing-marquee-viewport">
+                  <div className="briefing-card-row" ref={attachTouchPause}>
+                    {/* 카드 목록을 두 벌 이어붙여서 트랙이 -50% 만큼 흘러가면 이음매 없이 반복되게 함 */}
+                    {[...section.cards, ...section.cards].map((briefing, index) => (
+                      <div
+                        className="briefing-card-float"
+                        key={`${briefing.id}-${index}`}
+                        style={{ animationDelay: `${(index % section.cards.length) * 0.3}s` }}
+                      >
+                        <BriefingCard
+                          color={briefing.color}
+                          icon={briefing.icon}
+                          title={briefing.title}
+                          onClick={() => navigate(`/ai-briefing/${briefing.id}`)}
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <p className="briefing-empty">아직 준비된 브리핑이 없어요</p>

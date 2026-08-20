@@ -377,28 +377,35 @@ function PostDetail() {
       return;
     }
 
+    // 결과적으로 차단된 상태면(신규 성공이든 이미 차단돼있던 경우든) 로컬 상태를 맞추고 커뮤니티로 돌아감
+    // 토스트를 오래 띄워두려고 미루지 않고 짧게만 지연시켜서, 돌아간 목록에서 글이 바로 사라지는 걸로 확인되게 함
+    const redirectAfterBlock = () => {
+      blockAuthor(targetUserId);
+      setBlockConfirmOpen(false);
+      if (blockRedirectTimerRef.current) clearTimeout(blockRedirectTimerRef.current);
+      blockRedirectTimerRef.current = setTimeout(() => navigate('/community'), 600);
+    };
+
     setIsBlockingAuthor(true);
     blockUser(targetUserId)
       .then(() => {
-        blockAuthor(targetUserId);
-        setBlockConfirmOpen(false);
         showToast('게시물이 차단되었습니다');
-        if (blockRedirectTimerRef.current) clearTimeout(blockRedirectTimerRef.current);
-        blockRedirectTimerRef.current = setTimeout(() => navigate('/community'), 1600);
+        redirectAfterBlock();
       })
       .catch((error) => {
         // BE가 400을 COMMON_400_INVALID_INPUT으로 뭉뚱그려서 code로는 사유를 못 가르고,
         // 실제 사유(자기 자신 차단/이미 차단)는 response.data.data.targetUserId 문자열로만 내려옴
         const reason = error.response?.data?.data?.targetUserId;
-        // 이미 차단한 사용자면 서버 기준으로는 이미 차단된 상태이므로 로컬 상태(목록 필터링용)도 맞춰줌
-        if (reason === '이미 차단한 사용자입니다.') {
-          blockAuthor(targetUserId);
-        }
-        setBlockConfirmOpen(false);
         showToast(
           typeof reason === 'string' ? reason : '차단에 실패했어요. 잠시 후 다시 시도해주세요',
           'warning',
         );
+        // 이미 차단한 사용자면 서버 기준으로는 이미 차단된 상태이므로, 신규 성공과 동일하게 커뮤니티로 돌아감
+        if (reason === '이미 차단한 사용자입니다.') {
+          redirectAfterBlock();
+        } else {
+          setBlockConfirmOpen(false);
+        }
       })
       .finally(() => {
         setIsBlockingAuthor(false);
@@ -413,8 +420,15 @@ function PostDetail() {
         setReportModalOpen(false);
         showToast('신고가 정상적으로 접수되었습니다.');
       })
-      .catch(() => {
-        alert('신고 접수에 실패했습니다.');
+      .catch((error) => {
+        // 이미 신고한 게시글이면 BE가 { detail: "이미 신고한 게시글입니다." } 형태(400)로 내려줌
+        // (사유 값 자체가 잘못된 경우엔 { reason: [...] }라 여기선 안 걸림, REPORT_REASONS가 BE choices와 맞아서 정상 흐름에선 발생 안 함)
+        const detail = error.response?.data?.data?.detail;
+        setReportModalOpen(false);
+        showToast(
+          typeof detail === 'string' ? detail : '신고 접수에 실패했어요. 잠시 후 다시 시도해주세요',
+          'warning',
+        );
       })
       .finally(() => {
         setIsSubmittingReport(false);

@@ -160,6 +160,7 @@
   flex: 1;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   border: none;
   background: none;
@@ -168,7 +169,22 @@
 }
 
 .mypage-stat--link {
+  position: relative;
   cursor: pointer;
+  align-self: stretch;
+}
+.mypage-stat--link::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 10px;
+  transition: background-color 0.12s ease;
+  pointer-events: none;
+}
+
+.mypage-stat--link:hover::before {
+  background-color: #f5f5f5;
 }
 
 .mypage-stat-label {
