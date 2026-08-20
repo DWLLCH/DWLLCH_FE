@@ -15,8 +15,6 @@ function ChatBubble({
   fileName,
   fileUrl,
   structured,
-  quickReplies,
-  onSelectQuickReply,
   tail = false,
 }) {
   const lines = text ? text.split('\n') : [];
@@ -80,21 +78,6 @@ function ChatBubble({
                 .join(', ')}
             </p>
           )}
-        </div>
-      )}
-
-      {quickReplies && quickReplies.length > 0 && (
-        <div className="chat-quick-replies">
-          {quickReplies.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              className="chat-quick-reply"
-              onClick={() => onSelectQuickReply(option)}
-            >
-              {option.label}
-            </button>
-          ))}
         </div>
       )}
     </div>

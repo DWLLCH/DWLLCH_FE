@@ -114,3 +114,11 @@
 .chatbot-row--user .chatbot-bubble-col {
   align-items: flex-end;
 }
+
+/* 퀵리플라이, 사용자가 다음에 고를 말풍선처럼 보이도록 우측 정렬로 뺌 */
+.chatbot-quick-replies-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}

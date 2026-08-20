@@ -186,14 +186,7 @@
   color: #a3a3a3;
 }
 
-/* 빠른 응답 버튼 */
-.chat-quick-replies {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-}
-
+/* 빠른 응답 버튼, 컨테이너는 chatbot-quick-replies-row(Chatbot.css)에서 우측 정렬로 감쌈 */
 .chat-quick-reply {
   padding: 9px 16px;
   border: 1.5px solid #6cd59b;
