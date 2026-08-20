@@ -1,12 +1,13 @@
 import { createContext, useCallback, useEffect, useRef, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import {
+  BACK_TO_MENU_OPTION,
   INITIAL_MESSAGES,
   MAX_ATTACH_COUNT,
   getAttachmentReply,
   getBotReply,
 } from '../constants/chatbot';
-import { createRiskCheckSession, getRiskCheckSession } from '../api/chat';
+import { createRiskCheckSession, getRiskCheckSession, sendRiskCheckMessage } from '../api/chat';
 import { getAccessToken } from '../api/auth';
 
 export const ChatbotContext = createContext(null);
@@ -20,6 +21,9 @@ const RISK_CHECK_SESSION_KEY = 'dwllch_riskCheckSessionId';
 // 메뉴로 돌아가면 초기화됨, MENU_OPTIONS의 manual-input 값과 맞춰둠 (constants/chatbot.js 참고)
 const RISK_CHECK_ENTER_VALUES = ['manual-input'];
 const RISK_CHECK_EXIT_VALUES = ['back-to-menu'];
+
+// AI가 제안한 답변 칩(quickReply)인지 구분하는 접두사, selectQuickReply에서 분기할 때 씀
+const RISK_CHECK_SUGGESTED_PREFIX = 'risk-check-suggested:';
 
 function createId(counterRef) {
   counterRef.current += 1;
@@ -81,7 +85,6 @@ function ChatbotProvider({ children }) {
   );
 
   // 위기판독 세션이 아직 없으면 새로 만들고, 이미 있으면 그대로 재사용함
-  // (메시지 전송/AI 분석 연동은 다음 브랜치 몫이라 여기서는 세션만 준비해둠)
   const ensureRiskCheckSession = useCallback(async () => {
     if (riskCheckSessionId) return riskCheckSessionId;
     if (!getAccessToken()) return null;
@@ -93,11 +96,60 @@ function ChatbotProvider({ children }) {
       sessionStorage.setItem(RISK_CHECK_SESSION_KEY, String(session.id));
       return session.id;
     } catch {
-      // 세션 생성은 백그라운드 준비 작업이라 실패해도 지금 보여지는 목업 상담 흐름을 막지 않음
-      // 다음 브랜치(메시지 전송 연동)에서 실제 전송 시점에 다시 시도하면 됨
+      // 세션 생성 실패는 sendRiskCheckTurn 쪽에서 안내 메시지로 처리함
       return null;
     }
   }, [riskCheckSessionId]);
+
+  // 위기판독 대화 한 턴을 실제로 보내고 AI 분석 결과를 봇 말풍선으로 붙임
+  // (TEXT: 자유 입력, IMAGE: 사진 첨부 둘 다 여기로 옴)
+  const sendRiskCheckTurn = useCallback(
+    async ({ type, content = '', file }) => {
+      if (!getAccessToken()) {
+        appendMessages([
+          {
+            sender: 'bot',
+            text: '로그인 후 이용할 수 있어요. 로그인하고 다시 시도해주세요.',
+          },
+        ]);
+        return;
+      }
+
+      setIsTyping(true);
+
+      try {
+        const sessionId = await ensureRiskCheckSession();
+        if (!sessionId) {
+          throw new Error('위기판독 세션을 준비하지 못했습니다.');
+        }
+
+        const result = await sendRiskCheckMessage(sessionId, { type, content, file });
+        const suggestedReplies = (result.suggestedReplies || []).map((label, index) => ({
+          value: `${RISK_CHECK_SUGGESTED_PREFIX}${index}`,
+          label,
+        }));
+
+        setIsTyping(false);
+        appendMessages([
+          {
+            sender: 'bot',
+            text: result.reply,
+            quickReplies: [...suggestedReplies, ...BACK_TO_MENU_OPTION],
+          },
+        ]);
+      } catch (error) {
+        setIsTyping(false);
+        const message =
+          error.response?.status === 422
+            ? '이미지를 다시 촬영하거나 텍스트로 설명해주세요'
+            : error.response?.data?.message || 'AI 분석에 실패했어요. 잠시 후 다시 시도해주세요';
+        // 실패했다고 상담을 끝내고 싶어하는 게 아니라 같은 자리에서 다시 시도하고 싶어할 확률이
+        // 높아서, 여기서는 메뉴로 돌아가기를 보여주지 않음 (isRiskCheckFlowRef도 그대로 유지)
+        appendMessages([{ sender: 'bot', text: message }]);
+      }
+    },
+    [appendMessages, ensureRiskCheckSession],
+  );
 
   const clearQuickReplies = useCallback((messageId) => {
     setMessages((prev) =>
@@ -121,6 +173,13 @@ function ChatbotProvider({ children }) {
     (messageId, option) => {
       clearQuickReplies(messageId);
 
+      // AI가 제안한 답변 칩은 메뉴 옵션이 아니라 사용자가 그 문장을 그대로 입력한 것과 같음
+      if (option.value.startsWith(RISK_CHECK_SUGGESTED_PREFIX)) {
+        appendMessages([{ sender: 'user', text: option.label }]);
+        sendRiskCheckTurn({ type: 'TEXT', content: option.label });
+        return;
+      }
+
       if (RISK_CHECK_ENTER_VALUES.includes(option.value)) {
         isRiskCheckFlowRef.current = true;
       } else if (RISK_CHECK_EXIT_VALUES.includes(option.value)) {
@@ -136,7 +195,13 @@ function ChatbotProvider({ children }) {
       appendMessages([{ sender: 'user', text: option.label }]);
       respondWithDelay(() => getBotReply({ optionValue: option.value }));
     },
-    [appendMessages, clearQuickReplies, respondWithDelay, ensureRiskCheckSession],
+    [
+      appendMessages,
+      clearQuickReplies,
+      respondWithDelay,
+      ensureRiskCheckSession,
+      sendRiskCheckTurn,
+    ],
   );
 
   const submitText = useCallback(
@@ -144,26 +209,40 @@ function ChatbotProvider({ children }) {
       const trimmed = text.trim();
       if (!trimmed) return;
       appendMessages([{ sender: 'user', text: trimmed }]);
-      // 직접 입력 선택 시점에 세션 생성을 이미 시도했지만, 그때 실패했을 수 있어 전송 시점에 한 번 더 보장함
-      if (isRiskCheckFlowRef.current) ensureRiskCheckSession();
+
+      if (isRiskCheckFlowRef.current) {
+        sendRiskCheckTurn({ type: 'TEXT', content: trimmed });
+        return;
+      }
+
       respondWithDelay(() => getBotReply({ freeText: trimmed }));
     },
-    [appendMessages, respondWithDelay, ensureRiskCheckSession],
+    [appendMessages, respondWithDelay, sendRiskCheckTurn],
   );
 
   const attachImages = useCallback(
     (files) => {
       if (!files || files.length === 0) return;
-      const drafts = files.slice(0, MAX_ATTACH_COUNT).map((file) => {
+      const limitedFiles = files.slice(0, MAX_ATTACH_COUNT);
+      const drafts = limitedFiles.map((file) => {
         const url = URL.createObjectURL(file);
         objectUrlsRef.current.push(url);
         return { sender: 'user', type: 'image', imageUrl: url, fileName: file.name };
       });
       appendMessages(drafts);
-      if (isRiskCheckFlowRef.current) ensureRiskCheckSession();
+
+      if (isRiskCheckFlowRef.current) {
+        // 이미지 한 장당 AI 분석 한 턴, 여러 장이면 순서대로 이어서 보냄
+        limitedFiles.reduce(
+          (chain, file) => chain.then(() => sendRiskCheckTurn({ type: 'IMAGE', file })),
+          Promise.resolve(),
+        );
+        return;
+      }
+
       respondWithDelay(() => getAttachmentReply());
     },
-    [appendMessages, respondWithDelay, ensureRiskCheckSession],
+    [appendMessages, respondWithDelay, sendRiskCheckTurn],
   );
 
   const attachFiles = useCallback(
@@ -175,10 +254,22 @@ function ChatbotProvider({ children }) {
         return { sender: 'user', type: 'file', fileName: file.name, fileUrl: url };
       });
       appendMessages(drafts);
-      if (isRiskCheckFlowRef.current) ensureRiskCheckSession();
+
+      if (isRiskCheckFlowRef.current) {
+        // 위기판독 분석은 이미지 파일만 지원해서(BE MessageCreateSerializer), 일반 파일은 분석을 못 붙임
+        // 상담을 끝내려는 게 아니라 사진으로 다시 첨부하고 싶을 확률이 높아서 메뉴로 돌아가기는 안 보여줌
+        appendMessages([
+          {
+            sender: 'bot',
+            text: '위기판독 상담에서는 이미지 파일만 확인할 수 있어요. 사진으로 다시 첨부해주세요.',
+          },
+        ]);
+        return;
+      }
+
       respondWithDelay(() => getAttachmentReply());
     },
-    [appendMessages, respondWithDelay, ensureRiskCheckSession],
+    [appendMessages, respondWithDelay],
   );
 
   return (
