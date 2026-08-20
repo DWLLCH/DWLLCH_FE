@@ -137,7 +137,7 @@ function WritePost() {
         if (requestId !== postRequestIdRef.current) return;
         setPostLoading(false);
       });
-  }, [isEdit, id]);
+  }, [isEdit, id, isLoggedIn]);
 
   useEffect(() => {
     if (!isEdit || !isLoggedIn) return;
