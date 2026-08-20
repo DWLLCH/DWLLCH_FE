@@ -44,3 +44,17 @@ export async function sendRiskCheckMessage(sessionId, { type, content = '', file
   );
   return response.data.data;
 }
+
+/* POST /chat/sos/sessions/{sessionId}/structure | 로그인 필요
+   지금까지 주고받은 메시지(최근 20개)를 6개 항목(날짜/금액/장소/상대방/상황요약/위험유형)으로 구조화함
+   대화가 하나도 없으면 400(EmptySessionException), sendRiskCheckMessage 이후에만 호출할 것
+   응답 data: { structuredReport: { date, amount, location, counterpart, situationSummary, riskType },
+                riskGrade, missingFields } */
+export async function structureRiskCheckSession(sessionId) {
+  const response = await apiClient.post(
+    `/chat/sos/sessions/${sessionId}/structure`,
+    {},
+    { timeout: 35000 },
+  );
+  return response.data.data;
+}

@@ -4,10 +4,17 @@ import {
   BACK_TO_MENU_OPTION,
   INITIAL_MESSAGES,
   MAX_ATTACH_COUNT,
+  RISK_CHECK_STRUCTURE_VALUE,
+  STRUCTURE_REQUEST_OPTION,
   getAttachmentReply,
   getBotReply,
 } from '../constants/chatbot';
-import { createRiskCheckSession, getRiskCheckSession, sendRiskCheckMessage } from '../api/chat';
+import {
+  createRiskCheckSession,
+  getRiskCheckSession,
+  sendRiskCheckMessage,
+  structureRiskCheckSession,
+} from '../api/chat';
 import { getAccessToken } from '../api/auth';
 
 export const ChatbotContext = createContext(null);
@@ -134,7 +141,11 @@ function ChatbotProvider({ children }) {
           {
             sender: 'bot',
             text: result.reply,
-            quickReplies: [...suggestedReplies, ...BACK_TO_MENU_OPTION],
+            quickReplies: [
+              ...suggestedReplies,
+              ...STRUCTURE_REQUEST_OPTION,
+              ...BACK_TO_MENU_OPTION,
+            ],
           },
         ]);
       } catch (error) {
@@ -150,6 +161,46 @@ function ChatbotProvider({ children }) {
     },
     [appendMessages, ensureRiskCheckSession],
   );
+
+  // 지금까지의 대화를 6개 항목(날짜/금액/장소/상대방/상황요약/위험유형)으로 정리해서 카드로 보여줌
+  const requestStructuredSummary = useCallback(async () => {
+    if (!getAccessToken()) {
+      appendMessages([
+        { sender: 'bot', text: '로그인 후 이용할 수 있어요. 로그인하고 다시 시도해주세요.' },
+      ]);
+      return;
+    }
+
+    setIsTyping(true);
+
+    try {
+      const sessionId = await ensureRiskCheckSession();
+      if (!sessionId) {
+        throw new Error('위기판독 세션을 준비하지 못했습니다.');
+      }
+
+      const result = await structureRiskCheckSession(sessionId);
+      setIsTyping(false);
+      appendMessages([
+        {
+          sender: 'bot',
+          type: 'structured-summary',
+          structured: {
+            report: result.structuredReport,
+            riskGrade: result.riskGrade,
+            missingFields: result.missingFields,
+          },
+          quickReplies: BACK_TO_MENU_OPTION,
+        },
+      ]);
+    } catch (error) {
+      setIsTyping(false);
+      const message =
+        error.response?.data?.message || '상황 정리에 실패했어요. 잠시 후 다시 시도해주세요';
+      // 여기도 마찬가지로 같은 자리에서 재시도할 수 있게 메뉴로 돌아가기는 보여주지 않음
+      appendMessages([{ sender: 'bot', text: message }]);
+    }
+  }, [appendMessages, ensureRiskCheckSession]);
 
   const clearQuickReplies = useCallback((messageId) => {
     setMessages((prev) =>
@@ -180,6 +231,12 @@ function ChatbotProvider({ children }) {
         return;
       }
 
+      if (option.value === RISK_CHECK_STRUCTURE_VALUE) {
+        appendMessages([{ sender: 'user', text: option.label }]);
+        requestStructuredSummary();
+        return;
+      }
+
       if (RISK_CHECK_ENTER_VALUES.includes(option.value)) {
         isRiskCheckFlowRef.current = true;
       } else if (RISK_CHECK_EXIT_VALUES.includes(option.value)) {
@@ -201,6 +258,7 @@ function ChatbotProvider({ children }) {
       respondWithDelay,
       ensureRiskCheckSession,
       sendRiskCheckTurn,
+      requestStructuredSummary,
     ],
   );
 

@@ -18,6 +18,39 @@ export const BACK_TO_MENU_OPTION = [{ value: 'back-to-menu', label: '메뉴로 �
 
 export const ATTACH_REGISTRY_OPTION = [{ value: 'attach-registry', label: '등기부등본 첨부하기' }];
 
+export const RISK_CHECK_STRUCTURE_VALUE = 'risk-check-structure';
+
+export const STRUCTURE_REQUEST_OPTION = [
+  { value: RISK_CHECK_STRUCTURE_VALUE, label: '지금까지 상황 정리해줘' },
+];
+
+export const RISK_GRADE_LABELS = {
+  LOW: '낮음',
+  MEDIUM: '보통',
+  HIGH: '높음',
+  CRITICAL: '긴급',
+};
+
+// BE(RiskCheckStructureView) 응답의 structuredReport 안 필드는 camelCase
+export const STRUCTURED_REPORT_FIELDS = [
+  { key: 'date', label: '날짜' },
+  { key: 'amount', label: '금액' },
+  { key: 'location', label: '장소' },
+  { key: 'counterpart', label: '상대방' },
+  { key: 'situationSummary', label: '상황 요약' },
+  { key: 'riskType', label: '위험 유형' },
+];
+
+// missingFields 배열 안 값은 BE(StructuredReportResult) pydantic 필드명 그대로라 snake_case
+export const MISSING_FIELD_LABELS = {
+  date: '날짜',
+  amount: '금액',
+  location: '장소',
+  counterpart: '상대방',
+  situation_summary: '상황 요약',
+  risk_type: '위험 유형',
+};
+
 export const INITIAL_MESSAGES = [
   {
     id: 'greeting',

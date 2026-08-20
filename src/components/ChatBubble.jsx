@@ -1,4 +1,9 @@
 import fileIcon from '../assets/fileIcon.svg';
+import {
+  MISSING_FIELD_LABELS,
+  RISK_GRADE_LABELS,
+  STRUCTURED_REPORT_FIELDS,
+} from '../constants/chatbot';
 import '../styles/ChatBubble.css';
 
 function ChatBubble({
@@ -9,6 +14,7 @@ function ChatBubble({
   imageUrl,
   fileName,
   fileUrl,
+  structured,
   quickReplies,
   onSelectQuickReply,
   tail = false,
@@ -43,6 +49,37 @@ function ChatBubble({
           {lines.map((line, index) => (
             <p key={`${index}-${line}`}>{line || ' '}</p>
           ))}
+        </div>
+      )}
+
+      {type === 'structured-summary' && structured && (
+        <div className="chat-structured-summary">
+          <div className="chat-structured-header">
+            <p className="chat-structured-title">상황 정리</p>
+            {structured.riskGrade && (
+              <span
+                className={`chat-structured-grade chat-structured-grade--${structured.riskGrade.toLowerCase()}`}
+              >
+                위험도 {RISK_GRADE_LABELS[structured.riskGrade] || structured.riskGrade}
+              </span>
+            )}
+          </div>
+          <dl className="chat-structured-rows">
+            {STRUCTURED_REPORT_FIELDS.map(({ key, label }) => (
+              <div className="chat-structured-row" key={key}>
+                <dt>{label}</dt>
+                <dd>{structured.report?.[key] || '확인되지 않음'}</dd>
+              </div>
+            ))}
+          </dl>
+          {structured.missingFields && structured.missingFields.length > 0 && (
+            <p className="chat-structured-missing">
+              아직 확인 안 된 부분:{' '}
+              {structured.missingFields
+                .map((field) => MISSING_FIELD_LABELS[field] || field)
+                .join(', ')}
+            </p>
+          )}
         </div>
       )}
 
