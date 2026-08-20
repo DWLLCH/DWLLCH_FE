@@ -78,6 +78,10 @@ function ChatbotProvider({ children }) {
   // 세션 생성이 진행 중일 때 새로 생성 요청이 겹치면(이미지 여러 장 동시 첨부 등) 같은 Promise를
   // 같이 기다리게 해서 세션이 여러 개로 쪼개지는 걸 막음
   const pendingSessionPromiseRef = useRef(null);
+  // 새로고침 직후 세션 복원(getRiskCheckSession)이 끝나기 전에 메시지를 보내면 activeSessionIdRef가
+  // 아직 비어있어서 ensureRiskCheckSession이 복원 대상과 다른 새 세션을 만들어버릴 수 있음
+  // ensureRiskCheckSession이 이 Promise를 먼저 기다리게 해서 복원이 끝난 뒤에 판단하게 함
+  const pendingRestoreRef = useRef(null);
 
   useEffect(
     () => () => {
@@ -106,21 +110,56 @@ function ChatbotProvider({ children }) {
       });
   }, []);
 
-  // 탭에 이미 만들어둔 위기판독 세션이 남아있으면(새로고침 등) 그대로 이어서 조회함
+  // 탭에 이미 만들어둔 위기판독 세션이 남아있으면(새로고침 등) 세션뿐 아니라 그동안 주고받은
+  // 메시지 목록도 함께 복원함 (getRiskCheckSession이 status와 messages를 같이 내려줌)
   useEffect(() => {
     const storedId = sessionStorage.getItem(RISK_CHECK_SESSION_KEY);
     if (!storedId || !getAccessToken()) return;
 
-    getRiskCheckSession(storedId)
+    const restorePromise = getRiskCheckSession(storedId)
       .then((session) => {
         activeSessionIdRef.current = session.id;
         setRiskCheckSessionId(session.id);
         setRiskCheckStatus(session.status);
+        // 세션이 이미 ACTIVE를 벗어났다면(구조화/연계/종료) 상황 정리 카드가 이미 한 번 떴다는 뜻이라,
+        // 새로고침 후 다음 메시지에서 자동 정리 카드가 중복으로 다시 뜨지 않게 플래그도 같이 복원함
+        hasAutoStructuredRef.current = session.status !== 'ACTIVE';
+
+        // 업로드 파일의 원래 이름은 BE가 저장하지 않아서(스토리지엔 uuid로 교체 저장) 첨부 종류별
+        // 고정 문구로 대체함, 실제 다운로드 링크(fileUrl)는 그대로 살아있어서 열람 자체는 가능함
+        const drafts = (session.messages || []).map((message) => {
+          const sender = message.sender === 'ASSISTANT' ? 'bot' : 'user';
+
+          if (message.type === 'IMAGE') {
+            return { sender, type: 'image', imageUrl: message.fileUrl, fileName: '첨부 이미지' };
+          }
+          if (message.type === 'DOCUMENT') {
+            return { sender, type: 'file', fileUrl: message.fileUrl, fileName: '첨부 파일' };
+          }
+          return { sender, text: message.content };
+        });
+
+        if (drafts.length === 0) return;
+
+        // Chatbot.jsx의 enterChat이 이미 마운트 시점에 한 번 실행되고 지나간 뒤라(이 조회가 끝나기 전),
+        // "이전 대화" 구분선은 여기서 직접 붙여야 함
+        const dividerId = createId(idCounterRef);
+        const withIds = drafts.map((draft) => ({ ...draft, id: createId(idCounterRef) }));
+        setMessages((prev) => [
+          ...prev,
+          { id: dividerId, sender: 'system', type: 'divider', text: '이전 대화' },
+          ...withIds,
+        ]);
       })
       .catch(() => {
         // 세션이 이미 종료됐거나 다른 계정 것이면 조용히 정리하고 다음에 새로 만듦
         sessionStorage.removeItem(RISK_CHECK_SESSION_KEY);
+      })
+      .finally(() => {
+        if (pendingRestoreRef.current === restorePromise) pendingRestoreRef.current = null;
       });
+
+    pendingRestoreRef.current = restorePromise;
   }, []);
 
   const appendMessages = useCallback((drafts) => {
@@ -153,6 +192,12 @@ function ChatbotProvider({ children }) {
 
   const ensureRiskCheckSession = useCallback(async () => {
     if (!getAccessToken()) return null;
+
+    // 복원 조회가 아직 안 끝났으면 먼저 기다림 (안 그러면 activeSessionIdRef가 비어있어서
+    // 아래에서 복원 대상 세션과 별개인 새 세션을 만들어버릴 수 있음)
+    if (pendingRestoreRef.current) {
+      await pendingRestoreRef.current;
+    }
 
     const lastActivity = Number(sessionStorage.getItem(RISK_CHECK_LAST_ACTIVITY_KEY));
     const isIdleExpired =
@@ -266,10 +311,9 @@ function ChatbotProvider({ children }) {
         appendMessages(botMessages);
       } catch (error) {
         setIsTyping(false);
+        // 422(이미지/문서 판독 실패)는 BE가 첨부 종류별로 다른 안내 문구를 message에 실어주므로 그대로 씀
         const message =
-          error.response?.status === 422
-            ? '이미지를 다시 촬영하거나 텍스트로 설명해주세요'
-            : error.response?.data?.message || 'AI 분석에 실패했어요. 잠시 후 다시 시도해주세요';
+          error.response?.data?.message || 'AI 분석에 실패했어요. 잠시 후 다시 시도해주세요';
         appendMessages([{ sender: 'bot', text: message }]);
       }
     },
@@ -527,27 +571,26 @@ function ChatbotProvider({ children }) {
   const attachFiles = useCallback(
     (files) => {
       if (!files || files.length === 0) return;
-      const drafts = files.slice(0, MAX_ATTACH_COUNT).map((file) => {
+      const limitedFiles = files.slice(0, MAX_ATTACH_COUNT);
+      const drafts = limitedFiles.map((file) => {
         const url = URL.createObjectURL(file);
         objectUrlsRef.current.push(url);
         return { sender: 'user', type: 'file', fileName: file.name, fileUrl: url };
       });
       appendMessages(drafts);
 
-      // 이미지 분석은 위기판독에서만 지원해서, 메뉴 선택 여부와 상관없이 위기판독 상담으로 봄
+      // 문서 분석도 위기판독에서만 지원해서, 메뉴 선택 여부와 상관없이 위기판독 상담으로 봄
       isRiskCheckFlowRef.current = true;
       isPolicyQaFlowRef.current = false;
 
-      // 위기판독 분석은 이미지 파일만 지원해서(BE MessageCreateSerializer), 일반 파일은 분석을 못 붙임
-      // 상담을 끝내려는 게 아니라 사진으로 다시 첨부하고 싶을 확률이 높아서 메뉴로 돌아가기는 안 보여줌
-      appendMessages([
-        {
-          sender: 'bot',
-          text: '위기판독 상담에서는 이미지 파일만 확인할 수 있어요. 사진으로 다시 첨부해주세요.',
-        },
-      ]);
+      // 문서(PDF/DOCX) 한 개당 AI 분석 한 턴, 여러 개면 순서대로 이어서 보냄 (attachImages와 동일 패턴)
+      // 확장자가 다른 파일이 섞여 있어도 BE가 타입별로 검증해서 첨부 종류에 맞는 안내 문구를 돌려줌
+      limitedFiles.reduce(
+        (chain, file) => chain.then(() => sendRiskCheckTurn({ type: 'DOCUMENT', file })),
+        Promise.resolve(),
+      );
     },
-    [appendMessages],
+    [appendMessages, sendRiskCheckTurn],
   );
 
   return (

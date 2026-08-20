@@ -17,7 +17,7 @@ export async function getRiskCheckSession(sessionId) {
 }
 
 /* POST /chat/risk-check/sessions/{sessionId}/messages | 로그인 필요
-   type은 'TEXT'|'IMAGE', TEXT는 content 필수, IMAGE는 file(이미지) 필수
+   type은 'TEXT'|'IMAGE'|'DOCUMENT', TEXT는 content 필수, IMAGE는 file(이미지), DOCUMENT는 file(PDF/DOCX) 필수
    Gemini 분석까지 끝나고 나서 응답이 오는 동기 호출이라 시간이 걸릴 수 있어 timeout을 넉넉하게 잡음
    (getPolicyDetail·getBriefingDetail의 AI 호출부와 동일한 이유)
    응답 data: { messageId, assistantMessageId, riskLevel, analysisResult, actionGuide,

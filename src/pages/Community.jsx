@@ -89,7 +89,10 @@ function Community() {
     fetchPosts(0);
   }, [fetchPosts]);
 
-  const visiblePosts = posts.filter((post) => !isAuthorBlocked(post.authorId ?? post.authorName));
+  // 차단은 이제 authorId(targetUserId) 기준으로만 저장됨(PostDetail.jsx 참고)
+  // 근데 이 목록 API(PostListSerializer)는 authorId를 안 내려줘서 여기선 항상 isAuthorBlocked(undefined)만
+  // 돼서 실질적으로 필터링이 동작하지 않음 - BE가 목록 응답에 authorId를 추가해줘야 해결됨
+  const visiblePosts = posts.filter((post) => !isAuthorBlocked(post.authorId));
 
   const handleWriteClick = () => {
     if (!isLoggedIn) {

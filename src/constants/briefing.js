@@ -66,9 +66,8 @@ export const BRIEFING_SECTION_META = [
   },
 ];
 
-// GET /briefings(목록) 응답에는 이제 color/icon이 실제로 내려와서 목록 카드는 briefing.color/icon을 그대로 씀
-// GET /briefings/{id}(상세) 응답에는 아직 color/icon이 없어서, 상세 히어로 아이콘(getSectionDefaultIcon)만
-// 이 순환 배열을 임시로 계속 씀 (BE가 상세 응답에도 추가해주면 이 로직은 제거 가능)
+// GET /briefings(목록)와 GET /briefings/{id}(상세) 둘 다 color/icon을 내려줌, 목록 카드/상세 히어로 모두
+// API 값을 그대로 쓰고, 이 순환 배열은 API 값이 없거나(옛날 응답) 매핑에 없는 값일 때의 폴백으로만 씀
 const CARD_VISUAL_ROTATION = {
   finance: [
     { color: 'green', icon: 'money' },
@@ -96,19 +95,34 @@ const CARD_VISUAL_ROTATION = {
   ],
 };
 
-// 상세 히어로 아이콘도 BE 응답에 없어서 섹션 대표 아이콘(순환 배열의 첫 번째)으로 임시 표시함
+// 상세 히어로 아이콘 폴백용 섹션 대표 아이콘(순환 배열의 첫 번째)
 export function getSectionDefaultIcon(sectionId) {
   const rotation = CARD_VISUAL_ROTATION[sectionId] || CARD_VISUAL_ROTATION.finance;
   return rotation[0].icon;
 }
 
 // content는 "#"/"##"(상위 번호 섹션)와 "###"(상위 섹션에 속한 하위 링크 항목) 2단계
-// 마크다운 헤딩 구조로 내려오는 단일 텍스트임
-// 상위 섹션 { title, body, subItems } 배열로 변환하고, ### 하위 항목은 subItems에 { title, body }로 묶어 넣음
-// 상위 섹션 title 앞에 붙은 "1. " 같은 번호는 떼어냄 (DetailSection의 번호 아이콘이 이미 표시하므로 중복 방지)
 // 헤딩이 하나도 없으면 전체를 제목 없는 섹션 하나로 반환함
 function stripLeadingNumber(text) {
   return text.replace(/^\d+\.\s*/, '').trim();
+}
+
+// contentTables의 section 값은 BE가 "2. 통장 쪼개기"처럼 번호가 붙은 원문 그대로 저장하고 있어서
+// parseBriefingContent가 번호를 뗀 sub.title("통장 쪼개기")과 바로 비교하면 안 맞음, 양쪽 다 번호를 뗀 뒤 비교함
+export function findContentTable(contentTables, sectionTitle) {
+  if (!Array.isArray(contentTables) || !sectionTitle) return null;
+
+  const target = stripLeadingNumber(sectionTitle);
+  const table = contentTables.find((t) => stripLeadingNumber(t.section || '') === target);
+  if (!table) return null;
+
+  // headers/rows가 비어있으면 BriefingContentTable이 렌더링할 게 없어서 null을 반환하는데,
+  // 호출부는 이 객체의 존재 여부만으로 BriefingBulletTable 폴백을 선택해서 빈 표가 그대로 빈 화면이 됨
+  // 여기서 미리 걸러서 렌더링 가능한 표만 반환하고, 아니면 폴백이 자연스럽게 이어지게 함
+  if (!Array.isArray(table.headers) || !Array.isArray(table.rows)) return null;
+  if (table.headers.length === 0 || table.rows.length === 0) return null;
+
+  return table;
 }
 
 export function parseBriefingContent(content) {

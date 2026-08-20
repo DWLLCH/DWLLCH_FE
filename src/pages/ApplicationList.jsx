@@ -2,23 +2,39 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import backBtn from '../assets/backBtn.svg';
 import searchIcon from '../assets/search.svg';
-import bookmarkFill from '../assets/bookmark_fill.svg';
-import light from '../assets/light.svg';
+import check from '../assets/check.svg';
 import PolicyCard from '../components/PolicyCard';
 import ChatbotButton from '../components/ChatbotButton';
 import BottomNav from '../components/BottomNav';
 import LoadingSpinner from '../components/LoadingSpinner';
 import LoginRequiredModal from '../components/LoginRequiredModal';
 import OnboardingRequiredModal from '../components/OnboardingRequiredModal';
-import useBookmarks from '../hooks/useBookmarks';
+import useApplication from '../hooks/useApplication';
 import useOnboardingComplete from '../hooks/useOnboardingComplete';
 import { getAccessToken } from '../api/auth';
-import { formatDday, toPolicyLevel } from '../utils/formatters';
+import { formatDateDots, parseDateKey } from '../utils/formatters';
 import '../styles/Bookmark.css';
 
-function Bookmark() {
+// BE Application.Status 라벨 (mypage/models.py 기준)
+const STATUS_LABELS = {
+  PLANNED: '신청 예정',
+  IN_PROGRESS: '신청 중',
+  COMPLETED: '신청 완료',
+  REJECTED: '반려',
+};
+
+function buildDescription(application) {
+  const parsedDate = parseDateKey(application.dateKey);
+  const dateText = parsedDate ? formatDateDots(parsedDate) : null;
+  const statusLabel = STATUS_LABELS[application.status] || application.status;
+
+  if (dateText) return `${dateText}에 ${statusLabel}`;
+  return statusLabel;
+}
+
+function ApplicationList() {
   const navigate = useNavigate();
-  const { scraps, loading, maxCount } = useBookmarks();
+  const { applicationList, loading } = useApplication();
   const [keyword, setKeyword] = useState('');
   const [isLoggedIn] = useState(() => Boolean(getAccessToken()));
   const { status: onboardingStatus } = useOnboardingComplete();
@@ -26,11 +42,11 @@ function Bookmark() {
   const onboardingBlocked =
     isLoggedIn && (onboardingStatus === 'incomplete' || onboardingStatus === 'error');
 
-  const visibleScraps = useMemo(() => {
+  const visibleApplications = useMemo(() => {
     const trimmed = keyword.trim();
-    if (!trimmed) return scraps;
-    return scraps.filter((scrap) => scrap.policyTitle?.includes(trimmed));
-  }, [scraps, keyword]);
+    if (!trimmed) return applicationList;
+    return applicationList.filter((application) => application.policyTitle?.includes(trimmed));
+  }, [applicationList, keyword]);
 
   return (
     <div className="bookmark-page">
@@ -43,7 +59,7 @@ function Bookmark() {
         >
           <img src={backBtn} alt="" />
         </button>
-        <h1>북마크</h1>
+        <h1>신청</h1>
       </header>
 
       <div className="bookmark-body">
@@ -58,8 +74,8 @@ function Bookmark() {
                 className="bookmark-search-input"
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
-                placeholder="북마크 검색"
-                aria-label="북마크 검색"
+                placeholder="정책 검색"
+                aria-label="정책 검색"
               />
               <img src={searchIcon} alt="" className="bookmark-search-icon" />
             </div>
@@ -67,17 +83,11 @@ function Bookmark() {
             <div className="bookmark-summary">
               <div className="bookmark-summary-row">
                 <span className="bookmark-summary-icon">
-                  <img src={bookmarkFill} alt="" />
+                  <img src={check} alt="" />
                 </span>
                 <p>
-                  총 <strong>{scraps.length}개</strong>의 정책을 북마크했어요
+                  총 <strong>{applicationList.length}개</strong>의 정책에 신청했어요
                 </p>
-              </div>
-              <div className="bookmark-summary-row bookmark-summary-row--note">
-                <span className="bookmark-summary-icon">
-                  <img src={light} alt="" />
-                </span>
-                <p>북마크는 최대 {maxCount}개까지 저장할 수 있어요.</p>
               </div>
             </div>
 
@@ -85,22 +95,24 @@ function Bookmark() {
               <div className="bookmark-empty">
                 <LoadingSpinner />
               </div>
-            ) : visibleScraps.length > 0 ? (
+            ) : visibleApplications.length > 0 ? (
               <ul className="bookmark-list">
-                {visibleScraps.map((scrap) => (
+                {visibleApplications.map((application) => (
                   <PolicyCard
-                    key={scrap.policyId}
-                    level={toPolicyLevel(scrap.matchLevel)}
-                    dday={formatDday(scrap.applicationEnd)}
-                    title={scrap.policyTitle}
-                    description={scrap.matchReason}
-                    onClick={() => navigate(`/support/${scrap.policyId}`)}
+                    key={application.id}
+                    title={application.policyTitle}
+                    description={buildDescription(application)}
+                    onClick={() => navigate(`/support/${application.policyId}`)}
                   />
                 ))}
               </ul>
             ) : (
               <div className="bookmark-empty">
-                <p>{scraps.length === 0 ? '아직 북마크한 정책이 없어요' : '검색 결과가 없어요'}</p>
+                <p>
+                  {applicationList.length === 0
+                    ? '아직 신청한 정책이 없어요'
+                    : '검색 결과가 없어요'}
+                </p>
               </div>
             )}
           </>
@@ -116,4 +128,4 @@ function Bookmark() {
   );
 }
 
-export default Bookmark;
+export default ApplicationList;
