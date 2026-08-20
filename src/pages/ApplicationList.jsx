@@ -12,7 +12,7 @@ import OnboardingRequiredModal from '../components/OnboardingRequiredModal';
 import useApplication from '../hooks/useApplication';
 import useOnboardingComplete from '../hooks/useOnboardingComplete';
 import { getAccessToken } from '../api/auth';
-import { formatDateDots, formatDday, parseDateKey, toPolicyLevel } from '../utils/formatters';
+import { formatDateKorean, formatDday, parseDateKey, toPolicyLevel } from '../utils/formatters';
 import '../styles/Bookmark.css';
 
 // BE Application.Status 라벨 (mypage/models.py 기준)
@@ -25,7 +25,7 @@ const STATUS_LABELS = {
 
 function buildDescription(application) {
   const parsedDate = parseDateKey(application.dateKey);
-  const dateText = parsedDate ? formatDateDots(parsedDate) : null;
+  const dateText = parsedDate ? formatDateKorean(parsedDate) : null;
   const statusLabel = STATUS_LABELS[application.status] || application.status;
 
   if (dateText) return `${dateText}에 ${statusLabel}`;
