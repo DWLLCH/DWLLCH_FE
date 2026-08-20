@@ -12,14 +12,15 @@ function BriefingCard({ color, icon, title, onClick }) {
     : 'document';
 
   return (
-    <div className="briefing-card">
+    <div className="briefing-card" onClick={onClick}>
       <img src={BRIEFING_BOX_IMAGES[resolvedColor]} alt="" className="briefing-card-box" />
       <img src={BRIEFING_ICONS[resolvedIcon]} alt="" className="briefing-card-icon" />
       <div className="briefing-card-content">
         <div className="briefing-card-title-wrap">
           <p className="briefing-card-title">{title}</p>
         </div>
-        <button type="button" className="briefing-card-btn" onClick={onClick}>
+        {/* 카드 전체가 클릭되므로 이 버튼은 시각적 CTA일 뿐, 별도 onClick 없이 상위로 버블링됨 */}
+        <button type="button" className="briefing-card-btn">
           바로가기
         </button>
       </div>

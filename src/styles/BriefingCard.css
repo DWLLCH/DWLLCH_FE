@@ -4,6 +4,13 @@
   flex-shrink: 0;
   width: 132px;
   margin-top: 31px;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.briefing-card:hover {
+  transform: scale(1.08);
+  z-index: 2;
 }
 
 .briefing-card-box {
