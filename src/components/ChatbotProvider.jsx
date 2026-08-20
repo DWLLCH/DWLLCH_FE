@@ -59,6 +59,8 @@ function ChatbotProvider({ children }) {
   const timeoutRef = useRef(null);
   const isRiskCheckFlowRef = useRef(false);
   const isPolicyQaFlowRef = useRef(false);
+  // 세션당 한 번만 자동으로 상황 정리 카드를 붙이기 위한 플래그, 새 세션을 만들 때 초기화됨
+  const hasAutoStructuredRef = useRef(false);
 
   useEffect(
     () => () => {
@@ -110,6 +112,7 @@ function ChatbotProvider({ children }) {
       setRiskCheckSessionId(session.id);
       setRiskCheckStatus(session.status);
       sessionStorage.setItem(RISK_CHECK_SESSION_KEY, String(session.id));
+      hasAutoStructuredRef.current = false;
       return session.id;
     } catch {
       // 세션 생성 실패는 sendRiskCheckTurn 쪽에서 안내 메시지로 처리함
@@ -144,18 +147,37 @@ function ChatbotProvider({ children }) {
           label,
         }));
 
+        // BE가 6항목(날짜/금액/장소/상대방/상황요약/위험유형) 수집이 끝났다고 판단하면
+        // readyForStructure를 내려줌, 세션당 한 번만 자동으로 카드를 먼저 붙이고 답변을 이어붙임
+        // (같은 analyze_risk 호출 안에서 같이 오는 값이라 Gemini 호출은 늘지 않음)
+        const botMessages = [];
+
+        if (result.analysisResult?.readyForStructure && !hasAutoStructuredRef.current) {
+          try {
+            const structured = await structureRiskCheckSession(sessionId);
+            hasAutoStructuredRef.current = true;
+            botMessages.push({
+              sender: 'bot',
+              type: 'structured-summary',
+              structured: {
+                report: structured.structuredReport,
+                riskGrade: structured.riskGrade,
+                missingFields: structured.missingFields,
+              },
+            });
+          } catch {
+            // 자동 정리에 실패해도 아래 답변 메시지는 그대로 보여줌, 정리해줘 버튼으로 재시도 가능
+          }
+        }
+
+        botMessages.push({
+          sender: 'bot',
+          text: result.reply,
+          quickReplies: [...suggestedReplies, ...STRUCTURE_REQUEST_OPTION, ...BACK_TO_MENU_OPTION],
+        });
+
         setIsTyping(false);
-        appendMessages([
-          {
-            sender: 'bot',
-            text: result.reply,
-            quickReplies: [
-              ...suggestedReplies,
-              ...STRUCTURE_REQUEST_OPTION,
-              ...BACK_TO_MENU_OPTION,
-            ],
-          },
-        ]);
+        appendMessages(botMessages);
       } catch (error) {
         setIsTyping(false);
         const message =
@@ -186,6 +208,7 @@ function ChatbotProvider({ children }) {
       }
 
       const result = await structureRiskCheckSession(sessionId);
+      hasAutoStructuredRef.current = true;
       setIsTyping(false);
       appendMessages([
         {
