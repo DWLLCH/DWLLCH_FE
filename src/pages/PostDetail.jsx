@@ -33,6 +33,7 @@ import {
   votePoll,
   reportPost,
 } from '../api/community';
+import { blockUser } from '../api/block';
 import { getMyProfile } from '../api/mypage';
 import { getAccessToken, getUserId } from '../api/auth';
 import { formatDateTimeShort, toSecureImageUrl } from '../utils/formatters';
@@ -141,7 +142,9 @@ function PostDetail() {
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+  const [isBlockingAuthor, setIsBlockingAuthor] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [toastVariant, setToastVariant] = useState('default');
   const toastTimerRef = useRef(null);
   const moreMenuRef = useRef(null);
 
@@ -354,17 +357,49 @@ function PostDetail() {
     setReportModalOpen(true);
   };
 
-  const showToast = (message) => {
+  const showToast = (message, variant = 'default') => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToastVariant(variant);
     setToastMessage(message);
     toastTimerRef.current = setTimeout(() => setToastMessage(''), 1600);
   };
 
   const handleConfirmBlock = () => {
-    blockAuthor(post.authorId ?? post.authorName);
-    setBlockConfirmOpen(false);
-    showToast('게시물이 차단되었습니다');
-    setTimeout(() => navigate('/community'), 1600);
+    if (isBlockingAuthor) return;
+
+    // POST /users/blocks는 targetUserId(authorId)만 받아서 authorName만으로는 차단을 요청할 수 없음
+    const targetUserId = post?.authorId;
+    if (targetUserId == null) {
+      setBlockConfirmOpen(false);
+      showToast('차단할 수 없는 게시물이에요', 'warning');
+      return;
+    }
+
+    setIsBlockingAuthor(true);
+    blockUser(targetUserId)
+      .then(() => {
+        blockAuthor(targetUserId);
+        setBlockConfirmOpen(false);
+        showToast('게시물이 차단되었습니다');
+        setTimeout(() => navigate('/community'), 1600);
+      })
+      .catch((error) => {
+        // BE가 400을 COMMON_400_INVALID_INPUT으로 뭉뚱그려서 code로는 사유를 못 가르고,
+        // 실제 사유(자기 자신 차단/이미 차단)는 response.data.data.targetUserId 문자열로만 내려옴
+        const reason = error.response?.data?.data?.targetUserId;
+        // 이미 차단한 사용자면 서버 기준으로는 이미 차단된 상태이므로 로컬 상태(목록 필터링용)도 맞춰줌
+        if (reason === '이미 차단한 사용자입니다.') {
+          blockAuthor(targetUserId);
+        }
+        setBlockConfirmOpen(false);
+        showToast(
+          typeof reason === 'string' ? reason : '차단에 실패했어요. 잠시 후 다시 시도해주세요',
+          'warning',
+        );
+      })
+      .finally(() => {
+        setIsBlockingAuthor(false);
+      });
   };
 
   const handleSubmitReport = () => {
@@ -592,7 +627,7 @@ function PostDetail() {
         )}
       </header>
 
-      <Toast message={toastMessage} visible={Boolean(toastMessage)} />
+      <Toast message={toastMessage} visible={Boolean(toastMessage)} variant={toastVariant} />
 
       <div className="post-detail-body">
         <div className="post-detail-top">
