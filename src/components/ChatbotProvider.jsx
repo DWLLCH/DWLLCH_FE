@@ -10,6 +10,7 @@ import {
   RISK_CHECK_STRUCTURE_VALUE,
   STRUCTURE_REQUEST_OPTION,
   getBotReply,
+  getGreetingText,
 } from '../constants/chatbot';
 import {
   connectRiskCheckSession,
@@ -19,6 +20,7 @@ import {
   structureRiskCheckSession,
 } from '../api/chat';
 import { getPolicyChatbotAnswer } from '../api/policy';
+import { getMyProfile } from '../api/mypage';
 import { getAccessToken } from '../api/auth';
 
 export const ChatbotContext = createContext(null);
@@ -69,6 +71,25 @@ function ChatbotProvider({ children }) {
     },
     [],
   );
+
+  // 첫 인사말에 실제 이름을 넣어주기 위해 로그인 상태면 프로필을 조회해서 인사말을 갈아끼움
+  useEffect(() => {
+    if (!getAccessToken()) return;
+
+    getMyProfile()
+      .then((profile) => {
+        setMessages((prev) =>
+          prev.map((message) =>
+            message.id === 'greeting'
+              ? { ...message, text: getGreetingText(profile.username) }
+              : message,
+          ),
+        );
+      })
+      .catch(() => {
+        // 이름을 못 가져와도 기본 인사말("회원님")을 그대로 유지함
+      });
+  }, []);
 
   // 탭에 이미 만들어둔 위기판독 세션이 남아있으면(새로고침 등) 그대로 이어서 조회함
   useEffect(() => {

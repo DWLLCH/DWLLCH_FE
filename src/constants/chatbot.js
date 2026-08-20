@@ -65,11 +65,17 @@ export const CONNECT_TARGET_LABELS = {
   EMERGENCY: '긴급 지원',
 };
 
+// username은 로그인한 회원의 실제 이름(예: 박하은), 아직 못 불러왔거나 비로그인이면 회원으로 대체함
+export function getGreetingText(username) {
+  const name = username ? `${username}님` : '회원님';
+  return `안녕하세요! ${name}.\n저는 ${name}의 궁금증을 해결해줄 도우미, AI 챗봇이에요.\n24시간 언제든지 답변해드릴게요.`;
+}
+
 export const INITIAL_MESSAGES = [
   {
     id: 'greeting',
     sender: 'bot',
-    text: '안녕하세요! 박하은님.\n저는 하은님의 궁금증을 해결해줄 도우미, AI 챗봇이에요.\n24시간 언제든지 답변해드릴게요.',
+    text: getGreetingText(),
   },
   {
     id: 'menu',
