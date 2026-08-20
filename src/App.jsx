@@ -51,6 +51,7 @@ import NotificationList from './pages/NotificationList';
 import MyPosts from './pages/MyPosts';
 import MyComments from './pages/MyComments';
 import Chatbot from './pages/Chatbot';
+import ApplicationList from './pages/ApplicationList';
 
 function App() {
   return (
@@ -84,6 +85,7 @@ function App() {
                       <Route path="/ai-briefing/:briefingId" element={<BriefingDetail />} />
                       <Route path="/mypage" element={<MyPage />} />
                       <Route path="/mypage/notifications" element={<NotificationList />} />
+                      <Route path="/mypage/applications" element={<ApplicationList />} />
                       <Route path="/mypage/password" element={<PasswordChange />} />
                       <Route path="/mypage/email" element={<EmailChange />} />
                       <Route path="/mypage/id" element={<IdChange />} />

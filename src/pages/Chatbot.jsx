@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import backBtn from '../assets/backBtn.svg';
 import chatbotAvatar from '../assets/chatbot2.svg';
@@ -34,18 +34,36 @@ function Chatbot() {
   const [inputValue, setInputValue] = useState('');
   const [attachOpen, setAttachOpen] = useState(false);
   const bottomRef = useRef(null);
+  const hasInteractedRef = useRef(false);
 
   useEffect(() => {
     enterChat();
   }, [enterChat]);
 
   useEffect(() => {
+    if (!hasInteractedRef.current) return;
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [messages, isTyping]);
 
   const handleTextSubmit = () => {
+    hasInteractedRef.current = true;
     submitText(inputValue);
     setInputValue('');
+  };
+
+  const handleQuickReply = (messageId, option) => {
+    hasInteractedRef.current = true;
+    selectQuickReply(messageId, option);
+  };
+
+  const handleAttachImages = (files) => {
+    hasInteractedRef.current = true;
+    attachImages(files);
+  };
+
+  const handleAttachFiles = (files) => {
+    hasInteractedRef.current = true;
+    attachFiles(files);
   };
 
   const groups = groupMessages(messages);
@@ -75,28 +93,48 @@ function Chatbot() {
           }
 
           return (
-            <div key={group.items[0].id} className={`chatbot-row chatbot-row--${group.sender}`}>
-              {group.sender === 'bot' && (
-                <img src={chatbotAvatar} alt="" className="chatbot-avatar" />
-              )}
-              <div className="chatbot-bubble-col">
-                {group.items.map((message, index) => (
-                  <ChatBubble
-                    key={message.id}
-                    sender={message.sender}
-                    title={message.title}
-                    text={message.text}
-                    type={message.type}
-                    imageUrl={message.imageUrl}
-                    fileName={message.fileName}
-                    fileUrl={message.fileUrl}
-                    quickReplies={message.quickReplies}
-                    tail={group.sender === 'bot' && index === 0}
-                    onSelectQuickReply={(option) => selectQuickReply(message.id, option)}
-                  />
-                ))}
+            <Fragment key={group.items[0].id}>
+              <div className={`chatbot-row chatbot-row--${group.sender}`}>
+                {group.sender === 'bot' && (
+                  <img src={chatbotAvatar} alt="" className="chatbot-avatar" />
+                )}
+                <div className="chatbot-bubble-col">
+                  {group.items.map((message, index) => (
+                    <ChatBubble
+                      key={message.id}
+                      sender={message.sender}
+                      title={message.title}
+                      text={message.text}
+                      type={message.type}
+                      imageUrl={message.imageUrl}
+                      fileName={message.fileName}
+                      fileUrl={message.fileUrl}
+                      structured={message.structured}
+                      tail={group.sender === 'bot' && index === 0}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+
+              {/* 사용자가 다음에 고를 법한 말풍선처럼 보이도록, 퀵리플라이는 봇 말풍선이 아니라
+                  사용자 쪽(우측) 정렬로 따로 빼서 보여줌 */}
+              {group.items.map((message) =>
+                message.quickReplies && message.quickReplies.length > 0 ? (
+                  <div key={`${message.id}-quick-replies`} className="chatbot-quick-replies-row">
+                    {message.quickReplies.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        className="chat-quick-reply"
+                        onClick={() => handleQuickReply(message.id, option)}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                ) : null,
+              )}
+            </Fragment>
           );
         })}
 
@@ -123,8 +161,8 @@ function Chatbot() {
       <ChatAttachSheet
         open={attachOpen}
         onClose={() => setAttachOpen(false)}
-        onSelectImages={attachImages}
-        onSelectFiles={attachFiles}
+        onSelectImages={handleAttachImages}
+        onSelectFiles={handleAttachFiles}
       />
     </div>
   );

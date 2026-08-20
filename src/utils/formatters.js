@@ -31,6 +31,22 @@ export function formatBirthDateKey(digits) {
   return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6, 8)}`;
 }
 
+/* BE가 게시글 이미지 URL을 http 절대경로로 내려주는데, 배포 페이지는 https라서 그대로 쓰면
+   브라우저가 mixed content로 막아버림 (로컬 개발은 페이지도 BE도 둘 다 http라 재현 안 됨)
+   페이지 자체가 https로 떠 있고 이미지 URL이 http 절대경로일 때만 origin을 떼어 상대경로로 바꿔서,
+   같은 origin인 Vercel이 vercel.json의 /media/:path* rewrite로 BE http 주소까지 대신 프록시하게 함 */
+export function toSecureImageUrl(url) {
+  if (!url) return url;
+  if (typeof window === 'undefined' || window.location.protocol !== 'https:') return url;
+  if (!url.startsWith('http://')) return url;
+  try {
+    const parsed = new URL(url);
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return url;
+  }
+}
+
 /* 커뮤니티 목록 등에서 쓰는 "N분 전", "N시간 전" 같은 상대 시간 표기 */
 export function formatRelativeTime(date) {
   const parsed = date instanceof Date ? date : new Date(date);

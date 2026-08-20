@@ -33,9 +33,10 @@ import {
   votePoll,
   reportPost,
 } from '../api/community';
+import { blockUser } from '../api/block';
 import { getMyProfile } from '../api/mypage';
 import { getAccessToken, getUserId } from '../api/auth';
-import { formatDateTimeShort } from '../utils/formatters';
+import { formatDateTimeShort, toSecureImageUrl } from '../utils/formatters';
 import '../styles/PostDetail.css';
 
 function buildCommentTree(
@@ -52,13 +53,20 @@ function buildCommentTree(
     );
   };
 
-  // 익명 댓글은 백엔드가 authorId를 안 내려줄 수 있어서, authorId 비교가 안 되면
-  // "내 게시글 + 내가 쓴 댓글"인 경우를 글쓴이로 대체 판별함
+  // authorId는 항상 내려옴 (community/serializers.py CommentSerializer 확인함),
+  // 그래도 옛날 응답 등 혹시 모를 누락 대비로 로그인 사용자 + 내가 쓴 글 폴백은 남겨둠
   const isPostAuthor = (item) => {
     if (postAuthorId != null && item.authorId != null) {
       return String(item.authorId) === String(postAuthorId);
     }
     return isMyPost && isMine(item);
+  };
+
+  // 익명 번호는 BE가 게시글+작성자 단위로 영구 배정해서 내려주는 anonymousSequence를 그대로 씀
+  // (community/serializers.py CommentSerializer 확인함, 실명 댓글은 null)
+  const resolveAuthor = (item) => {
+    if (!item.isAnonymous) return item.authorName;
+    return item.anonymousSequence != null ? `익명${item.anonymousSequence}` : '익명';
   };
 
   const repliesByParent = {};
@@ -73,13 +81,11 @@ function buildCommentTree(
     }
   });
 
-  // 댓글이 삭제됐다고 닉네임까지 가릴 필요는 없음, 닉네임/익명 표기는 평소처럼 그대로 보여주고
-  // "탈퇴한 회원"은 댓글 삭제 여부가 아니라 작성자 계정 자체가 탈퇴했을 때만 써야 하는 라벨임
-  // 근데 지금 백엔드는 댓글이 삭제되면 이유를 막론하고 authorName을 무조건 빈 문자열로 내려줘서
-  // (계정이 멀쩡히 살아있어도) FE에서는 진짜 탈퇴 계정인지 구분할 방법이 없음, 백엔드 수정 필요
+  // 댓글이 삭제됐다고 닉네임/익명 번호까지 가릴 필요는 없음, 평소처럼 그대로 보여주고
+  // "탈퇴한 회원"은 댓글 삭제 여부가 아니라 작성자 계정 자체가 탈퇴했을 때만 붙는 라벨임
   return topLevel.map((item) => ({
     id: item.id,
-    author: item.authorName,
+    author: resolveAuthor(item),
     isAuthor: isPostAuthor(item),
     text: item.content,
     deleted: item.isDeleted,
@@ -89,7 +95,7 @@ function buildCommentTree(
     createdAt: item.createdAt,
     replies: (repliesByParent[item.id] || []).map((reply) => ({
       id: reply.id,
-      author: reply.authorName,
+      author: resolveAuthor(reply),
       isAuthor: isPostAuthor(reply),
       text: reply.content,
       deleted: reply.isDeleted,
@@ -136,8 +142,11 @@ function PostDetail() {
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+  const [isBlockingAuthor, setIsBlockingAuthor] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [toastVariant, setToastVariant] = useState('default');
   const toastTimerRef = useRef(null);
+  const blockRedirectTimerRef = useRef(null);
   const moreMenuRef = useRef(null);
 
   const isMyPost = Boolean(post?.isMine);
@@ -229,6 +238,7 @@ function PostDetail() {
   useEffect(
     () => () => {
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      if (blockRedirectTimerRef.current) clearTimeout(blockRedirectTimerRef.current);
     },
     [],
   );
@@ -349,17 +359,50 @@ function PostDetail() {
     setReportModalOpen(true);
   };
 
-  const showToast = (message) => {
+  const showToast = (message, variant = 'default') => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToastVariant(variant);
     setToastMessage(message);
     toastTimerRef.current = setTimeout(() => setToastMessage(''), 1600);
   };
 
   const handleConfirmBlock = () => {
-    blockAuthor(post.authorId ?? post.authorName);
-    setBlockConfirmOpen(false);
-    showToast('게시물이 차단되었습니다');
-    setTimeout(() => navigate('/community'), 1600);
+    if (isBlockingAuthor) return;
+
+    // POST /users/blocks는 targetUserId(authorId)만 받아서 authorName만으로는 차단을 요청할 수 없음
+    const targetUserId = post?.authorId;
+    if (targetUserId == null) {
+      setBlockConfirmOpen(false);
+      showToast('차단할 수 없는 게시물이에요', 'warning');
+      return;
+    }
+
+    setIsBlockingAuthor(true);
+    blockUser(targetUserId)
+      .then(() => {
+        blockAuthor(targetUserId);
+        setBlockConfirmOpen(false);
+        showToast('게시물이 차단되었습니다');
+        if (blockRedirectTimerRef.current) clearTimeout(blockRedirectTimerRef.current);
+        blockRedirectTimerRef.current = setTimeout(() => navigate('/community'), 1600);
+      })
+      .catch((error) => {
+        // BE가 400을 COMMON_400_INVALID_INPUT으로 뭉뚱그려서 code로는 사유를 못 가르고,
+        // 실제 사유(자기 자신 차단/이미 차단)는 response.data.data.targetUserId 문자열로만 내려옴
+        const reason = error.response?.data?.data?.targetUserId;
+        // 이미 차단한 사용자면 서버 기준으로는 이미 차단된 상태이므로 로컬 상태(목록 필터링용)도 맞춰줌
+        if (reason === '이미 차단한 사용자입니다.') {
+          blockAuthor(targetUserId);
+        }
+        setBlockConfirmOpen(false);
+        showToast(
+          typeof reason === 'string' ? reason : '차단에 실패했어요. 잠시 후 다시 시도해주세요',
+          'warning',
+        );
+      })
+      .finally(() => {
+        setIsBlockingAuthor(false);
+      });
   };
 
   const handleSubmitReport = () => {
@@ -536,7 +579,7 @@ function PostDetail() {
   const imageUrls = (post.images || [])
     .slice()
     .sort((a, b) => a.order - b.order)
-    .map((image) => image.image);
+    .map((image) => toSecureImageUrl(image.image));
   const contentParagraphs = (post.content || '').split(/\n\s*\n/).filter(Boolean);
 
   return (
@@ -587,7 +630,7 @@ function PostDetail() {
         )}
       </header>
 
-      <Toast message={toastMessage} visible={Boolean(toastMessage)} />
+      <Toast message={toastMessage} visible={Boolean(toastMessage)} variant={toastVariant} />
 
       <div className="post-detail-body">
         <div className="post-detail-top">

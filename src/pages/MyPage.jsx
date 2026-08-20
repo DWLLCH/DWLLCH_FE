@@ -132,10 +132,15 @@ function MyPage() {
         </div>
 
         <div className="mypage-stats">
-          <div className="mypage-stat">
+          <button
+            type="button"
+            className="mypage-stat mypage-stat--link"
+            onClick={() => navigate('/mypage/applications')}
+          >
             <span className="mypage-stat-label">신청</span>
             <span className="mypage-stat-value">{appliedCount}건</span>
-          </div>
+          </button>
+
           <span className="mypage-stat-divider" />
           <button
             type="button"

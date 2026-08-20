@@ -114,8 +114,18 @@ function PolicyDetail() {
 
   const handleSaveApply = () => {
     if (!draftApplyDate) return;
-    completeApplication(policy.id, formatDateKey(draftApplyDate));
     setApplySheetOpen(false);
+    completeApplication(policy.id, formatDateKey(draftApplyDate)).then((result) => {
+      if (result === 'login-required') {
+        setShowLoginModal(true);
+        return;
+      }
+      if (result !== 'error') return;
+      setToastVariant('warning');
+      setToastMessage('신청 등록에 실패했어요. 잠시 후 다시 시도해주세요');
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = setTimeout(() => setToastMessage(''), 1600);
+    });
   };
 
   const handleToggleBookmark = () => {

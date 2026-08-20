@@ -1,5 +1,15 @@
 import fileIcon from '../assets/fileIcon.svg';
+import {
+  MISSING_FIELD_LABELS,
+  RISK_GRADE_LABELS,
+  STRUCTURED_REPORT_FIELDS,
+} from '../constants/chatbot';
 import '../styles/ChatBubble.css';
+
+// 항목 값이 0처럼 falsy해도 유효한 값이면 그대로 보여주고, null/undefined일 때만 안내 문구로 대체함
+function formatReportValue(value) {
+  return value === null || value === undefined || value === '' ? '확인되지 않음' : value;
+}
 
 function ChatBubble({
   sender,
@@ -9,8 +19,7 @@ function ChatBubble({
   imageUrl,
   fileName,
   fileUrl,
-  quickReplies,
-  onSelectQuickReply,
+  structured,
   tail = false,
 }) {
   const lines = text ? text.split('\n') : [];
@@ -46,18 +55,34 @@ function ChatBubble({
         </div>
       )}
 
-      {quickReplies && quickReplies.length > 0 && (
-        <div className="chat-quick-replies">
-          {quickReplies.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              className="chat-quick-reply"
-              onClick={() => onSelectQuickReply(option)}
-            >
-              {option.label}
-            </button>
-          ))}
+      {type === 'structured-summary' && structured && (
+        <div className="chat-structured-summary">
+          <div className="chat-structured-header">
+            <p className="chat-structured-title">상황 정리</p>
+            {structured.riskGrade && (
+              <span
+                className={`chat-structured-grade chat-structured-grade--${structured.riskGrade.toLowerCase()}`}
+              >
+                위험도 {RISK_GRADE_LABELS[structured.riskGrade] || structured.riskGrade}
+              </span>
+            )}
+          </div>
+          <dl className="chat-structured-rows">
+            {STRUCTURED_REPORT_FIELDS.map(({ key, label }) => (
+              <div className="chat-structured-row" key={key}>
+                <dt>{label}</dt>
+                <dd>{formatReportValue(structured.report?.[key])}</dd>
+              </div>
+            ))}
+          </dl>
+          {structured.missingFields && structured.missingFields.length > 0 && (
+            <p className="chat-structured-missing">
+              아직 확인 안 된 부분:{' '}
+              {structured.missingFields
+                .map((field) => MISSING_FIELD_LABELS[field] || field)
+                .join(', ')}
+            </p>
+          )}
         </div>
       )}
     </div>

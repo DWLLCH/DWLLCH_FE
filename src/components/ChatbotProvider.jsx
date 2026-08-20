@@ -1,15 +1,54 @@
 import { createContext, useCallback, useEffect, useRef, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import {
+  BACK_TO_MENU_OPTION,
+  CONNECT_TARGET_LABELS,
+  CONNECT_TARGET_OPTIONS,
   INITIAL_MESSAGES,
   MAX_ATTACH_COUNT,
-  getAttachmentReply,
+  MENU_OPTIONS,
+  RISK_CHECK_CONNECT_PREFIX,
+  RISK_CHECK_STRUCTURE_VALUE,
+  STRUCTURE_REQUEST_OPTION,
   getBotReply,
+  getGreetingText,
 } from '../constants/chatbot';
+import {
+  connectRiskCheckSession,
+  createRiskCheckSession,
+  getRiskCheckSession,
+  sendRiskCheckMessage,
+  structureRiskCheckSession,
+} from '../api/chat';
+import { getPolicyChatbotAnswer } from '../api/policy';
+import { getMyProfile } from '../api/mypage';
+import { getAccessToken } from '../api/auth';
 
 export const ChatbotContext = createContext(null);
 
 const BOT_REPLY_DELAY = 800;
+
+// 답변 메시지와 메인 메뉴 질문이 동시에 뜨지 않도록, 메뉴는 답변이 보이고 나서 이 시간만큼 텀을 두고 붙임
+const MENU_PROMPT_DELAY_MS = 900;
+
+// 새로고침해도 진행 중이던 위기판독(직접 입력 상담) 세션을 이어갈 수 있도록 탭 단위로 저장
+const RISK_CHECK_SESSION_KEY = 'dwllch_riskCheckSessionId';
+
+// 마지막으로 위기판독 세션을 사용한 시각, 일정 시간 응답이 없으면 세션을 끊고 새로 시작하기 위해 씀
+const RISK_CHECK_LAST_ACTIVITY_KEY = 'dwllch_riskCheckLastActivity';
+const RISK_CHECK_IDLE_TIMEOUT_MS = 60 * 60 * 1000;
+
+// "직접 입력"을 선택해서 본인 상황을 자유롭게 설명하는 동안만 위기판독 흐름으로 봄
+// 메뉴로 돌아가면 초기화됨, MENU_OPTIONS의 manual-input 값과 맞춰둠 (constants/chatbot.js 참고)
+const RISK_CHECK_ENTER_VALUES = ['manual-input'];
+const RISK_CHECK_EXIT_VALUES = ['back-to-menu'];
+
+// "제도 관련 질문이 있어요"를 선택해서 자유롭게 질문하는 동안만 제도 챗봇 흐름으로 봄
+// 위기판독과 달리 세션이 없는 단발성 질문/답변이라 로그인 여부와 무관하게 동작함
+const POLICY_QA_ENTER_VALUES = ['ask-policy'];
+
+// AI가 제안한 답변 칩(quickReply)인지 구분하는 접두사, selectQuickReply에서 분기할 때 씀
+const RISK_CHECK_SUGGESTED_PREFIX = 'risk-check-suggested:';
 
 function createId(counterRef) {
   counterRef.current += 1;
@@ -21,11 +60,28 @@ function ChatbotProvider({ children }) {
     INITIAL_MESSAGES.map((message, index) => ({ ...message, id: message.id || `init-${index}` })),
   );
   const [isTyping, setIsTyping] = useState(false);
+  const [riskCheckSessionId, setRiskCheckSessionId] = useState(null);
+  const [riskCheckStatus, setRiskCheckStatus] = useState(null);
 
   const idCounterRef = useRef(0);
   const initialCountRef = useRef(INITIAL_MESSAGES.length);
   const objectUrlsRef = useRef([]);
   const timeoutRef = useRef(null);
+  const isRiskCheckFlowRef = useRef(false);
+  const isPolicyQaFlowRef = useRef(false);
+  // 세션당 한 번만 자동으로 상황 정리 카드를 붙이기 위한 플래그, 새 세션을 만들 때 초기화됨
+  const hasAutoStructuredRef = useRef(false);
+  // ensureRiskCheckSession이 riskCheckSessionId(state)를 직접 읽으면, 이미지 여러 장을 한 번에
+  // 보낼 때처럼 같은 콜백 클로저를 재사용하는 상황에서 state 갱신 전 값을 계속 참조할 수 있음
+  // 항상 최신 세션 id를 보게 하려고 ref로 따로 들고 있고, state와 세트로 갱신함
+  const activeSessionIdRef = useRef(null);
+  // 세션 생성이 진행 중일 때 새로 생성 요청이 겹치면(이미지 여러 장 동시 첨부 등) 같은 Promise를
+  // 같이 기다리게 해서 세션이 여러 개로 쪼개지는 걸 막음
+  const pendingSessionPromiseRef = useRef(null);
+  // 새로고침 직후 세션 복원(getRiskCheckSession)이 끝나기 전에 메시지를 보내면 activeSessionIdRef가
+  // 아직 비어있어서 ensureRiskCheckSession이 복원 대상과 다른 새 세션을 만들어버릴 수 있음
+  // ensureRiskCheckSession이 이 Promise를 먼저 기다리게 해서 복원이 끝난 뒤에 판단하게 함
+  const pendingRestoreRef = useRef(null);
 
   useEffect(
     () => () => {
@@ -34,6 +90,77 @@ function ChatbotProvider({ children }) {
     },
     [],
   );
+
+  // 첫 인사말에 실제 이름을 넣어주기 위해 로그인 상태면 프로필을 조회해서 인사말을 갈아끼움
+  useEffect(() => {
+    if (!getAccessToken()) return;
+
+    getMyProfile()
+      .then((profile) => {
+        setMessages((prev) =>
+          prev.map((message) =>
+            message.id === 'greeting'
+              ? { ...message, text: getGreetingText(profile.username) }
+              : message,
+          ),
+        );
+      })
+      .catch(() => {
+        // 이름을 못 가져와도 기본 인사말("회원님")을 그대로 유지함
+      });
+  }, []);
+
+  // 탭에 이미 만들어둔 위기판독 세션이 남아있으면(새로고침 등) 세션뿐 아니라 그동안 주고받은
+  // 메시지 목록도 함께 복원함 (getRiskCheckSession이 status와 messages를 같이 내려줌)
+  useEffect(() => {
+    const storedId = sessionStorage.getItem(RISK_CHECK_SESSION_KEY);
+    if (!storedId || !getAccessToken()) return;
+
+    const restorePromise = getRiskCheckSession(storedId)
+      .then((session) => {
+        activeSessionIdRef.current = session.id;
+        setRiskCheckSessionId(session.id);
+        setRiskCheckStatus(session.status);
+        // 세션이 이미 ACTIVE를 벗어났다면(구조화/연계/종료) 상황 정리 카드가 이미 한 번 떴다는 뜻이라,
+        // 새로고침 후 다음 메시지에서 자동 정리 카드가 중복으로 다시 뜨지 않게 플래그도 같이 복원함
+        hasAutoStructuredRef.current = session.status !== 'ACTIVE';
+
+        // 업로드 파일의 원래 이름은 BE가 저장하지 않아서(스토리지엔 uuid로 교체 저장) 첨부 종류별
+        // 고정 문구로 대체함, 실제 다운로드 링크(fileUrl)는 그대로 살아있어서 열람 자체는 가능함
+        const drafts = (session.messages || []).map((message) => {
+          const sender = message.sender === 'ASSISTANT' ? 'bot' : 'user';
+
+          if (message.type === 'IMAGE') {
+            return { sender, type: 'image', imageUrl: message.fileUrl, fileName: '첨부 이미지' };
+          }
+          if (message.type === 'DOCUMENT') {
+            return { sender, type: 'file', fileUrl: message.fileUrl, fileName: '첨부 파일' };
+          }
+          return { sender, text: message.content };
+        });
+
+        if (drafts.length === 0) return;
+
+        // Chatbot.jsx의 enterChat이 이미 마운트 시점에 한 번 실행되고 지나간 뒤라(이 조회가 끝나기 전),
+        // "이전 대화" 구분선은 여기서 직접 붙여야 함
+        const dividerId = createId(idCounterRef);
+        const withIds = drafts.map((draft) => ({ ...draft, id: createId(idCounterRef) }));
+        setMessages((prev) => [
+          ...prev,
+          { id: dividerId, sender: 'system', type: 'divider', text: '이전 대화' },
+          ...withIds,
+        ]);
+      })
+      .catch(() => {
+        // 세션이 이미 종료됐거나 다른 계정 것이면 조용히 정리하고 다음에 새로 만듦
+        sessionStorage.removeItem(RISK_CHECK_SESSION_KEY);
+      })
+      .finally(() => {
+        if (pendingRestoreRef.current === restorePromise) pendingRestoreRef.current = null;
+      });
+
+    pendingRestoreRef.current = restorePromise;
+  }, []);
 
   const appendMessages = useCallback((drafts) => {
     const withIds = drafts.map((draft) => ({ ...draft, id: createId(idCounterRef) }));
@@ -49,6 +176,263 @@ function ChatbotProvider({ children }) {
       }, BOT_REPLY_DELAY);
     },
     [appendMessages],
+  );
+
+  // 답변 뒤에 메인 메뉴 질문을 살짝 텀을 두고 붙여서 순서대로 이어지는 것처럼 보이게 함
+  // (제도 질문 답변, 추천 기준 안내 등 답변 후 바로 메뉴로 이어지는 흐름에서 공통으로 씀)
+  const showMenuPromptWithDelay = useCallback(() => {
+    setIsTyping(true);
+    timeoutRef.current = setTimeout(() => {
+      setIsTyping(false);
+      appendMessages([
+        { sender: 'bot', title: '무엇이 궁금하신가요?', quickReplies: MENU_OPTIONS },
+      ]);
+    }, MENU_PROMPT_DELAY_MS);
+  }, [appendMessages]);
+
+  const ensureRiskCheckSession = useCallback(async () => {
+    if (!getAccessToken()) return null;
+
+    // 복원 조회가 아직 안 끝났으면 먼저 기다림 (안 그러면 activeSessionIdRef가 비어있어서
+    // 아래에서 복원 대상 세션과 별개인 새 세션을 만들어버릴 수 있음)
+    if (pendingRestoreRef.current) {
+      await pendingRestoreRef.current;
+    }
+
+    const lastActivity = Number(sessionStorage.getItem(RISK_CHECK_LAST_ACTIVITY_KEY));
+    const isIdleExpired =
+      activeSessionIdRef.current &&
+      lastActivity &&
+      Date.now() - lastActivity > RISK_CHECK_IDLE_TIMEOUT_MS;
+
+    if (isIdleExpired) {
+      sessionStorage.removeItem(RISK_CHECK_SESSION_KEY);
+      sessionStorage.removeItem(RISK_CHECK_LAST_ACTIVITY_KEY);
+      activeSessionIdRef.current = null;
+      pendingSessionPromiseRef.current = null;
+      setRiskCheckSessionId(null);
+      setRiskCheckStatus(null);
+      hasAutoStructuredRef.current = false;
+      appendMessages([
+        {
+          sender: 'bot',
+          text: '일정 시간이 지나, 보안을 위해 이전 대화와 분리하여 새로운 상담을 준비합니다.',
+        },
+      ]);
+    } else if (activeSessionIdRef.current) {
+      sessionStorage.setItem(RISK_CHECK_LAST_ACTIVITY_KEY, String(Date.now()));
+      return activeSessionIdRef.current;
+    }
+
+    // 이미 세션 생성이 진행 중이면 새로 또 만들지 않고 같은 Promise를 같이 기다림
+    if (pendingSessionPromiseRef.current) {
+      return pendingSessionPromiseRef.current;
+    }
+
+    const creationPromise = (async () => {
+      try {
+        const session = await createRiskCheckSession();
+        activeSessionIdRef.current = session.id;
+        setRiskCheckSessionId(session.id);
+        setRiskCheckStatus(session.status);
+        sessionStorage.setItem(RISK_CHECK_SESSION_KEY, String(session.id));
+        sessionStorage.setItem(RISK_CHECK_LAST_ACTIVITY_KEY, String(Date.now()));
+        hasAutoStructuredRef.current = false;
+        return session.id;
+      } catch {
+        // 세션 생성 실패는 sendRiskCheckTurn 쪽에서 안내 메시지로 처리함
+        return null;
+      } finally {
+        pendingSessionPromiseRef.current = null;
+      }
+    })();
+
+    pendingSessionPromiseRef.current = creationPromise;
+    return creationPromise;
+  }, [appendMessages]);
+
+  // 위기판독 대화 한 턴을 실제로 보내고 AI 분석 결과를 봇 말풍선으로 붙임
+  const sendRiskCheckTurn = useCallback(
+    async ({ type, content = '', file }) => {
+      if (!getAccessToken()) {
+        appendMessages([
+          {
+            sender: 'bot',
+            text: '로그인 후 이용할 수 있어요. 로그인하고 다시 시도해주세요.',
+          },
+        ]);
+        return;
+      }
+
+      setIsTyping(true);
+
+      try {
+        const sessionId = await ensureRiskCheckSession();
+        if (!sessionId) {
+          throw new Error('위기판독 세션을 준비하지 못했습니다.');
+        }
+
+        const result = await sendRiskCheckMessage(sessionId, { type, content, file });
+        const suggestedReplies = (result.suggestedReplies || []).map((label, index) => ({
+          value: `${RISK_CHECK_SUGGESTED_PREFIX}${index}`,
+          label,
+        }));
+
+        // BE가 6항목(날짜/금액/장소/상대방/상황요약/위험유형) 수집이 끝났다고 판단하면
+        // readyForStructure를 내려줌, 세션당 한 번만 자동으로 카드를 먼저 붙이고 답변을 이어붙임
+        // (같은 analyze_risk 호출 안에서 같이 오는 값이라 Gemini 호출은 늘지 않음)
+        const botMessages = [];
+
+        if (result.analysisResult?.readyForStructure && !hasAutoStructuredRef.current) {
+          try {
+            const structured = await structureRiskCheckSession(sessionId);
+            hasAutoStructuredRef.current = true;
+            botMessages.push({
+              sender: 'bot',
+              type: 'structured-summary',
+              structured: {
+                report: structured.structuredReport,
+                riskGrade: structured.riskGrade,
+                missingFields: structured.missingFields,
+              },
+            });
+          } catch {
+            // 자동 정리에 실패해도 아래 답변 메시지는 그대로 보여줌, 정리해줘 버튼으로 재시도 가능
+          }
+        }
+
+        botMessages.push({
+          sender: 'bot',
+          text: result.reply,
+          quickReplies: [...suggestedReplies, ...STRUCTURE_REQUEST_OPTION, ...BACK_TO_MENU_OPTION],
+        });
+
+        setIsTyping(false);
+        appendMessages(botMessages);
+      } catch (error) {
+        setIsTyping(false);
+        // 422(이미지/문서 판독 실패)는 BE가 첨부 종류별로 다른 안내 문구를 message에 실어주므로 그대로 씀
+        const message =
+          error.response?.data?.message || 'AI 분석에 실패했어요. 잠시 후 다시 시도해주세요';
+        appendMessages([{ sender: 'bot', text: message }]);
+      }
+    },
+    [appendMessages, ensureRiskCheckSession],
+  );
+
+  // 지금까지의 대화를 6개 항목(날짜/금액/장소/상대방/상황요약/위험유형)으로 정리해서 카드로 보여줌
+  const requestStructuredSummary = useCallback(async () => {
+    if (!getAccessToken()) {
+      appendMessages([
+        { sender: 'bot', text: '로그인 후 이용할 수 있어요. 로그인하고 다시 시도해주세요.' },
+      ]);
+      return;
+    }
+
+    setIsTyping(true);
+
+    try {
+      const sessionId = await ensureRiskCheckSession();
+      if (!sessionId) {
+        throw new Error('위기판독 세션을 준비하지 못했습니다.');
+      }
+
+      const result = await structureRiskCheckSession(sessionId);
+      hasAutoStructuredRef.current = true;
+      setIsTyping(false);
+      appendMessages([
+        {
+          sender: 'bot',
+          type: 'structured-summary',
+          structured: {
+            report: result.structuredReport,
+            riskGrade: result.riskGrade,
+            missingFields: result.missingFields,
+          },
+          quickReplies: [...CONNECT_TARGET_OPTIONS, ...BACK_TO_MENU_OPTION],
+        },
+      ]);
+    } catch (error) {
+      setIsTyping(false);
+      const message =
+        error.response?.data?.message || '상황 정리에 실패했어요. 잠시 후 다시 시도해주세요';
+      // 여기도 마찬가지로 같은 자리에서 재시도할 수 있게 메뉴로 돌아가기는 보여주지 않음
+      appendMessages([{ sender: 'bot', text: message }]);
+    }
+  }, [appendMessages, ensureRiskCheckSession]);
+
+  // 조력자 연계 칩을 누르는 것 자체를 동의(consent)로 보고 바로 해당 종류로 연계 요청함
+  const requestSupportConnection = useCallback(
+    async (connectTo) => {
+      if (!getAccessToken()) {
+        appendMessages([
+          { sender: 'bot', text: '로그인 후 이용할 수 있어요. 로그인하고 다시 시도해주세요.' },
+        ]);
+        return;
+      }
+
+      setIsTyping(true);
+
+      try {
+        const sessionId = await ensureRiskCheckSession();
+        if (!sessionId) {
+          throw new Error('위기판독 세션을 준비하지 못했습니다.');
+        }
+
+        const result = await connectRiskCheckSession(sessionId, { consent: true, connectTo });
+        setIsTyping(false);
+
+        const targetLabel = CONNECT_TARGET_LABELS[connectTo] || '조력자';
+        const noticeText = result.notice ? `\n${result.notice}` : '';
+        appendMessages([
+          {
+            sender: 'bot',
+            text: `${targetLabel} 연계 요청이 접수됐어요. 곧 연락드릴게요.${noticeText}`,
+            quickReplies: BACK_TO_MENU_OPTION,
+          },
+        ]);
+      } catch (error) {
+        setIsTyping(false);
+        const message =
+          error.response?.data?.message || '연계 요청에 실패했어요. 잠시 후 다시 시도해주세요';
+        // 여기도 같은 자리에서 다시 시도할 수 있게 메뉴로 돌아가기는 보여주지 않음
+        appendMessages([{ sender: 'bot', text: message }]);
+      }
+    },
+    [appendMessages, ensureRiskCheckSession],
+  );
+
+  // 제도 관련 자유 질문 답변, 세션 없이 질문 하나당 AI 답변 하나를 바로 받아옴 (로그인 불필요)
+  const sendPolicyQuestion = useCallback(
+    async (question) => {
+      setIsTyping(true);
+
+      try {
+        const result = await getPolicyChatbotAnswer(question);
+        setIsTyping(false);
+
+        // answerable이 false면 가진 정책 정보로는 확답할 수 없다는 뜻이라 별도 안내를 덧붙임
+        const botMessages = [{ sender: 'bot', text: result.answer }];
+        if (!result.answerable) {
+          botMessages.push({
+            sender: 'bot',
+            text: '정확한 정보로 답변드리기 어려운 질문이었어요. 관련 기관이나 담당자에게 직접 문의해보시는 걸 추천드려요.',
+          });
+        }
+        isPolicyQaFlowRef.current = false;
+
+        appendMessages(botMessages);
+        // 답변 후 메뉴 칩 대신 메인 메뉴 질문을 텀을 두고 이어붙여서 다음 흐름으로 자연스럽게 유도함
+        showMenuPromptWithDelay();
+      } catch (error) {
+        setIsTyping(false);
+        const message =
+          error.response?.data?.message || 'AI 답변 생성에 실패했어요. 잠시 후 다시 시도해주세요';
+        // 같은 자리에서 다시 물어볼 수 있게 메뉴로 돌아가기는 보여주지 않음
+        appendMessages([{ sender: 'bot', text: message }]);
+      }
+    },
+    [appendMessages, showMenuPromptWithDelay],
   );
 
   const clearQuickReplies = useCallback((messageId) => {
@@ -73,15 +457,72 @@ function ChatbotProvider({ children }) {
     (messageId, option) => {
       clearQuickReplies(messageId);
 
+      // AI가 제안한 답변 칩은 메뉴 옵션이 아니라 사용자가 그 문장을 그대로 입력한 것과 같음
+      if (option.value.startsWith(RISK_CHECK_SUGGESTED_PREFIX)) {
+        appendMessages([{ sender: 'user', text: option.label }]);
+        sendRiskCheckTurn({ type: 'TEXT', content: option.label });
+        return;
+      }
+
+      if (option.value === RISK_CHECK_STRUCTURE_VALUE) {
+        appendMessages([{ sender: 'user', text: option.label }]);
+        requestStructuredSummary();
+        return;
+      }
+
+      if (option.value.startsWith(RISK_CHECK_CONNECT_PREFIX)) {
+        appendMessages([{ sender: 'user', text: option.label }]);
+        requestSupportConnection(option.value.slice(RISK_CHECK_CONNECT_PREFIX.length));
+        return;
+      }
+
+      if (RISK_CHECK_ENTER_VALUES.includes(option.value)) {
+        isRiskCheckFlowRef.current = true;
+        isPolicyQaFlowRef.current = false;
+      } else if (POLICY_QA_ENTER_VALUES.includes(option.value)) {
+        isPolicyQaFlowRef.current = true;
+        isRiskCheckFlowRef.current = false;
+      } else if (RISK_CHECK_EXIT_VALUES.includes(option.value)) {
+        isRiskCheckFlowRef.current = false;
+        isPolicyQaFlowRef.current = false;
+      }
+
       if (option.value === 'manual-input') {
+        ensureRiskCheckSession();
         respondWithDelay(() => getBotReply({ optionValue: option.value }));
+        return;
+      }
+
+      if (option.value === 'ask-policy') {
+        respondWithDelay(() => getBotReply({ optionValue: option.value }));
+        return;
+      }
+
+      if (option.value === 'recommend-criteria') {
+        appendMessages([{ sender: 'user', text: option.label }]);
+        setIsTyping(true);
+        timeoutRef.current = setTimeout(() => {
+          setIsTyping(false);
+          appendMessages(getBotReply({ optionValue: option.value }));
+          // 답변이 보이고 나서 텀을 두고 메인 메뉴 질문을 이어붙임
+          showMenuPromptWithDelay();
+        }, BOT_REPLY_DELAY);
         return;
       }
 
       appendMessages([{ sender: 'user', text: option.label }]);
       respondWithDelay(() => getBotReply({ optionValue: option.value }));
     },
-    [appendMessages, clearQuickReplies, respondWithDelay],
+    [
+      appendMessages,
+      clearQuickReplies,
+      showMenuPromptWithDelay,
+      respondWithDelay,
+      ensureRiskCheckSession,
+      sendRiskCheckTurn,
+      requestStructuredSummary,
+      requestSupportConnection,
+    ],
   );
 
   const submitText = useCallback(
@@ -89,37 +530,67 @@ function ChatbotProvider({ children }) {
       const trimmed = text.trim();
       if (!trimmed) return;
       appendMessages([{ sender: 'user', text: trimmed }]);
-      respondWithDelay(() => getBotReply({ freeText: trimmed }));
+
+      if (isPolicyQaFlowRef.current) {
+        sendPolicyQuestion(trimmed);
+        return;
+      }
+
+      // 메뉴 선택 없이 사용자가 먼저 말을 걸어도 위기판독 상담으로 봄
+      // ("직접 입력하기" 메뉴 칩이 빠지면서 이게 사실상의 진입점이 됨)
+      isRiskCheckFlowRef.current = true;
+      sendRiskCheckTurn({ type: 'TEXT', content: trimmed });
     },
-    [appendMessages, respondWithDelay],
+    [appendMessages, sendRiskCheckTurn, sendPolicyQuestion],
   );
 
   const attachImages = useCallback(
     (files) => {
       if (!files || files.length === 0) return;
-      const drafts = files.slice(0, MAX_ATTACH_COUNT).map((file) => {
+      const limitedFiles = files.slice(0, MAX_ATTACH_COUNT);
+      const drafts = limitedFiles.map((file) => {
         const url = URL.createObjectURL(file);
         objectUrlsRef.current.push(url);
         return { sender: 'user', type: 'image', imageUrl: url, fileName: file.name };
       });
       appendMessages(drafts);
-      respondWithDelay(() => getAttachmentReply());
+
+      // 이미지 분석은 위기판독에서만 지원해서, 메뉴 선택 여부와 상관없이 위기판독 상담으로 봄
+      isRiskCheckFlowRef.current = true;
+      isPolicyQaFlowRef.current = false;
+
+      // 이미지 한 장당 AI 분석 한 턴, 여러 장이면 순서대로 이어서 보냄
+      limitedFiles.reduce(
+        (chain, file) => chain.then(() => sendRiskCheckTurn({ type: 'IMAGE', file })),
+        Promise.resolve(),
+      );
     },
-    [appendMessages, respondWithDelay],
+    [appendMessages, sendRiskCheckTurn],
   );
 
   const attachFiles = useCallback(
     (files) => {
       if (!files || files.length === 0) return;
-      const drafts = files.slice(0, MAX_ATTACH_COUNT).map((file) => {
+      const limitedFiles = files.slice(0, MAX_ATTACH_COUNT);
+      const drafts = limitedFiles.map((file) => {
         const url = URL.createObjectURL(file);
         objectUrlsRef.current.push(url);
         return { sender: 'user', type: 'file', fileName: file.name, fileUrl: url };
       });
       appendMessages(drafts);
-      respondWithDelay(() => getAttachmentReply());
+
+      // 문서 분석도 위기판독에서만 지원해서, 메뉴 선택 여부와 상관없이 위기판독 상담으로 봄
+      isRiskCheckFlowRef.current = true;
+      isPolicyQaFlowRef.current = false;
+
+      // 문서(PDF/DOCX) 한 개당 AI 분석 한 턴, 여러 개면 순서대로 이어서 보냄 (attachImages와 동일 패턴)
+      // 확장자가 다른 파일이 섞여 있어도 BE가 타입별로 검증해서 첨부 종류에 맞는 안내 문구를 돌려줌
+      limitedFiles.reduce(
+        (chain, file) => chain.then(() => sendRiskCheckTurn({ type: 'DOCUMENT', file })),
+        Promise.resolve(),
+      );
     },
-    [appendMessages, respondWithDelay],
+    [appendMessages, sendRiskCheckTurn],
   );
 
   return (
@@ -132,6 +603,8 @@ function ChatbotProvider({ children }) {
         submitText,
         attachImages,
         attachFiles,
+        riskCheckSessionId,
+        riskCheckStatus,
       }}
     >
       {children || <Outlet />}

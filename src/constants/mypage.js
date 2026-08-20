@@ -22,3 +22,17 @@ export const OPEN_SOURCE_LIBRARIES = [
   { name: 'react-router-dom', license: 'MIT License' },
   { name: 'axios', license: 'MIT License' },
 ];
+
+export const SERVICE_INFO = {
+  name: 'Fledge',
+  tagline: '자립준비청년의 상황에 맞는 정보와 행동을 연결하는 AI 자립 동행 서비스',
+  description:
+    '흩어져 있는 자립지원 정보를 내 상황에 맞게 찾아주고, 필요한 신청과 다음 행동까지 연결해드립니다.',
+  features: [
+    '맞춤 정책 추천',
+    '신청·서류 정보 안내',
+    'AI 자립 브리핑',
+    '나에게 필요한 지원 정보 큐레이션',
+  ],
+  contactEmail: 'vntlzp0127@naver.com',
+};
