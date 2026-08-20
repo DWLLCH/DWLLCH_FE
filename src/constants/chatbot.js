@@ -4,9 +4,8 @@ export const MAX_ATTACH_COUNT = 5;
 
 export const MENU_OPTIONS = [
   { value: 'ask-policy', label: '제도 관련 질문이 있어요' },
-  { value: 'report-error', label: '정보에 오류가 있는 것 같아요' },
   { value: 'recommend-criteria', label: '제도 추천 기준이 뭔가요?' },
-  { value: 'manual-input', label: '직접 입력' },
+  { value: 'manual-input', label: '직접 입력하기' },
 ];
 
 export const RENT_GUIDE_OPTIONS = [
@@ -88,7 +87,7 @@ function includesAny(text, keywords) {
 }
 
 export function getBotReply({ optionValue, freeText }) {
-  if (optionValue === 'ask-policy' || (freeText && includesAny(freeText, DEPOSIT_KEYWORDS))) {
+  if (freeText && includesAny(freeText, DEPOSIT_KEYWORDS)) {
     return [
       {
         sender: 'bot',
@@ -148,6 +147,15 @@ export function getBotReply({ optionValue, freeText }) {
       {
         sender: 'bot',
         text: '궁금하신 내용을 자유롭게 입력해주세요!',
+      },
+    ];
+  }
+
+  if (optionValue === 'ask-policy') {
+    return [
+      {
+        sender: 'bot',
+        text: '어떤 제도가 궁금하신가요? 편하게 질문을 입력해주세요!',
       },
     ];
   }

@@ -51,3 +51,15 @@ export async function getPolicyScraps({ page = 0, size = 20 } = {}) {
   const response = await apiClient.get('/policies/scraps', { params: { page, size } });
   return response.data;
 }
+
+/* POST /policies/chatbot/query | 인증 불필요
+   question은 최대 500자, policyId를 같이 보내면 해당 정책 정보 기준으로 답변함
+   세션 개념 없이 질문 하나당 답변 하나를 바로 받는 단발성 호출
+   응답 data: { answer, answerable } (answerable이 false면 정책 정보로 답할 수 없는 질문) */
+export async function getPolicyChatbotAnswer(question, policyId) {
+  const payload = { question };
+  if (policyId) payload.policyId = policyId;
+
+  const response = await apiClient.post('/policies/chatbot/query', payload, { timeout: 35000 });
+  return response.data.data;
+}

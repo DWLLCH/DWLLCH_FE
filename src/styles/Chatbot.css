@@ -115,10 +115,10 @@
   align-items: flex-end;
 }
 
-/* 퀵리플라이, 사용자가 다음에 고를 말풍선처럼 보이도록 우측 정렬로 뺌 */
+/* 퀵리플라이, 사용자가 다음에 고를 말풍선처럼 보이도록 우측 정렬로 뺌, 한 줄에 하나씩 세로로 쌓음 */
 .chatbot-quick-replies-row {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  flex-direction: column;
+  align-items: flex-end;
   gap: 8px;
 }

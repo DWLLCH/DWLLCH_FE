@@ -19,6 +19,7 @@ import {
   sendRiskCheckMessage,
   structureRiskCheckSession,
 } from '../api/chat';
+import { getPolicyChatbotAnswer } from '../api/policy';
 import { getAccessToken } from '../api/auth';
 
 export const ChatbotContext = createContext(null);
@@ -32,6 +33,10 @@ const RISK_CHECK_SESSION_KEY = 'dwllch_riskCheckSessionId';
 // 메뉴로 돌아가면 초기화됨, MENU_OPTIONS의 manual-input 값과 맞춰둠 (constants/chatbot.js 참고)
 const RISK_CHECK_ENTER_VALUES = ['manual-input'];
 const RISK_CHECK_EXIT_VALUES = ['back-to-menu'];
+
+// "제도 관련 질문이 있어요"를 선택해서 자유롭게 질문하는 동안만 제도 챗봇 흐름으로 봄
+// 위기판독과 달리 세션이 없는 단발성 질문/답변이라 로그인 여부와 무관하게 동작함
+const POLICY_QA_ENTER_VALUES = ['ask-policy'];
 
 // AI가 제안한 답변 칩(quickReply)인지 구분하는 접두사, selectQuickReply에서 분기할 때 씀
 const RISK_CHECK_SUGGESTED_PREFIX = 'risk-check-suggested:';
@@ -54,6 +59,7 @@ function ChatbotProvider({ children }) {
   const objectUrlsRef = useRef([]);
   const timeoutRef = useRef(null);
   const isRiskCheckFlowRef = useRef(false);
+  const isPolicyQaFlowRef = useRef(false);
 
   useEffect(
     () => () => {
@@ -244,6 +250,26 @@ function ChatbotProvider({ children }) {
     [appendMessages, ensureRiskCheckSession],
   );
 
+  // 제도 관련 자유 질문 답변, 세션 없이 질문 하나당 AI 답변 하나를 바로 받아옴 (로그인 불필요)
+  const sendPolicyQuestion = useCallback(
+    async (question) => {
+      setIsTyping(true);
+
+      try {
+        const result = await getPolicyChatbotAnswer(question);
+        setIsTyping(false);
+        appendMessages([{ sender: 'bot', text: result.answer, quickReplies: BACK_TO_MENU_OPTION }]);
+      } catch (error) {
+        setIsTyping(false);
+        const message =
+          error.response?.data?.message || 'AI 답변 생성에 실패했어요. 잠시 후 다시 시도해주세요';
+        // 같은 자리에서 다시 물어볼 수 있게 메뉴로 돌아가기는 보여주지 않음
+        appendMessages([{ sender: 'bot', text: message }]);
+      }
+    },
+    [appendMessages],
+  );
+
   const clearQuickReplies = useCallback((messageId) => {
     setMessages((prev) =>
       prev.map((message) =>
@@ -287,12 +313,22 @@ function ChatbotProvider({ children }) {
 
       if (RISK_CHECK_ENTER_VALUES.includes(option.value)) {
         isRiskCheckFlowRef.current = true;
+        isPolicyQaFlowRef.current = false;
+      } else if (POLICY_QA_ENTER_VALUES.includes(option.value)) {
+        isPolicyQaFlowRef.current = true;
+        isRiskCheckFlowRef.current = false;
       } else if (RISK_CHECK_EXIT_VALUES.includes(option.value)) {
         isRiskCheckFlowRef.current = false;
+        isPolicyQaFlowRef.current = false;
       }
 
       if (option.value === 'manual-input') {
         ensureRiskCheckSession();
+        respondWithDelay(() => getBotReply({ optionValue: option.value }));
+        return;
+      }
+
+      if (option.value === 'ask-policy') {
         respondWithDelay(() => getBotReply({ optionValue: option.value }));
         return;
       }
@@ -322,9 +358,14 @@ function ChatbotProvider({ children }) {
         return;
       }
 
+      if (isPolicyQaFlowRef.current) {
+        sendPolicyQuestion(trimmed);
+        return;
+      }
+
       respondWithDelay(() => getBotReply({ freeText: trimmed }));
     },
-    [appendMessages, respondWithDelay, sendRiskCheckTurn],
+    [appendMessages, respondWithDelay, sendRiskCheckTurn, sendPolicyQuestion],
   );
 
   const attachImages = useCallback(
