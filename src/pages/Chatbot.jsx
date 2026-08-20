@@ -34,18 +34,36 @@ function Chatbot() {
   const [inputValue, setInputValue] = useState('');
   const [attachOpen, setAttachOpen] = useState(false);
   const bottomRef = useRef(null);
+  const hasInteractedRef = useRef(false);
 
   useEffect(() => {
     enterChat();
   }, [enterChat]);
 
   useEffect(() => {
+    if (!hasInteractedRef.current) return;
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [messages, isTyping]);
 
   const handleTextSubmit = () => {
+    hasInteractedRef.current = true;
     submitText(inputValue);
     setInputValue('');
+  };
+
+  const handleQuickReply = (messageId, option) => {
+    hasInteractedRef.current = true;
+    selectQuickReply(messageId, option);
+  };
+
+  const handleAttachImages = (files) => {
+    hasInteractedRef.current = true;
+    attachImages(files);
+  };
+
+  const handleAttachFiles = (files) => {
+    hasInteractedRef.current = true;
+    attachFiles(files);
   };
 
   const groups = groupMessages(messages);
@@ -108,7 +126,7 @@ function Chatbot() {
                         key={option.value}
                         type="button"
                         className="chat-quick-reply"
-                        onClick={() => selectQuickReply(message.id, option)}
+                        onClick={() => handleQuickReply(message.id, option)}
                       >
                         {option.label}
                       </button>
@@ -143,8 +161,8 @@ function Chatbot() {
       <ChatAttachSheet
         open={attachOpen}
         onClose={() => setAttachOpen(false)}
-        onSelectImages={attachImages}
-        onSelectFiles={attachFiles}
+        onSelectImages={handleAttachImages}
+        onSelectFiles={handleAttachFiles}
       />
     </div>
   );
