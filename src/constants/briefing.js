@@ -113,7 +113,16 @@ export function findContentTable(contentTables, sectionTitle) {
   if (!Array.isArray(contentTables) || !sectionTitle) return null;
 
   const target = stripLeadingNumber(sectionTitle);
-  return contentTables.find((table) => stripLeadingNumber(table.section || '') === target) || null;
+  const table = contentTables.find((t) => stripLeadingNumber(t.section || '') === target);
+  if (!table) return null;
+
+  // headers/rows가 비어있으면 BriefingContentTable이 렌더링할 게 없어서 null을 반환하는데,
+  // 호출부는 이 객체의 존재 여부만으로 BriefingBulletTable 폴백을 선택해서 빈 표가 그대로 빈 화면이 됨
+  // 여기서 미리 걸러서 렌더링 가능한 표만 반환하고, 아니면 폴백이 자연스럽게 이어지게 함
+  if (!Array.isArray(table.headers) || !Array.isArray(table.rows)) return null;
+  if (table.headers.length === 0 || table.rows.length === 0) return null;
+
+  return table;
 }
 
 export function parseBriefingContent(content) {

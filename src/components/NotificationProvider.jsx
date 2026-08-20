@@ -48,6 +48,7 @@ function NotificationProvider({ children }) {
       fetchNotifications();
     } else {
       setNotifications([]);
+      setLoading(false);
     }
   }, [userId, fetchNotifications]);
 

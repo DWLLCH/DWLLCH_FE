@@ -34,11 +34,8 @@
 
 .notification-item-message {
   margin: 0 0 4px;
-  overflow: hidden;
   font-size: 14px;
   color: #202020;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .notification-item-time {

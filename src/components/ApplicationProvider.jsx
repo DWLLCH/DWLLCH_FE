@@ -30,6 +30,7 @@ function ApplicationProvider({ children }) {
   // (applications는 policyId가 키라 숫자 키 특성상 정렬 순서가 뒤틀려서 목록 용도로는 못 씀)
   const [applicationList, setApplicationList] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
 
   // 매 렌더마다 새로 확인함 (로그인/로그아웃으로 토큰이 바뀌어도 즉시 반영되도록, BookmarkProvider와 동일 패턴)
   const isLoggedIn = Boolean(getAccessToken());
@@ -43,6 +44,7 @@ function ApplicationProvider({ children }) {
   const fetchApplications = useCallback(() => {
     const requestedFor = sessionRef.current;
     setLoading(true);
+    setError(false);
     getApplications({ page: 0, size: 50 })
       .then((data) => {
         if (sessionRef.current !== requestedFor) return; // 세션이 바뀐 뒤 도착한 응답은 무시
@@ -67,7 +69,10 @@ function ApplicationProvider({ children }) {
         setApplicationList(list);
       })
       .catch(() => {
-        // 신청 목록 조회 실패는 조용히 무시함 (다음 재조회 때 다시 시도)
+        if (sessionRef.current !== requestedFor) return;
+        // 조회 실패를 빈 목록으로 조용히 넘기면 재시도 경로가 없어서 계속 빈 상태로 보임
+        // 에러 상태로 남겨두고 refetch로 다시 시도할 수 있게 함
+        setError(true);
       })
       .finally(() => {
         if (sessionRef.current === requestedFor) setLoading(false);
@@ -76,6 +81,8 @@ function ApplicationProvider({ children }) {
 
   useEffect(() => {
     sessionRef.current = userId;
+    // 세션이 바뀌면 이전 사용자 기준으로 남아있던 진행 중 요청 마커도 같이 정리함
+    pendingRef.current.clear();
 
     if (fetchedForRef.current === userId) return;
     fetchedForRef.current = userId;
@@ -85,17 +92,24 @@ function ApplicationProvider({ children }) {
     } else {
       setApplications({});
       setApplicationList([]);
+      setError(false);
     }
   }, [userId, fetchApplications]);
 
   const getAppliedDate = (policyId) => applications[policyId]?.dateKey || null;
 
-  // 성공하면 'completed', 실패하면 'error'를 반환함 (호출한 쪽에서 실패 토스트를 보여줄 수 있도록)
+  // 성공하면 'completed', 실패하면 'error', 비로그인이면 'login-required'를 반환함
+  // (호출한 쪽에서 실패 토스트/로그인 모달을 알맞게 보여줄 수 있도록, toggleBookmark와 동일한 규칙)
   const completeApplication = (policyId, dateKey) => {
+    // 클로저로 캡처된 값 대신 호출 시점 localStorage를 다시 확인함 (toggleBookmark와 동일한 이유)
+    if (!getAccessToken()) return Promise.resolve('login-required');
     if (applications[policyId] || pendingRef.current.has(policyId)) {
       return Promise.resolve(undefined);
     }
 
+    // 요청 시작 시점의 세션을 기억해뒀다가, 응답이 왔을 때도 같은 세션이어야만 상태에 반영함
+    // (로그아웃/계정 전환 도중 응답이 오면 이전 사용자의 신청 건이 새 사용자 상태에 섞이는 걸 막음)
+    const requestedFor = sessionRef.current;
     pendingRef.current.add(policyId);
 
     return createApplication({
@@ -104,6 +118,8 @@ function ApplicationProvider({ children }) {
       memo: `${APPLICATION_DATE_MEMO_PREFIX}: ${dateKey}`,
     })
       .then((application) => {
+        if (sessionRef.current !== requestedFor) return 'completed';
+
         setApplications((prev) => ({
           ...prev,
           [policyId]: {
@@ -139,6 +155,8 @@ function ApplicationProvider({ children }) {
         completeApplication,
         appliedCount,
         loading,
+        error,
+        refetch: fetchApplications,
       }}
     >
       {children || <Outlet />}

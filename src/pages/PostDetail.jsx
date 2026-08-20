@@ -146,6 +146,7 @@ function PostDetail() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastVariant, setToastVariant] = useState('default');
   const toastTimerRef = useRef(null);
+  const blockRedirectTimerRef = useRef(null);
   const moreMenuRef = useRef(null);
 
   const isMyPost = Boolean(post?.isMine);
@@ -237,6 +238,7 @@ function PostDetail() {
   useEffect(
     () => () => {
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      if (blockRedirectTimerRef.current) clearTimeout(blockRedirectTimerRef.current);
     },
     [],
   );
@@ -381,7 +383,8 @@ function PostDetail() {
         blockAuthor(targetUserId);
         setBlockConfirmOpen(false);
         showToast('게시물이 차단되었습니다');
-        setTimeout(() => navigate('/community'), 1600);
+        if (blockRedirectTimerRef.current) clearTimeout(blockRedirectTimerRef.current);
+        blockRedirectTimerRef.current = setTimeout(() => navigate('/community'), 1600);
       })
       .catch((error) => {
         // BE가 400을 COMMON_400_INVALID_INPUT으로 뭉뚱그려서 code로는 사유를 못 가르고,

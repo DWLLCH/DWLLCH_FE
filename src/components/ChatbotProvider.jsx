@@ -78,6 +78,10 @@ function ChatbotProvider({ children }) {
   // 세션 생성이 진행 중일 때 새로 생성 요청이 겹치면(이미지 여러 장 동시 첨부 등) 같은 Promise를
   // 같이 기다리게 해서 세션이 여러 개로 쪼개지는 걸 막음
   const pendingSessionPromiseRef = useRef(null);
+  // 새로고침 직후 세션 복원(getRiskCheckSession)이 끝나기 전에 메시지를 보내면 activeSessionIdRef가
+  // 아직 비어있어서 ensureRiskCheckSession이 복원 대상과 다른 새 세션을 만들어버릴 수 있음
+  // ensureRiskCheckSession이 이 Promise를 먼저 기다리게 해서 복원이 끝난 뒤에 판단하게 함
+  const pendingRestoreRef = useRef(null);
 
   useEffect(
     () => () => {
@@ -112,7 +116,7 @@ function ChatbotProvider({ children }) {
     const storedId = sessionStorage.getItem(RISK_CHECK_SESSION_KEY);
     if (!storedId || !getAccessToken()) return;
 
-    getRiskCheckSession(storedId)
+    const restorePromise = getRiskCheckSession(storedId)
       .then((session) => {
         activeSessionIdRef.current = session.id;
         setRiskCheckSessionId(session.id);
@@ -150,7 +154,12 @@ function ChatbotProvider({ children }) {
       .catch(() => {
         // 세션이 이미 종료됐거나 다른 계정 것이면 조용히 정리하고 다음에 새로 만듦
         sessionStorage.removeItem(RISK_CHECK_SESSION_KEY);
+      })
+      .finally(() => {
+        if (pendingRestoreRef.current === restorePromise) pendingRestoreRef.current = null;
       });
+
+    pendingRestoreRef.current = restorePromise;
   }, []);
 
   const appendMessages = useCallback((drafts) => {
@@ -183,6 +192,12 @@ function ChatbotProvider({ children }) {
 
   const ensureRiskCheckSession = useCallback(async () => {
     if (!getAccessToken()) return null;
+
+    // 복원 조회가 아직 안 끝났으면 먼저 기다림 (안 그러면 activeSessionIdRef가 비어있어서
+    // 아래에서 복원 대상 세션과 별개인 새 세션을 만들어버릴 수 있음)
+    if (pendingRestoreRef.current) {
+      await pendingRestoreRef.current;
+    }
 
     const lastActivity = Number(sessionStorage.getItem(RISK_CHECK_LAST_ACTIVITY_KEY));
     const isIdleExpired =
