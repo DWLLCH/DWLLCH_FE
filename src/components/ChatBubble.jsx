@@ -1,3 +1,4 @@
+import ReactMarkdown from 'react-markdown';
 import fileIcon from '../assets/fileIcon.svg';
 import {
   MISSING_FIELD_LABELS,
@@ -22,8 +23,6 @@ function ChatBubble({
   structured,
   tail = false,
 }) {
-  const lines = text ? text.split('\n') : [];
-
   return (
     <div className={`chat-bubble chat-bubble--${sender}${tail ? ' chat-bubble--tail' : ''}`}>
       {type === 'image' && imageUrl && (
@@ -46,12 +45,13 @@ function ChatBubble({
         </a>
       )}
 
-      {(title || lines.length > 0) && (
+      {(title || text) && (
         <div className="chat-bubble-text">
           {title && <p className="chat-bubble-title">{title}</p>}
-          {lines.map((line, index) => (
-            <p key={`${index}-${line}`}>{line || ' '}</p>
-          ))}
+          {/* Gemini 응답엔 굵은 글씨나 번호 목록 같은 마크다운 문법이 그대로 섞여 옴, 채팅 말풍선에는
+              문단, 굵게, 목록 정도만 자연스럽게 렌더링되면 충분해서 별도 컴포넌트 매핑 없이 기본 태그로 씀
+              (목록 스타일은 ChatBubble.css에서 잡음) */}
+          {text && <ReactMarkdown>{text}</ReactMarkdown>}
         </div>
       )}
 

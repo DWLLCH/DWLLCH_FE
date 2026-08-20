@@ -50,6 +50,16 @@
   margin-top: 8px;
 }
 
+.chat-bubble-text ul,
+.chat-bubble-text ol {
+  margin: 4px 0 0;
+  padding-left: 20px;
+}
+
+.chat-bubble-text li + li {
+  margin-top: 2px;
+}
+
 .chat-bubble-image-link {
   display: block;
   cursor: pointer;
